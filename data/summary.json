@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-11-20",
+  "desensitized": true,
+  "desensitizeNote": "户号、实例ID、公网IP已打码；不含任何令牌、Cookie、密码与个人文件名清单。",
+  "meters": [
+    {
+      "name": "*立国",
+      "noMasked": "3750••••1078",
+      "balance": 47.25,
+      "dayKwh": 0.25,
+      "yearKwh": 167,
+      "yearFee": 91.34,
+      "status": "ok"
+    },
+    {
+      "name": "*凌志",
+      "noMasked": "3700••••3458",
+      "balance": -137.89,
+      "dayKwh": 20.15,
+      "yearKwh": 3738,
+      "yearFee": 2089.72,
+      "status": "neg"
+    }
+  ],
+  "drives": [
+    { "name": "百度网盘", "files": 54829, "gb": 230.64, "usagePct": 95.0 },
+    { "name": "联通云盘", "files": 2100, "gb": 10.24, "usagePct": 4.2 },
+    { "name": "阿里云盘", "files": 169, "gb": 1.74, "usagePct": 0.7 },
+    { "name": "123云盘", "files": 2, "gb": 0.14, "usagePct": 0.1 }
+  ],
+  "driveTotal": { "files": 57100, "gb": 242.76 },
+  "ecs": {
+    "status": "Running",
+    "region": "华北2（北京）",
+    "spec": "2核 2G",
+    "os": "Windows Server 2022 数据中心版",
+    "instanceIdMasked": "i-2ze9••••ryc",
+    "publicIpMasked": "8.152.•••.148",
+    "cpu": 45.1,
+    "mem": 95.3,
+    "disk": 65.0
+  },
+  "migration": {
+    "baiduToWopan": {
+      "asOf": "2026-11-17",
+      "sourceItems": 1331,
+      "landedItems": 509,
+      "pendingItems": 822,
+      "pendingGb": 26.61,
+      "policy": "源盘只复制不删除"
+    },
+    "baiduVsAliyun": {
+      "asOf": "2026-11-17",
+      "baiduFiles": 54829,
+      "baiduGb": 247.65,
+      "aliyunFiles": 4591,
+      "aliyunGb": 376.94,
+      "duplicateFiles": 479,
+      "duplicateGb": 5.03,
+      "baiduOnlyFiles": 54350,
+      "baiduOnlyGb": 242.62,
+      "aliyunOnlyFiles": 4221,
+      "aliyunOnlyGb": 372.61,
+      "matchRule": "文件名 + 字节大小；阿里侧接口不返回 md5"
+    }
+  },
+  "tasks": [
+    { "name": "国网两户台账·日采集", "status": "ok", "pct": 100 },
+    { "name": "云盘清单扫描核对", "status": "ok", "pct": 100 },
+    { "name": "驾驶舱数据重算", "status": "ok", "pct": 100 }
+  ]
+}
