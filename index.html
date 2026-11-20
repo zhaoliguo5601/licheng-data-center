@@ -94,7 +94,7 @@ header{display:flex;align-items:center;gap:18px;flex:none}
 @keyframes grow{from{width:0}to{width:var(--w,0%)}}
 
 /* ---------- 主网格：4 列 × 2 行，填满剩余高度 ---------- */
-main{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:16px}
+main{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr) auto;gap:16px}
 .panel{position:relative;border-radius:16px;padding:15px 17px 16px;min-height:0;min-width:0;overflow:hidden;
   background:linear-gradient(165deg,var(--panel),var(--panel2));border:1px solid var(--line);
   box-shadow:0 10px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.045);
@@ -255,6 +255,35 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-t
 .tm-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text);vertical-align:top;white-space:nowrap}
 .tm-name{font-weight:700;letter-spacing:.04em}
 .tm-ok{color:var(--green)} .tm-wait{color:var(--orange)} .tm-dead{color:var(--red)}
+
+/* GitHub 源码仓库（通栏） */
+.gh{grid-column:1/-1;display:grid;grid-template-columns:32% 1fr;gap:20px;min-height:0}
+.gh-left{display:flex;flex-direction:column;gap:13px;min-width:0}
+.gh-repo{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.gh-repo .nm{font-size:13.5px;font-weight:800;letter-spacing:.02em;color:#e8f4ff;white-space:nowrap}
+.gh-badge{font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid;letter-spacing:.05em}
+.gh-badge.priv{color:#ffb347;background:rgba(255,179,71,.1);border-color:rgba(255,179,71,.3)}
+.gh-badge.branch{color:#8fe9ff;background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.28)}
+.gh-badge.lang{color:#c4b5fd;background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.3)}
+.gh-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.gh-stat{padding:10px 12px;border-radius:11px;background:rgba(0,229,255,.045);border:1px solid rgba(0,229,255,.12)}
+.gh-stat .k{font-size:10px;color:var(--dim);letter-spacing:.06em}
+.gh-stat .v{font-size:18px;font-weight:800;margin-top:5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gh-types{display:flex;flex-direction:column;gap:9px}
+.gh-bar{display:flex;height:9px;border-radius:5px;overflow:hidden;gap:1.5px}
+.gh-bar i{display:block;height:100%;border-radius:2px}
+.gh-legend{display:flex;flex-wrap:wrap;gap:13px;font-size:10.5px;color:var(--dim)}
+.gh-legend span{display:flex;align-items:center;gap:6px}
+.gh-legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.gh-right{display:flex;flex-direction:column;min-width:0;border-left:1px dashed rgba(0,229,255,.12);padding-left:20px}
+.gh-list{display:flex;flex-direction:column;gap:6px;flex:1;min-height:0;overflow-y:auto}
+.gh-item{display:flex;align-items:center;gap:10px;font-size:11.5px;padding:6px 2px;border-bottom:1px dashed rgba(0,229,255,.08)}
+.gh-item:last-child{border-bottom:0}
+.gh-sha{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--dim2);flex:none;width:62px}
+.gh-msg{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.gh-time{font-size:9.5px;color:var(--dim2);flex:none;font-variant-numeric:tabular-nums}
+.gh-foot{margin-top:9px;font-size:10.5px;color:var(--dim2);flex:none}
+.gh-foot a{color:#8fe9ff;text-decoration:none}
 
 @media (max-width:1400px){
   .stage{padding:12px 16px 10px;gap:12px}
@@ -427,6 +456,30 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-t
         <a href="https://www.jd.com" target="_blank">京东 <b>签到</b></a>
         <a href="https://www.taofenba.com" target="_blank">淘粉吧 <b>返利</b></a>
         <a href="https://www.workbuddy.cn" target="_blank">WorkBuddy <b>Agent</b></a>
+      </div>
+    </section>
+
+    <!-- GitHub 源码仓库 -->
+    <section class="panel" style="--accent:var(--blue)">
+      <h2>GitHub 源码仓库 <span class="tag" id="ghTag">静态快照</span></h2>
+      <div class="gh">
+        <div class="gh-left">
+          <div class="gh-repo">
+            <span class="nm" id="ghRepo">—</span>
+            <span class="gh-badge priv" id="ghPriv">私有</span>
+            <span class="gh-badge branch" id="ghBranch">main</span>
+            <span class="gh-badge lang" id="ghLang">Python</span>
+          </div>
+          <div class="gh-stats" id="ghStats"></div>
+          <div class="gh-types">
+            <div class="gh-bar" id="ghBar"></div>
+            <div class="gh-legend" id="ghLegend"></div>
+          </div>
+        </div>
+        <div class="gh-right">
+          <div class="gh-list" id="ghList"></div>
+          <div class="gh-foot" id="ghFoot"></div>
+        </div>
       </div>
     </section>
   </main>
@@ -734,6 +787,33 @@ const DATA = {
         "status": "ok",
         "note": "通用流量50GB当月+46.32GB上月结转(共享)；另公免流量已用27.38MB"
       }
+    ]
+  },
+  "github": {
+    "repo": "licheng-data-center",
+    "owner": "zhaoliguo5601",
+    "private": true,
+    "branch": "main",
+    "language": "Python",
+    "files": 22,
+    "commits": 11,
+    "branches": 1,
+    "stars": 0,
+    "forks": 0,
+    "url": "https://github.com/zhaoliguo5601/licheng-data-center",
+    "updated": "11-20 21:06",
+    "types": [
+      { "name": "Python", "count": 12, "color": "#3b82f6" },
+      { "name": "Shell", "count": 4, "color": "#22ff9c" },
+      { "name": "HTML", "count": 2, "color": "#ffb347" },
+      { "name": "文档/配置", "count": 4, "color": "#a855f7" }
+    ],
+    "recent": [
+      { "sha": "7604440", "msg": "更新 README：补充目录结构、脚本环境变量与安全边界说明", "time": "21:06" },
+      { "sha": "0cf0a35", "msg": "新增：落地核对、补传与清理脚本（凭证走环境变量）", "time": "21:05" },
+      { "sha": "201559d", "msg": "新增：百度/阿里跨盘迁移脚本（凭证走环境变量）", "time": "21:04" },
+      { "sha": "bef3d68", "msg": "新增：网盘清单遍历脚本（凭证走环境变量）", "time": "21:03" },
+      { "sha": "9c3de90", "msg": "新增：网盘迁移看门狗 shell 脚本", "time": "21:03" }
     ]
   }
   /*__UNICOM_END__*/
@@ -1129,6 +1209,27 @@ const LINK=150*devicePixelRatio;
   document.getElementById("aliTag").textContent=A.region+" · 同步于 "+A.updated;
   const dot=document.getElementById("aliDot");
   if(dot)dot.className="dot "+(on?"":"bad");
+})();
+
+/* ============ GitHub 源码仓库 ============ */
+(function(){
+  const G=DATA.github; if(!G)return;
+  document.getElementById("ghRepo").textContent=G.repo;
+  document.getElementById("ghPriv").textContent=G.private?"私有":"公开";
+  document.getElementById("ghBranch").textContent="分支 "+G.branch;
+  document.getElementById("ghLang").textContent=G.language;
+  const stats=[["文件",G.files],["提交",G.commits],["分支",G.branches],["Star·Fork",G.stars+" / "+G.forks]];
+  document.getElementById("ghStats").innerHTML=stats.map(([k,v])=>
+    `<div class="gh-stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+  const tot=G.types.reduce((a,t)=>a+t.count,0)||1;
+  document.getElementById("ghBar").innerHTML=G.types.map(t=>
+    `<i style="width:${(t.count/tot*100).toFixed(1)}%;background:${t.color}"></i>`).join("");
+  document.getElementById("ghLegend").innerHTML=G.types.map(t=>
+    `<span><i style="background:${t.color}"></i>${t.name} ${t.count}</span>`).join("");
+  document.getElementById("ghList").innerHTML=G.recent.map(c=>
+    `<div class="gh-item"><span class="gh-sha">${c.sha}</span><span class="gh-msg">${c.msg}</span><span class="gh-time">${c.time}</span></div>`).join("");
+  document.getElementById("ghFoot").innerHTML=`仓库 <a href="${G.url}" target="_blank" rel="noopener">${G.url}</a> · 快照于 ${G.updated} · 凭证不入库`;
+  document.getElementById("ghTag").textContent="快照 "+G.updated;
 })();
 
 countUp();
