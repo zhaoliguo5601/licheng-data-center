@@ -8,7 +8,7 @@
       "name": "*立国",
       "noMasked": "3750••••1078",
       "balance": 47.25,
-      "dayKwh": 0.25,
+      "dayKwh": 0.24,
       "yearKwh": 167,
       "yearFee": 91.34,
       "status": "ok"
@@ -16,20 +16,20 @@
     {
       "name": "*凌志",
       "noMasked": "3700••••3458",
-      "balance": -137.89,
-      "dayKwh": 20.15,
+      "balance": -149.92,
+      "dayKwh": 14.38,
       "yearKwh": 3738,
       "yearFee": 2089.72,
       "status": "neg"
     }
   ],
   "drives": [
-    { "name": "百度网盘", "files": 54829, "gb": 230.64, "usagePct": 95.0 },
-    { "name": "联通云盘", "files": 2100, "gb": 10.24, "usagePct": 4.2 },
-    { "name": "阿里云盘", "files": 169, "gb": 1.74, "usagePct": 0.7 },
-    { "name": "123云盘", "files": 2, "gb": 0.14, "usagePct": 0.1 }
+    { "name": "阿里云盘", "files": 4422, "gb": 349.32, "usagePct": 59.2 },
+    { "name": "百度网盘", "files": 54829, "gb": 230.64, "usagePct": 39.1 },
+    { "name": "联通云盘", "files": 2100, "gb": 10.24, "usagePct": 1.7 },
+    { "name": "123云盘", "files": 2, "gb": 0.14, "usagePct": 0.0 }
   ],
-  "driveTotal": { "files": 57100, "gb": 242.76 },
+  "driveTotal": { "files": 61353, "gb": 590.34 },
   "ecs": {
     "status": "Running",
     "region": "华北2（北京）",
@@ -68,6 +68,8 @@
   "tasks": [
     { "name": "国网两户台账·日采集", "status": "ok", "pct": 100 },
     { "name": "云盘清单扫描核对", "status": "ok", "pct": 100 },
-    { "name": "驾驶舱数据重算", "status": "ok", "pct": 100 }
+    { "name": "驾驶舱数据重算", "status": "ok", "pct": 100 },
+    { "name": "京东网页端登录", "status": "blocked", "pct": 0 },
+    { "name": "123云盘令牌", "status": "blocked", "pct": 0 }
   ]
 }
