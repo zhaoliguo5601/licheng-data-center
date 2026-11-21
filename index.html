@@ -187,6 +187,7 @@ main{display:contents}
 .ring-wrap{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
 .ring-box{position:relative;flex:1;min-height:232px}
 #ring{width:100%;height:100%;display:block}
+#ring3d{position:absolute;inset:0;width:100%;height:100%;display:block}
 .net-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;flex:none}
 .net-cell{display:flex;flex-direction:column;gap:3px;min-width:0}
 .net-name{display:flex;align-items:center;gap:4px;color:#cfe9ff;font-size:9.5px;white-space:nowrap}
@@ -390,7 +391,7 @@ main{display:contents}
     <section class="panel hub-center" style="--accent:var(--purple)">
       <h2>数据中枢 <span class="tag">CENTER</span></h2>
       <div class="ring-wrap">
-        <div class="ring-box"><canvas id="ring"></canvas></div>
+        <div class="ring-box"><canvas id="ring"></canvas><canvas id="ring3d" hidden></canvas></div>
         <div class="net-strip">
           <div class="net-cell" style="--a:.32;--b:.92;--d:3.4s;--c:#00e5ff"><span class="net-name"><i class="ndot" style="background:#00e5ff"></i>美国</span><div class="net-bar"><i></i></div><span class="net-ms">142ms</span></div>
           <div class="net-cell" style="--a:.28;--b:.78;--d:4.1s;--c:#a855f7"><span class="net-name"><i class="ndot" style="background:#a855f7"></i>欧洲</span><div class="net-bar"><i></i></div><span class="net-ms">186ms</span></div>
@@ -1397,6 +1398,7 @@ const LINK=150*devicePixelRatio;
   let last=performance.now();
 
   function draw(now){
+    if(cv._stop2d)return;
     const dt=Math.min(.05,(now-last)/1000);last=now;
     if(!reduce)rot+=dt*.05;
     ctx.clearRect(0,0,W,H);
@@ -1475,7 +1477,171 @@ const LINK=150*devicePixelRatio;
 
     requestAnimationFrame(draw);
   }
-  requestAnimationFrame(draw);
+  cv._raf2d=requestAnimationFrame(draw);
+})();
+
+/* ============ 数据中枢 · 3D 神经星环（NEURAL 风格 · three.js · 失败自动回退 2D） ============ */
+(function(){
+  const cv3=document.getElementById('ring3d');
+  const cv2=document.getElementById('ring');
+  if(!cv3) return;
+
+  const CDN='https://cdn.jsdelivr.net/npm/three@0.147.0/';
+  const DEPS=['build/three.min.js','examples/js/shaders/CopyShader.js','examples/js/shaders/LuminosityHighPassShader.js',
+    'examples/js/postprocessing/EffectComposer.js','examples/js/postprocessing/RenderPass.js',
+    'examples/js/postprocessing/ShaderPass.js','examples/js/postprocessing/UnrealBloomPass.js'].map(p=>CDN+p);
+
+  function loadScripts(list){
+    return list.reduce((p,src)=>p.then(()=>new Promise(res=>{
+      const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=res; document.head.appendChild(s);
+    })),Promise.resolve());
+  }
+
+  const COLS=['#00e5ff','#22ff9c','#a855f7','#ffb347','#4da3ff','#ff5cae','#ff4458','#62e6c7','#ffd23f','#9aa6ff','#ff7b54','#b5ef3a'];
+  const TAU=Math.PI*2;
+  const reduce=window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  loadScripts(DEPS).then(()=>{
+    try{
+      if(!window.THREE) throw new Error('three.js 未就绪');
+      const THREE=window.THREE;
+      const test=document.createElement('canvas');
+      const gl=test.getContext('webgl2')||test.getContext('webgl');
+      if(!gl) throw new Error('WebGL 不可用');
+
+      const box=cv3.parentElement;
+      const renderer=new THREE.WebGLRenderer({canvas:cv3,antialias:true,alpha:true,powerPreference:'high-performance'});
+      renderer.setClearColor(0x000000,0);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
+
+      const scene=new THREE.Scene();
+      const camera=new THREE.PerspectiveCamera(38,1,0.05,100);
+      camera.position.set(0,0,6.2);
+      const spin=new THREE.Group(); scene.add(spin);
+
+      function spriteTex(){
+        const c=document.createElement('canvas'); c.width=c.height=64;
+        const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
+        g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.18,'rgba(255,255,255,.85)');
+        g.addColorStop(.42,'rgba(255,255,255,.22)');g.addColorStop(1,'rgba(255,255,255,0)');
+        x.fillStyle=g;x.fillRect(0,0,64,64);
+        return new THREE.CanvasTexture(c);
+      }
+      const SPR=spriteTex();
+      const colHex=h=>{const n=parseInt(h.slice(1),16);return new THREE.Color(n>>16&255,n>>8&255,n&255);};
+
+      function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+      const R=mulberry32(20261121);
+      const rg=()=>{let u=0,v=0;while(!u)u=R();while(!v)v=R();return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v);};
+
+      const CL=[new THREE.Vector3(0,0,0)];
+      const NCL=12;
+      for(let i=1;i<=NCL;i++){
+        const a=-Math.PI/2+(i-1)/NCL*TAU, r=1.12+(R()-.5)*.12;
+        CL.push(new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,(i%2?1:-1)*(.12+R()*.22)));
+      }
+
+      const cluster=[];
+      CL.forEach((C,idx)=>{
+        const chief=idx===0;
+        const col=chief?new THREE.Color(0xeafcff):colHex(COLS[(idx-1+NCL)%NCL]);
+        const n=chief?260:46, sig=chief?.2:.13;
+        const pos=new Float32Array(n*3);
+        for(let k=0;k<n;k++){pos[k*3]=C.x+rg()*sig;pos[k*3+1]=C.y+rg()*sig;pos[k*3+2]=C.z+rg()*sig*.9;}
+        const g=new THREE.BufferGeometry();
+        g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+        spin.add(new THREE.Points(g,new THREE.PointsMaterial({size:chief?.07:.05,map:SPR,color:col,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true})));
+        const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:SPR,color:col,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));
+        spr.position.copy(C); spr.scale.setScalar(chief?.5:.22); spin.add(spr);
+        cluster.push({spr,ph:R()*TAU,chief});
+      });
+
+      function lineMat(op,col){return new THREE.LineBasicMaterial({color:col||0xd4e8ff,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false});}
+      const linkPos=[];
+      for(let i=1;i<=NCL;i++){linkPos.push(0,0,0,CL[i].x,CL[i].y,CL[i].z);}
+      for(let i=1;i<=NCL;i++){const A=CL[i],B=CL[i%NCL+1];linkPos.push(A.x,A.y,A.z,B.x,B.y,B.z);}
+      const lg=new THREE.BufferGeometry();
+      lg.setAttribute('position',new THREE.Float32BufferAttribute(linkPos,3));
+      spin.add(new THREE.LineSegments(lg,lineMat(.18)));
+
+      function circle(r,z,op,seg){const a=new Float32Array(seg*3);for(let i=0;i<seg;i++){const t=i/seg*TAU;a[i*3]=Math.cos(t)*r;a[i*3+1]=Math.sin(t)*r;a[i*3+2]=z;}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(a,3));return new THREE.LineLoop(g,lineMat(op));}
+      spin.add(circle(1.55,0,.3,320));
+      spin.add(circle(1.72,0,.18,320));
+      {const a=[];for(let i=0;i<72;i++){const t=i/72*TAU,long=i%6===0,l=long?.05:.022;a.push(Math.cos(t)*1.72,Math.sin(t)*1.72,0,Math.cos(t)*(1.72+l),Math.sin(t)*(1.72+l),0);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(a,3));spin.add(new THREE.LineSegments(g,lineMat(.4)));}
+      {const a=[];[[.1,.9],[1.3,1.5],[2.2,3.4],[3.9,4.2],[4.6,5.8]].forEach(([t0,t1])=>{const n=20;for(let i=0;i<n;i++){const u0=t0+(t1-t0)*i/n,u1=t0+(t1-t0)*(i+1)/n;a.push(Math.cos(u0)*1.8,Math.sin(u0)*1.8,0,Math.cos(u1)*1.8,Math.sin(u1)*1.8,0);}});const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(a,3));spin.add(new THREE.LineSegments(g,lineMat(.35)));}
+
+      {const n=500,p=new Float32Array(n*3);for(let k=0;k<n;k++){const u=R()*2-1,v=R()*2-1,w=R()*2-1,d=Math.hypot(u,v,w)||1,r=6+R()*18;p[k*3]=u/d*r;p[k*3+1]=v/d*r;p[k*3+2]=w/d*r;}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({size:.05,map:SPR,color:0x7f93b0,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false})));}
+
+      const links=[];
+      for(let i=1;i<=NCL;i++)links.push([CL[0],CL[i]]);
+      for(let i=1;i<=NCL;i++)links.push([CL[i],CL[i%NCL+1]]);
+      const pulses=[];
+      for(let k=0;k<14;k++){
+        const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:SPR,color:0xffffff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
+        spr.scale.setScalar(.12); spin.add(spr);
+        pulses.push({spr,lk:(R()*links.length)|0,t:R(),speed:.18+R()*.22,col:COLS[k%COLS.length]});
+      }
+
+      const sweep=new THREE.Mesh(new THREE.RingGeometry(1.2,1.68,48,1,-Math.PI/2,.55),
+        new THREE.MeshBasicMaterial({color:0x00e5ff,transparent:true,opacity:.12,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+      spin.add(sweep);
+
+      let composer=null;
+      if(THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.RenderPass){
+        composer=new THREE.EffectComposer(renderer);
+        composer.addPass(new THREE.RenderPass(scene,camera));
+        composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(512,512),.62,.42,.3));
+      }
+
+      function resize(){
+        const w=box.clientWidth||1,h=box.clientHeight||1;
+        renderer.setSize(w,h,false);
+        camera.aspect=w/h; camera.updateProjectionMatrix();
+        if(composer)composer.setSize(w,h);
+      }
+      if('ResizeObserver' in window)new ResizeObserver(resize).observe(box);
+      window.addEventListener('resize',resize);
+      resize();
+
+      let last=performance.now(),raf;
+      function frame(now){
+        const dt=Math.min(.05,(now-last)/1000); last=now;
+        const t=now/1000;
+        if(!reduce)spin.rotation.z+=dt*.05;
+        const chief=cluster[0],breath=1+.12*Math.sin(t*2);
+        chief.spr.scale.setScalar(.5*breath);
+        chief.spr.material.opacity=.7+.25*Math.sin(t*2);
+        cluster.slice(1).forEach(o=>{
+          const p=.5+.5*Math.sin(t*1.6+o.ph);
+          o.spr.scale.setScalar(.18+.06*p);
+          o.spr.material.opacity=.55+.35*p;
+        });
+        pulses.forEach(po=>{
+          po.t+=po.speed*dt;
+          if(po.t>=1){po.t=0;po.lk=(R()*links.length)|0;po.speed=.18+R()*.22;}
+          const A=links[po.lk][0],B=links[po.lk][1],u=po.t;
+          po.spr.position.set(A.x+(B.x-A.x)*u,A.y+(B.y-A.y)*u,A.z+(B.z-A.z)*u);
+          po.spr.material.color.set(po.col);
+          po.spr.material.opacity=Math.sin(u*Math.PI)*.95;
+        });
+        sweep.rotation.z-=dt*.5;
+        if(composer)composer.render();else renderer.render(scene,camera);
+        raf=requestAnimationFrame(frame);
+      }
+
+      // 3D 就绪：停掉并隐藏 2D 兜底环
+      if(cv2){cv2._stop2d=true; if(cv2._raf2d)cancelAnimationFrame(cv2._raf2d); cv2.style.display='none';}
+      cv3.hidden=false;
+      raf=requestAnimationFrame(frame);
+
+      document.addEventListener('visibilitychange',()=>{
+        if(document.hidden){cancelAnimationFrame(raf);}else{last=performance.now();raf=requestAnimationFrame(frame);}
+      });
+    }catch(e){
+      console.error('3D 神经星环初始化失败，回退 2D：',e);
+      cv3.hidden=true;
+    }
+  });
 })();
 
 /* ============ 阿里云 ECS ============ */
