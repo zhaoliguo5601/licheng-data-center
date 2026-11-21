@@ -34,17 +34,6 @@
   "genAt": "11-20 07:44",
   "meters": [
     {
-      "name": "*立国",
-      "no": "3750037351078",
-      "balance": 47.25,
-      "day": 0.25,
-      "avg6": 0.25,
-      "yearKwh": 167,
-      "yearFee": 91.34,
-      "status": "ok",
-      "sum6": 1.47
-    },
-    {
       "name": "*凌志",
       "no": "3700272293458",
       "balance": -137.89,
@@ -54,6 +43,17 @@
       "yearFee": 2089.72,
       "status": "neg",
       "sum6": 94.92
+    },
+    {
+      "name": "*立国",
+      "no": "3750037351078",
+      "balance": 47.25,
+      "day": 0.25,
+      "avg6": 0.25,
+      "yearKwh": 167,
+      "yearFee": 91.34,
+      "status": "ok",
+      "sum6": 1.47
     }
   ],
   "drives": [
@@ -147,10 +147,6 @@
     }
   ],
   "heat": [
-    {
-      "d": "10-23",
-      "v": 0.0
-    },
     {
       "d": "10-24",
       "v": 0.0
@@ -258,6 +254,10 @@
     {
       "d": "11-19",
       "v": 20.4
+    },
+    {
+      "d": "11-21",
+      "v": 20.4
     }
   ],
   "unicom": {
@@ -307,22 +307,22 @@
     "private": true,
     "branch": "main",
     "language": "Python",
-    "files": 22,
-    "commits": 11,
-    "branches": 1,
+    "files": 23,
+    "commits": 24,
+    "branches": 2,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-20 21:06",
+    "updated": "11-21 15:55",
     "types": [
       {
         "name": "Python",
-        "count": 12,
+        "count": 13,
         "color": "#3b82f6"
       },
       {
         "name": "Shell",
-        "count": 4,
+        "count": 3,
         "color": "#22ff9c"
       },
       {
@@ -332,37 +332,37 @@
       },
       {
         "name": "文档/配置",
-        "count": 4,
+        "count": 5,
         "color": "#a855f7"
       }
     ],
     "recent": [
       {
-        "sha": "7604440",
-        "msg": "更新 README：补充目录结构、脚本环境变量与安全边界说明",
-        "time": "21:06"
+        "sha": "988bac4",
+        "msg": "商标续展倒计时卡片展示全部6件已注册商标，压缩卡片与表格间距",
+        "time": "15:28"
       },
       {
-        "sha": "0cf0a35",
-        "msg": "新增：落地核对、补传与清理脚本（凭证走环境变量）",
-        "time": "21:05"
+        "sha": "cbd8832",
+        "msg": "换回水彩入水老虎素材，保留水波纹与眨眼/耳朵动效，更新favicon",
+        "time": "14:09"
       },
       {
-        "sha": "201559d",
-        "msg": "新增：百度/阿里跨盘迁移脚本（凭证走环境变量）",
-        "time": "21:04"
+        "sha": "75c81fc",
+        "msg": "重绘正脸双耳老虎头像，恢复底部水波纹动效，优化头部对齐与favicon",
+        "time": "13:20"
       },
       {
-        "sha": "bef3d68",
-        "msg": "新增：网盘清单遍历脚本（凭证走环境变量）",
-        "time": "21:03"
+        "sha": "c0e7e7e",
+        "msg": "云盘资产替换为真实APP图标；标题改为立橙·数据中心",
+        "time": "12:57"
       },
       {
-        "sha": "9c3de90",
-        "msg": "新增：网盘迁移看门狗 shell 脚本",
-        "time": "21:03"
+        "sha": "971387e",
+        "msg": "标签页标题改立橙数据中心，favicon 更换为老虎头像",
+        "time": "12:29"
       }
     ]
   },
-  "capturedAt": "2026-11-21 15:01:49"
+  "capturedAt": "2026-11-21 15:57:37"
 }
