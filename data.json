@@ -117,8 +117,8 @@
     },
     {
       "name": "京东每日签到",
-      "status": "wait",
-      "pct": 0
+      "status": "ok",
+      "pct": 100
     },
     {
       "name": "淘粉吧好评任务",
@@ -139,7 +139,7 @@
   "signs": [
     {
       "t": "京东",
-      "r": "未签到"
+      "r": "已签到"
     },
     {
       "t": "淘粉吧",
@@ -364,13 +364,13 @@
       }
     ]
   },
-  "capturedAt": "2026-11-21 17:59:16",
+  "capturedAt": "2026-11-21 18:38:17",
   "jd": {
-    "source": "browser_session",
-    "updated": "2026-11-21 16:19",
+    "source": "manual_report",
+    "updated": "2026-11-21 18:37",
     "walletBalance": 0.0,
     "giftCard": 0.0,
-    "beans": 46,
+    "beans": 3358,
     "coupon": 3,
     "orders": {
       "waitPay": 0,
@@ -379,9 +379,10 @@
       "afterSale": 0
     },
     "checkin": {
-      "done": false,
-      "state": "未签到",
+      "done": true,
+      "state": "已签到",
       "tasks": []
     }
-  }
+  },
+  "_note": "本次录入：2026-11-21 京东 APP 内完成每日签到，人工报数京豆 3358（含 16 即将过期）；淘粉吧会话内官网签到 +3 积分（余额17）。服务端直连受设备指纹风控限制，权益/豆/签到以会话读取或人工报数为准。"
 }

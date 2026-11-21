@@ -100,8 +100,13 @@ header{display:flex;align-items:center;gap:18px;flex:none}
 .dot.idle{background:var(--dim2);box-shadow:none;animation:none}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
 
-/* ---------- KPI 六块核心卡片 ---------- */
-.kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;flex:none}
+/* ---------- 顶部概览：指标页 ⇄ 大模型端口页 分页滑屏 ---------- */
+.kpi-stage{position:relative;flex:none;padding-bottom:16px}
+.kpi-viewport{overflow:hidden}
+.kpi-track{display:flex;transition:transform .55s cubic-bezier(.2,.8,.3,1)}
+.kpi-page{flex:0 0 100%;min-width:0}
+.kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+.kpi.models{grid-template-columns:repeat(4,1fr)}
 .kpi-card{position:relative;padding:16px 18px 14px;border-radius:15px;overflow:hidden;min-height:104px;
   background:linear-gradient(160deg,rgba(12,28,52,.9),rgba(6,14,28,.72));border:1px solid var(--line);
   box-shadow:0 8px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);
@@ -114,6 +119,29 @@ header{display:flex;align-items:center;gap:18px;flex:none}
 .kpi-card .unit{font-size:12px;color:var(--dim);margin-left:5px;font-weight:500;-webkit-text-fill-color:var(--dim)}
 .kpi-card .sub{margin-top:10px;font-size:11px;color:var(--dim2);display:flex;gap:6px;align-items:center;line-height:1.4}
 .kpi-card.bad .val{background:linear-gradient(180deg,#fff,#ff8fa3);-webkit-background-clip:text}
+
+/* ---------- 大模型端口占位卡 ---------- */
+.model-card{display:flex;flex-direction:column;gap:8px}
+.model-card .tag-en{font-size:10px;color:var(--dim2);letter-spacing:.08em;margin-left:6px;font-weight:500}
+.model-mid{display:flex;align-items:center;gap:12px;flex:1}
+.model-ico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:none;
+  font-size:19px;font-weight:800;color:#fff;
+  background:linear-gradient(150deg,var(--accent),rgba(255,255,255,.08));
+  box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18)}
+.model-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);
+  padding:4px 10px;border-radius:999px;background:rgba(127,163,192,.1);border:1px solid var(--line)}
+.model-status .dot{width:6px;height:6px}
+.model-card .sub{margin-top:2px}
+
+/* ---------- 顶部滑屏箭头 / 指示点 ---------- */
+.kpi-arrow{position:absolute;top:44%;transform:translateY(-50%);z-index:6;width:32px;height:32px;
+  border-radius:50%;border:1px solid var(--line);background:rgba(8,20,38,.82);color:var(--cyan);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;line-height:1;transition:all .2s}
+.kpi-arrow:hover{background:rgba(0,229,255,.18);border-color:var(--cyan)}
+.kpi-arrow.prev{left:-14px}.kpi-arrow.next{right:-14px}
+.kpi-dots{display:flex;gap:7px;justify-content:center;align-items:center;height:14px;margin-top:2px}
+.kpi-dots i{width:7px;height:7px;border-radius:50%;background:rgba(127,163,192,.35);cursor:pointer;transition:all .25s}
+.kpi-dots i.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan);width:18px;border-radius:4px}
 .spark{position:absolute;right:12px;bottom:10px;width:56px;height:22px;opacity:.85}
 .spark path{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linecap:round;stroke-dasharray:120;stroke-dashoffset:120;animation:draw 1.6s .5s ease forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
@@ -353,8 +381,18 @@ main{display:contents}
     </div>
   </header>
 
-  <!-- ===== 六块核心 KPI ===== -->
-  <section class="kpi" id="kpi"></section>
+  <!-- ===== 顶部概览：指标页 ⇄ 大模型端口页，整屏翻页轮播 ===== -->
+  <section class="kpi-stage" id="kpiStage">
+    <div class="kpi-viewport" id="kpiViewport">
+      <div class="kpi-track" id="kpiTrack">
+        <div class="kpi-page"><div class="kpi" id="kpi"></div></div>
+        <div class="kpi-page"><div class="kpi models" id="modelRow"></div></div>
+      </div>
+    </div>
+    <button class="kpi-arrow prev" id="kpiPrev" aria-label="上一屏">‹</button>
+    <button class="kpi-arrow next" id="kpiNext" aria-label="下一屏">›</button>
+    <div class="kpi-dots" id="kpiDots"></div>
+  </section>
 
   <!-- ===== 固定三栏枢纽：左槽轮播 | 地球固定 | 右槽轮播 ===== -->
   <main class="hub">
@@ -640,8 +678,8 @@ const __FALLBACK =   {
       },
       {
         "name": "京东每日签到",
-        "status": "wait",
-        "pct": 0
+        "status": "ok",
+        "pct": 100
       },
       {
         "name": "淘粉吧好评任务",
@@ -662,7 +700,7 @@ const __FALLBACK =   {
     "signs": [
       {
         "t": "京东",
-        "r": "未签到"
+        "r": "已签到"
       },
       {
         "t": "淘粉吧",
@@ -887,13 +925,13 @@ const __FALLBACK =   {
         }
       ]
     },
-    "capturedAt": "2026-11-21 17:59:16",
+    "capturedAt": "2026-11-21 18:38:17",
     "jd": {
-      "source": "browser_session",
-      "updated": "2026-11-21 16:19",
+      "source": "manual_report",
+      "updated": "2026-11-21 18:37",
       "walletBalance": 0.0,
       "giftCard": 0.0,
-      "beans": 46,
+      "beans": 3358,
       "coupon": 3,
       "orders": {
         "waitPay": 0,
@@ -902,8 +940,8 @@ const __FALLBACK =   {
         "afterSale": 0
       },
       "checkin": {
-        "done": false,
-        "state": "未签到",
+        "done": true,
+        "state": "已签到",
         "tasks": []
       }
     }
@@ -975,6 +1013,65 @@ KPI.forEach((k,i)=>{
     <svg class="spark" viewBox="0 0 62 24"><path d="M${pts}"/></svg>`;
   kpiBox.appendChild(el);
 });
+
+/* ---- 大模型端口占位卡（后期接入 API 端口） ---- */
+const MODELS = [
+  { name:"豆包", en:"Doubao",    ico:"豆", accent:"#3b82f6", sub:"云端大模型端口 · 待配置" },
+  { name:"WorkBuddy", en:"Agent", ico:"W", accent:"#ffb347", sub:"内部 Agent 端口 · 待配置" },
+  { name:"DeepThink", en:"Reasoning", ico:"D", accent:"#a855f7", sub:"推理模型端口 · 待配置" },
+  { name:"千问", en:"Qwen",     ico:"千", accent:"#22ff9c", sub:"通义千问端口 · 待配置" }
+];
+const modelRow = document.getElementById("modelRow");
+MODELS.forEach((m,i)=>{
+  const el = document.createElement("div");
+  el.className = "kpi-card model-card";
+  el.style.setProperty("--accent", m.accent);
+  el.style.animationDelay = (.2+i*.05)+"s";
+  el.innerHTML = `
+    <div class="label">${m.name}<span class="tag-en">${m.en}</span></div>
+    <div class="model-mid">
+      <div class="model-ico">${m.ico}</div>
+      <div class="model-status"><i class="dot idle"></i>待接入</div>
+    </div>
+    <div class="sub">${m.sub}</div>`;
+  modelRow.appendChild(el);
+});
+
+/* ---- 顶部概览分页滑屏：指标页 ⇄ 模型页，自动轮播 + 手势/箭头/指示点 ---- */
+(function(){
+  const track = document.getElementById("kpiTrack");
+  const dotsBox = document.getElementById("kpiDots");
+  const vp = document.getElementById("kpiViewport");
+  const pages = track.querySelectorAll(".kpi-page");
+  const n = pages.length;
+  let cur = 0, timer;
+  for(let i=0;i<n;i++){
+    const d=document.createElement("i");
+    d.addEventListener("click",()=>{go(i);reset();});
+    dotsBox.appendChild(d);
+  }
+  const dotsEls = Array.from(dotsBox.children);
+  function render(){
+    track.style.transform = `translateX(-${cur*100}%)`;
+    dotsEls.forEach((d,i)=>d.classList.toggle("on",i===cur));
+  }
+  function go(i){cur=(i+n)%n;render();}
+  function next(){go(cur+1);}
+  function prev(){go(cur-1);}
+  function reset(){clearInterval(timer);timer=setInterval(next,5000);}
+  document.getElementById("kpiPrev").addEventListener("click",()=>{prev();reset();});
+  document.getElementById("kpiNext").addEventListener("click",()=>{next();reset();});
+  let sx=null;
+  vp.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;},{passive:true});
+  vp.addEventListener("touchend",e=>{
+    if(sx===null)return;
+    const dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)>40){dx<0?next():prev();reset();}
+    sx=null;
+  },{passive:true});
+  render(); reset();
+})();
+
 function countUp(){
   document.querySelectorAll("[data-to]").forEach(el=>{
     const to=parseFloat(el.dataset.to),dec=+el.dataset.dec,dur=1400,t0=performance.now();
