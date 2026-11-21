@@ -17,12 +17,12 @@
   --text:#e8f4ff; --dim:#7fa3c0; --dim2:#4d6b85;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:#02040a}
+html,body{height:100%;background:#02040a;overflow:hidden}
 body{
   background:radial-gradient(1200px 700px at 50% -10%, #0a1f3d 0%, #04070f 60%, #020409 100%);
   color:var(--text);
   font-family:"Noto Sans SC","HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
-  overflow-x:hidden;
+  overflow:hidden;
 }
 #bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.85}
 .grid{position:fixed;inset:0;z-index:1;pointer-events:none;
@@ -35,18 +35,41 @@ body{
   animation:scanMove 9s linear infinite}
 @keyframes scanMove{0%{top:-180px}100%{top:100vh}}
 
-/* ============ 自适应舞台：流式纵向排版，整页可滚动 ============ */
-.stage{position:relative;z-index:4;min-height:100vh;width:100%;max-width:1680px;margin:0 auto;
-  display:flex;flex-direction:column;padding:16px 22px 14px;gap:14px}
+/* ============ 固定大屏舞台：一套设计稿，整体等比缩放，一屏不滚动 ============ */
+.stage{position:absolute;z-index:4;left:50%;top:50%;width:1600px;height:900px;
+  transform:translate(-50%,-50%);transform-origin:center center;
+  display:flex;flex-direction:column;padding:18px 22px 16px;gap:14px}
+
+/* ============ 中部枢纽：左槽 | 地球固定 | 右槽 ============ */
+.hub{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.18fr) minmax(0,1fr);
+  gap:16px}
+.side{position:relative;min-height:0;min-width:0;display:flex}
+.side .panel{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
+.side .panel::-webkit-scrollbar{width:5px}
+.side .panel::-webkit-scrollbar-thumb{background:rgba(0,229,255,.25);border-radius:3px}
+.hub-center{min-height:0;display:flex;flex-direction:column}
+.pool{position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none}
+
+/* 轮播箭头 */
+.car-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:34px;height:34px;
+  border-radius:50%;border:1px solid var(--line);background:rgba(8,20,38,.82);color:var(--cyan);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;line-height:1;
+  transition:all .2s}
+.car-btn:hover{background:rgba(0,229,255,.18);border-color:var(--cyan)}
+.car-btn.prev{left:-17px}.car-btn.next{right:-17px}
+
+/* 指示点 */
+.dots{display:flex;gap:7px;justify-content:center;align-items:center;padding-top:2px}
+.dots i{width:7px;height:7px;border-radius:50%;background:rgba(127,163,192,.35);cursor:pointer;transition:all .25s}
+.dots i.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan);width:18px;border-radius:4px}
 
 /* ---------- 头部 ---------- */
 header{display:flex;align-items:center;gap:18px;flex:none}
-.brand{display:flex;align-items:center;gap:14px}
-.logo{position:relative;width:50px;height:50px;flex:none;display:grid;place-items:center}
-.tiger-head img.face{height:44px}
-.tiger-wrap{position:relative;z-index:2;padding-bottom:8px;animation:tigerBob 5s ease-in-out infinite}
+.brand{display:flex;align-items:center;gap:16px}
+.logo{position:relative;width:62px;height:54px;flex:none;display:grid;place-items:center;overflow:visible}
+.tiger-wrap{position:relative;z-index:2;display:grid;place-items:center;animation:tigerBob 5s ease-in-out infinite}
 .tiger-head{position:relative;display:inline-block;line-height:0}
-.tiger-head img.face{display:block;height:56px;width:auto;border:0;
+.tiger-head img.face{display:block;height:50px;width:auto;max-width:62px;object-fit:contain;border:0;
   filter:saturate(.93) contrast(1.03) drop-shadow(0 2px 9px rgba(0,229,255,.32)) drop-shadow(0 0 20px rgba(70,160,255,.20))}
 .tiger-head img.ov{position:absolute;height:auto;width:auto;pointer-events:none;will-change:opacity,transform}
 .eye-blink{left:0;top:0;width:100%!important;height:100%!important;opacity:0;transition:opacity .09s linear}
@@ -74,7 +97,7 @@ header{display:flex;align-items:center;gap:18px;flex:none}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
 
 /* ---------- KPI 六块核心卡片 ---------- */
-.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;flex:none}
+.kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;flex:none}
 .kpi-card{position:relative;padding:16px 18px 14px;border-radius:15px;overflow:hidden;min-height:104px;
   background:linear-gradient(160deg,rgba(12,28,52,.9),rgba(6,14,28,.72));border:1px solid var(--line);
   box-shadow:0 8px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);
@@ -93,12 +116,13 @@ header{display:flex;align-items:center;gap:18px;flex:none}
 @keyframes cardIn{to{transform:translateY(0);opacity:1}}
 @keyframes grow{from{width:0}to{width:var(--w,0%)}}
 
-/* ---------- 主网格：自适应流式多列，按内容自然撑高 ---------- */
-main{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;align-items:stretch}
-.panel{position:relative;border-radius:16px;padding:15px 17px 16px;min-width:0;overflow:visible;
+/* ---------- 面板：固定三栏槽内适配，内容超高内部滚动 ---------- */
+main{display:contents}
+.panel{position:relative;border-radius:16px;padding:15px 17px 16px;min-width:0;overflow:hidden;
   background:linear-gradient(165deg,var(--panel),var(--panel2));border:1px solid var(--line);
   box-shadow:0 10px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.045);
   display:flex;flex-direction:column}
+.side .panel .scroll{overflow-y:auto;min-height:0}
 .panel::after{content:"";position:absolute;inset:0;border-radius:16px;pointer-events:none;
   background-image:linear-gradient(var(--cyan),var(--cyan)),linear-gradient(var(--cyan),var(--cyan)),
     linear-gradient(var(--cyan),var(--cyan)),linear-gradient(var(--cyan),var(--cyan)),
@@ -285,61 +309,7 @@ main{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:1
 .gh-foot{margin-top:9px;font-size:10.5px;color:var(--dim2);flex:none}
 .gh-foot a{color:#8fe9ff;text-decoration:none}
 
-/* ============ 响应式断点 ============ */
-@media (max-width:1400px){
-  .stage{padding:12px 16px 10px;gap:12px}
-  .kpi{gap:12px} main{gap:12px}
-}
-@media (max-width:1024px){
-  header{flex-direction:column;align-items:center;gap:12px}
-  .brand{flex-direction:column;align-items:center;text-align:center;gap:8px;width:100%}
-  .logo{width:auto;height:auto}
-  .tiger-head img.face{height:48px}
-  .brand>div{width:100%}
-  .flow{margin-left:auto;margin-right:auto}
-  .status{margin-left:0;width:100%;justify-content:center}
-}
-@media (max-width:1100px){
-  main{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
-  .gh{grid-template-columns:1fr}
-  .gh-right{border-left:0;padding-left:0;border-top:1px dashed rgba(0,229,255,.12);padding-top:14px}
-  .ali{grid-template-columns:repeat(2,1fr)}
-  .net-strip{grid-template-columns:repeat(3,1fr)}
-  .rn-row{grid-template-columns:repeat(2,1fr)}
-}
-@media (max-width:720px){
-  .stage{padding:10px 12px 12px;gap:10px}
-  header{flex-direction:column;align-items:center;gap:12px}
-  .brand{flex-direction:column;align-items:center;text-align:center;gap:8px;width:100%}
-  .logo{width:auto;height:auto}
-  .tiger-head img.face{height:46px}
-  .brand>div{width:100%}
-  .brand h1{font-size:19px;letter-spacing:.1em}
-  .brand p{letter-spacing:.22em}
-  .flow{margin-left:auto;margin-right:auto}
-  .status{margin-left:0;width:100%;justify-content:center}
-  .pill{padding:7px 12px;font-size:11.5px}
-  main{grid-template-columns:1fr;gap:12px}
-  .kpi{grid-template-columns:repeat(2,1fr);gap:10px}
-  .kpi-card{min-height:92px;padding:13px 14px 12px}
-  .globe-box{height:240px}
-  .lc-grid{grid-template-columns:1fr}
-  .sign{grid-template-columns:1fr}
-  .net-strip{grid-template-columns:repeat(2,1fr)}
-  .rn-row{grid-template-columns:1fr}
-  .heat{gap:3px}
-}
-@media (max-width:480px){
-  .tiger-head img.face{height:40px}
-  .brand h1{font-size:18px;letter-spacing:.08em}
-  .brand p{font-size:10px;letter-spacing:.18em}
-  .brand .creed{font-size:9px;letter-spacing:.16em}
-  .pill{padding:6px 11px;font-size:11px;gap:6px}
-  .kpi{grid-template-columns:1fr}
-  .ali{grid-template-columns:1fr}
-  .kd-nums{grid-template-columns:1fr}
-  .panel{padding:13px 13px 14px}
-}
+/* ============ 固定大屏：不再使用响应式断点，整体等比缩放 ============ */
 </style>
 </head>
 <body>
@@ -381,18 +351,14 @@ main{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:1
   <!-- ===== 六块核心 KPI ===== -->
   <section class="kpi" id="kpi"></section>
 
-  <!-- ===== 主网格 4×2 ===== -->
-  <main>
-    <!-- 国网电表 -->
-    <section class="panel" style="--accent:var(--cyan)">
-      <h2>国网电表 <span class="tag" id="meterTag">数据采集</span></h2>
-      <div class="scroll" id="meters"></div>
-      <div class="mini-hd">近 6 日用电对比</div>
-      <div class="scroll" id="cmp" style="flex:none"></div>
-    </section>
+  <!-- ===== 固定三栏枢纽：左槽轮播 | 地球固定 | 右槽轮播 ===== -->
+  <main class="hub">
+    <div class="side" id="slotL">
+      <button class="car-btn prev" id="carPrev" aria-label="上一个">‹</button>
+    </div>
 
-    <!-- 数据中枢 -->
-    <section class="panel" style="--accent:var(--purple)">
+    <!-- 数据中枢（固定居中） -->
+    <section class="panel hub-center" style="--accent:var(--purple)">
       <h2>数据中枢 <span class="tag">CENTER</span></h2>
       <div class="globe-wrap">
         <div class="globe-box"><canvas id="globe"></canvas></div>
@@ -405,6 +371,22 @@ main{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:1
         </div>
         <div class="net-note">跨境电商 / 海外大模型链路 · 演示</div>
       </div>
+    </section>
+
+    <div class="side" id="slotR">
+      <button class="car-btn next" id="carNext" aria-label="下一个">›</button>
+    </div>
+  </main>
+
+  <!-- 轮播板块池：由脚本挂载到左右槽 -->
+  <div id="panelPool" class="pool">
+
+    <!-- 国网电表 -->
+    <section class="panel" style="--accent:var(--cyan)">
+      <h2>国网电表 <span class="tag" id="meterTag">数据采集</span></h2>
+      <div class="scroll" id="meters"></div>
+      <div class="mini-hd">近 6 日用电对比</div>
+      <div class="scroll" id="cmp" style="flex:none"></div>
     </section>
 
     <!-- 云盘资产 -->
@@ -532,7 +514,7 @@ main{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:1
         </div>
       </div>
     </section>
-  </main>
+  </div>
 </div>
 
 <script>
@@ -1280,6 +1262,72 @@ const LINK=150*devicePixelRatio;
     `<div class="gh-item"><span class="gh-sha">${c.sha}</span><span class="gh-msg">${c.msg}</span><span class="gh-time">${c.time}</span></div>`).join("");
   document.getElementById("ghFoot").innerHTML=`仓库 <a href="${G.url}" target="_blank" rel="noopener">${G.url}</a> · 快照于 ${G.updated} · 凭证不入库`;
   document.getElementById("ghTag").textContent="快照 "+G.updated;
+})();
+
+/* ============ 固定大屏：一套设计稿整体等比缩放 ============ */
+const stage=document.querySelector(".stage");
+const DW=1600,DH=900;
+function fitStage(){
+  const vw=document.documentElement.clientWidth||window.innerWidth;
+  const vh=document.documentElement.clientHeight||window.innerHeight;
+  const s=Math.min(vw/DW, vh/DH);
+  stage.style.transform=`translate(-50%,-50%) scale(${s})`;
+}
+fitStage();
+addEventListener("resize",fitStage);
+addEventListener("orientationchange",fitStage);
+if(window.ResizeObserver){ new ResizeObserver(fitStage).observe(document.documentElement); }
+setTimeout(fitStage,300); setTimeout(fitStage,900);
+
+/* ============ 左右槽轮播：数据流板块轮番切换，地球固定居中 ============ */
+(function(){
+  const pool=document.getElementById("panelPool");
+  const panels=Array.from(pool.querySelectorAll(".panel"));
+  const slotL=document.getElementById("slotL");
+  const slotR=document.getElementById("slotR");
+  if(!panels.length) return;
+
+  const dots=document.createElement("div"); dots.className="dots";
+  panels.forEach((_,i)=>{
+    const d=document.createElement("i");
+    d.addEventListener("click",()=>{go(i);reset();});
+    dots.appendChild(d);
+  });
+  stage.appendChild(dots);
+  const dotsEls=Array.from(dots.children);
+
+  let cur=0,timer;
+  function recycle(){
+    slotL.querySelectorAll(".panel").forEach(p=>pool.appendChild(p));
+    slotR.querySelectorAll(".panel").forEach(p=>pool.appendChild(p));
+  }
+  function render(){
+    recycle();
+    slotL.appendChild(panels[cur]);
+    slotR.appendChild(panels[(cur+1)%panels.length]);
+    dotsEls.forEach((d,i)=>d.classList.toggle("on", i===cur||i===(cur+1)%panels.length));
+  }
+  function go(i){cur=(i+panels.length)%panels.length;render();}
+  function next(){go(cur+1);}
+  function prev(){go(cur-1);}
+  function reset(){clearInterval(timer);timer=setInterval(next,5000);}
+
+  document.getElementById("carPrev").addEventListener("click",()=>{prev();reset();});
+  document.getElementById("carNext").addEventListener("click",()=>{next();reset();});
+
+  let sx=null;
+  [slotL,slotR].forEach(sl=>{
+    sl.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;},{passive:true});
+    sl.addEventListener("touchend",e=>{
+      if(sx===null)return;
+      const dx=e.changedTouches[0].clientX-sx;
+      if(Math.abs(dx)>40){ dx<0?next():prev(); reset(); }
+      sx=null;
+    },{passive:true});
+  });
+
+  render(); reset();
+  window.__carousel={go:go,next:next,prev:prev,panels:panels};
 })();
 
 countUp();
