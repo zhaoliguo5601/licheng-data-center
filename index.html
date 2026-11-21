@@ -103,14 +103,18 @@ header{display:flex;align-items:center;gap:18px;flex:none}
 /* ---------- 顶部概览：指标页 ⇄ 大模型端口页 分页滑屏 ---------- */
 .kpi-stage{position:relative;flex:none;padding-bottom:16px}
 .kpi-viewport{overflow:hidden}
-.kpi-track{display:flex;transition:transform .55s cubic-bezier(.2,.8,.3,1)}
-.kpi-page{flex:0 0 100%;min-width:0}
-.kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
-.kpi.models{grid-template-columns:repeat(3,1fr)}
+.kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;perspective:1400px}
+.flip-card{position:relative;min-height:104px;perspective:1400px;
+  transform:translateY(14px);opacity:0;animation:cardIn .5s cubic-bezier(.2,.8,.3,1) forwards}
+.flip-inner{position:relative;width:100%;min-height:104px;transform-style:preserve-3d;
+  transition:transform .65s cubic-bezier(.35,.15,.25,1)}
+.kpi-stage.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:15px;display:flex;flex-direction:column}
+.flip-back{transform:rotateY(180deg)}
 .kpi-card{position:relative;padding:16px 18px 14px;border-radius:15px;overflow:hidden;min-height:104px;
   background:linear-gradient(160deg,rgba(12,28,52,.9),rgba(6,14,28,.72));border:1px solid var(--line);
-  box-shadow:0 8px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);
-  transform:translateY(14px);opacity:0;animation:cardIn .5s cubic-bezier(.2,.8,.3,1) forwards}
+  box-shadow:0 8px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)}
 .kpi-card::before{content:"";position:absolute;left:0;top:0;width:60%;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
 .kpi-card .label{font-size:11.5px;color:var(--dim);letter-spacing:.16em;margin-bottom:10px}
 .kpi-card .val{font-size:clamp(24px,2.3vw,36px);font-weight:800;letter-spacing:.01em;
@@ -382,13 +386,10 @@ main{display:contents}
     </div>
   </header>
 
-  <!-- ===== 顶部概览：指标页 ⇄ 大模型端口页，整屏翻页轮播 ===== -->
+  <!-- ===== 顶部概览：指标卡 ⇄ 大模型卡，双面 3D 翻书轮播 ===== -->
   <section class="kpi-stage" id="kpiStage">
     <div class="kpi-viewport" id="kpiViewport">
-      <div class="kpi-track" id="kpiTrack">
-        <div class="kpi-page"><div class="kpi" id="kpi"></div></div>
-        <div class="kpi-page"><div class="kpi models" id="modelRow"></div></div>
-      </div>
+      <div class="kpi" id="kpiBoard"></div>
     </div>
     <button class="kpi-arrow prev" id="kpiPrev" aria-label="上一屏">‹</button>
     <button class="kpi-arrow next" id="kpiNext" aria-label="下一屏">›</button>
@@ -1006,20 +1007,7 @@ const KPI = [
   { label:"Agent 任务完成", val:taskDone, dec:0, unit:"/ "+DATA.tasks.length, accent:"#ffb347",
     sub:"本机实测 · 非示例", spark:[1,2,2,3,3,4,4] }
 ];
-const kpiBox = document.getElementById("kpi");
-KPI.forEach((k,i)=>{
-  const el = document.createElement("div");
-  el.className = "kpi-card " + (k.cls||"");
-  el.style.setProperty("--accent", k.accent);
-  el.style.animationDelay = (i*.05)+"s";
-  const pts = k.spark.map((v,j)=>`${j*10} ${22-v*0.18}`).join(" L");
-  el.innerHTML = `
-    <div class="label">${k.label}</div>
-    <div class="val"><span data-to="${k.val}" data-dec="${k.dec}">0</span><span class="unit">${k.unit}</span></div>
-    <div class="sub">${k.sub||"&nbsp;"}</div>
-    <svg class="spark" viewBox="0 0 62 24"><path d="M${pts}"/></svg>`;
-  kpiBox.appendChild(el);
-});
+/* ---- 配对双面卡：正面 KPI 指标，背面对应大模型（渲染见 MODELS 段后） ---- */
 
 /* ---- 大模型端口占位卡（后期接入 API 端口） ---- */
 const IC = {
@@ -1037,29 +1025,39 @@ const MODELS = [
   { name:"Grok", en:"xAI", ico:"G", img:IC.grok, accent:"#e5e7eb", sub:"xAI 大模型端口 · 待配置" },
   { name:"Gemini", en:"Google", ico:"G", img:IC.gemini, accent:"#4da3ff", sub:"Google 大模型端口 · 待配置" }
 ];
-const modelRow = document.getElementById("modelRow");
-MODELS.forEach((m,i)=>{
-  const el = document.createElement("div");
-  el.className = "kpi-card model-card";
-  el.style.setProperty("--accent", m.accent);
-  el.style.animationDelay = (.2+i*.05)+"s";
-  el.innerHTML = `
-    <div class="label">${m.name}<span class="tag-en">${m.en}</span></div>
-    <div class="model-mid">
-      <div class="model-ico">${m.img?`<img src="${m.img}" alt="${m.name}">`:m.ico}</div>
-      <div class="model-status"><i class="dot idle"></i>待接入</div>
-    </div>
-    <div class="sub">${m.sub}</div>`;
-  modelRow.appendChild(el);
+const board = document.getElementById("kpiBoard");
+KPI.forEach((k,i)=>{
+  const m = MODELS[i];
+  const card = document.createElement("div");
+  card.className = "flip-card";
+  card.style.animationDelay = (i*.05)+"s";
+  const pts = k.spark.map((v,j)=>`${j*10} ${22-v*0.18}`).join(" L");
+  card.innerHTML = `
+    <div class="flip-inner" style="transition-delay:${(5-i)*.04}s">
+      <div class="flip-face flip-front kpi-card ${k.cls||''}" style="--accent:${k.accent}">
+        <div class="label">${k.label}</div>
+        <div class="val"><span data-to="${k.val}" data-dec="${k.dec}">0</span><span class="unit">${k.unit}</span></div>
+        <div class="sub">${k.sub||"&nbsp;"}</div>
+        <svg class="spark" viewBox="0 0 62 24"><path d="M${pts}"/></svg>
+      </div>
+      <div class="flip-face flip-back kpi-card model-card" style="--accent:${m.accent}">
+        <div class="label">${m.name}<span class="tag-en">${m.en}</span></div>
+        <div class="model-mid">
+          <div class="model-ico">${m.img?`<img src="${m.img}" alt="${m.name}">`:m.ico}</div>
+          <div class="model-status"><i class="dot idle"></i>待接入</div>
+        </div>
+        <div class="sub">${m.sub}</div>
+      </div>
+    </div>`;
+  board.appendChild(card);
 });
 
-/* ---- 顶部概览分页滑屏：指标页 ⇄ 模型页，自动轮播 + 手势/箭头/指示点 ---- */
+/* ---- 顶部概览双面翻卡：指标面 ⇄ 模型面，自动轮播 + 手势/箭头/指示点 ---- */
 (function(){
-  const track = document.getElementById("kpiTrack");
+  const stage = document.getElementById("kpiStage");
   const dotsBox = document.getElementById("kpiDots");
   const vp = document.getElementById("kpiViewport");
-  const pages = track.querySelectorAll(".kpi-page");
-  const n = pages.length;
+  const n = 2;
   let cur = 0, timer;
   for(let i=0;i<n;i++){
     const d=document.createElement("i");
@@ -1068,7 +1066,7 @@ MODELS.forEach((m,i)=>{
   }
   const dotsEls = Array.from(dotsBox.children);
   function render(){
-    track.style.transform = `translateX(-${cur*100}%)`;
+    stage.classList.toggle("flipped", cur===1);
     dotsEls.forEach((d,i)=>d.classList.toggle("on",i===cur));
   }
   function go(i){cur=(i+n)%n;render();}
