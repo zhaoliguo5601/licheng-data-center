@@ -266,21 +266,21 @@ main{display:contents}
 /* 商标 / 续展 / 导航 */
 .tm-summary{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--dim2);margin-bottom:10px;flex:none}
 .tm-summary b{font-size:15px}
-.rn-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;flex:none}
-.rn-card{border:1px solid rgba(255,255,255,.07);border-left:2px solid var(--c);border-radius:10px;padding:8px 10px;background:rgba(255,255,255,.018)}
+.rn-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;flex:none}
+.rn-card{border:1px solid rgba(255,255,255,.07);border-left:2px solid var(--c);border-radius:10px;padding:5px 8px;background:rgba(255,255,255,.018)}
 .rn-top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
-.rn-top b{font-size:12px;letter-spacing:.05em}
-.rn-top span{font-size:9.5px;color:var(--dim2);font-variant-numeric:tabular-nums}
-.rn-big{margin:5px 0 2px;font-size:10.5px;color:var(--dim2)}
-.rn-big em{font-style:normal;font-size:16px;font-weight:700;color:var(--c);margin-right:3px;font-variant-numeric:tabular-nums}
-.rn-line{font-size:9.5px;color:var(--dim2);font-variant-numeric:tabular-nums;line-height:1.5}
+.rn-top b{font-size:11px;letter-spacing:.05em}
+.rn-top span{font-size:9px;color:var(--dim2);font-variant-numeric:tabular-nums}
+.rn-big{margin:3px 0 1px;font-size:10px;color:var(--dim2)}
+.rn-big em{font-style:normal;font-size:14px;font-weight:700;color:var(--c);margin-right:3px;font-variant-numeric:tabular-nums}
+.rn-line{font-size:9px;color:var(--dim2);font-variant-numeric:tabular-nums;line-height:1.4;white-space:nowrap}
 .nav{display:flex;flex-wrap:wrap;gap:8px;flex:none;margin-top:auto;padding-top:10px;border-top:1px dashed rgba(0,229,255,.12)}
 .nav a{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:10px;font-size:11.5px;color:#cfe9ff;text-decoration:none;background:rgba(0,229,255,.05);border:1px solid var(--line)}
 .nav a:hover{background:rgba(0,229,255,.16);border-color:rgba(0,229,255,.5)}
 .nav a b{font-size:10px;color:var(--dim2);font-weight:500}
-.tm-table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;display:block;overflow-x:auto;max-width:100%}
-.tm-table th{font-size:10px;letter-spacing:.1em;color:var(--dim2);font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.09);white-space:nowrap}
-.tm-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text);vertical-align:top;white-space:nowrap}
+.tm-table{width:100%;border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums;display:block;overflow-x:auto;max-width:100%}
+.tm-table th{font-size:9.5px;letter-spacing:.08em;color:var(--dim2);font-weight:600;text-align:left;padding:5px 7px;border-bottom:1px solid rgba(255,255,255,.09);white-space:nowrap}
+.tm-table td{padding:5px 7px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text);vertical-align:top;white-space:nowrap}
 .tm-name{font-weight:700;letter-spacing:.04em}
 .tm-ok{color:var(--green)} .tm-wait{color:var(--orange)} .tm-dead{color:var(--red)}
 
@@ -348,6 +348,7 @@ main{display:contents}
       <div class="pill"><i class="dot"></i>云盘同步</div>
       <a class="pill" href="https://lcdc.pages.dev/" target="_blank" rel="noopener" style="text-decoration:none;color:#bfe9ff"><i class="dot"></i>lcdc.pages.dev</a>
       <div class="pill"><i class="dot warn"></i>凌志户欠费</div>
+      <div class="pill" id="snapTime">数据快照 --</div>
       <div class="pill" id="clock">--:--:--</div>
     </div>
   </header>
@@ -523,7 +524,7 @@ main{display:contents}
 
 <script>
 /* ================= 数据层 ================= */
-const DATA = {
+const __FALLBACK = {
   /*__ALIYUN_BEGIN__*/
   "aliyun": {
     "updated": "2026-11-20 07:48",
@@ -858,6 +859,24 @@ const DATA = {
   }
   /*__UNICOM_END__*/
 };
+let DATA;
+function __deepMerge(a,b){
+  if(a&&b&&typeof a==='object'&&typeof b==='object'&&!Array.isArray(a)&&!Array.isArray(b)){
+    const o=Object.assign({},a); for(const k in b) o[k]=__deepMerge(a[k],b[k]); return o;
+  }
+  return (b===undefined||b===null)?a:b;
+}
+async function __loadSnapshot(fb){
+  try{
+    const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),1500);
+    const r=await fetch('./data.json',{cache:'no-store',signal:ctl.signal});
+    clearTimeout(t); if(!r.ok) throw new Error('http '+r.status);
+    const snap=await r.json(); return __deepMerge(fb,snap);
+  }catch(e){ return fb; }
+}
+async function boot(){
+  DATA = await __loadSnapshot(__FALLBACK);
+
 
 /* ============ KPI ============ */
 const bal = DATA.meters.reduce((a,m)=>a+m.balance,0);
@@ -947,6 +966,8 @@ DATA.meters.forEach((m,i)=>{
   cmpBox.appendChild(el);
 });
 document.getElementById("meterTag").textContent="截至 "+(DATA.updated||"—")+" 采集";
+const snapEl=document.getElementById("snapTime");
+if(snapEl)snapEl.textContent="数据快照 "+(DATA.capturedAt||DATA.updated||"—");
 
 /* ============ 云盘 ============ */
 const DRIVE_ICONS = {
@@ -1051,8 +1072,9 @@ const hv=(DATA.heat||[]).map(h=>h.v), hmax=Math.max(0.1,...hv);
   function D(a){return new Date(a[0],a[1]-1,a[2]);}
   function days(t){return Math.ceil((t-now)/86400000);}
   function f(a){return a[0]+"-"+("0"+a[1]).slice(-2)+"-"+("0"+a[2]).slice(-2);}
+  function fs(a){return String(a[0]).slice(2)+"-"+("0"+a[1]).slice(-2)+"-"+("0"+a[2]).slice(-2);}
   let html="";
-  marks.slice(0,3).forEach(m=>{
+  marks.forEach(m=>{
     const ws=D(m.w),ex=D(m.e),ss=D(m.s),dw=days(ws),de=days(ex);
     let col="var(--green)",stage="窗口未开",big=dw+" 天后开窗";
     if(de<=90){col="var(--red)";stage="临近届满";big=de+" 天后届满";}
@@ -1061,7 +1083,7 @@ const hv=(DATA.heat||[]).map(h=>h.v), hmax=Math.max(0.1,...hv);
     html+='<div class="rn-card" style="--c:'+col+'">'
       +'<div class="rn-top"><b>'+m.n+'</b><span>'+m.c+'</span></div>'
       +'<div class="rn-big"><em>'+(dw>0?dw:de)+'</em>'+(dw>0?"天后开窗":("天后届满 · "+stage))+'</div>'
-      +'<div class="rn-line">窗口 '+f(m.w)+' → 届满 '+f(m.e)+'</div>'
+      +'<div class="rn-line">开窗 '+fs(m.w)+' · 届满 '+fs(m.e)+'</div>'
       +'</div>';
   });
   grid.innerHTML=html;
@@ -1351,6 +1373,9 @@ setTimeout(()=>{
     el.textContent=dec?to.toFixed(dec):to.toLocaleString("en-US");
   });
 },1800);
+
+}
+boot();
 </script>
 </body>
 </html>
