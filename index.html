@@ -183,10 +183,10 @@ main{display:contents}
 .cmp-bar i{display:block;height:100%;width:0;border-radius:5px;animation:grow 1.3s cubic-bezier(.2,.8,.3,1) .4s both}
 .cmp-row b{width:62px;text-align:right;color:#e8f4ff;font-variant-numeric:tabular-nums;font-weight:700}
 
-/* 中枢地球 */
-.globe-wrap{display:flex;flex-direction:column;gap:10px}
-.globe-box{position:relative;height:300px}
-#globe{width:100%;height:100%;display:block}
+/* 中枢神经星环 */
+.ring-wrap{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
+.ring-box{position:relative;flex:1;min-height:232px}
+#ring{width:100%;height:100%;display:block}
 .net-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;flex:none}
 .net-cell{display:flex;flex-direction:column;gap:3px;min-width:0}
 .net-name{display:flex;align-items:center;gap:4px;color:#cfe9ff;font-size:9.5px;white-space:nowrap}
@@ -389,8 +389,8 @@ main{display:contents}
     <!-- 数据中枢（固定居中） -->
     <section class="panel hub-center" style="--accent:var(--purple)">
       <h2>数据中枢 <span class="tag">CENTER</span></h2>
-      <div class="globe-wrap">
-        <div class="globe-box"><canvas id="globe"></canvas></div>
+      <div class="ring-wrap">
+        <div class="ring-box"><canvas id="ring"></canvas></div>
         <div class="net-strip">
           <div class="net-cell" style="--a:.32;--b:.92;--d:3.4s;--c:#00e5ff"><span class="net-name"><i class="ndot" style="background:#00e5ff"></i>美国</span><div class="net-bar"><i></i></div><span class="net-ms">142ms</span></div>
           <div class="net-cell" style="--a:.28;--b:.78;--d:4.1s;--c:#a855f7"><span class="net-name"><i class="ndot" style="background:#a855f7"></i>欧洲</span><div class="net-bar"><i></i></div><span class="net-ms">186ms</span></div>
@@ -1325,109 +1325,157 @@ const LINK=150*devicePixelRatio;
   requestAnimationFrame(loop);
 })();
 
-/* ============ 数据中枢 · 旋转地球 ============ */
+/* ============ 数据中枢 · 神经星环 ============ */
 (function(){
-  const cv=document.getElementById('globe'); if(!cv)return;
-  const SW=480,SH=360,DPR=2;
-  cv.width=SW*DPR; cv.height=SH*DPR;
-  const g=cv.getContext('2d');
-  const cx=SW/2,cy=SH/2,R=150,TILT=20*Math.PI/180,TAU=Math.PI*2;
-  const NODES=[
-    {k:'CN',lat:36.65,lon:117.0,c:'#22ff9c',main:true},
-    {k:'US',lat:38.9,lon:-77.4,c:'#00e5ff'},
-    {k:'EU',lat:50.1,lon:8.7,c:'#a855f7'},
-    {k:'JP',lat:35.68,lon:139.7,c:'#ffb347'},
-    {k:'SG',lat:1.35,lon:103.8,c:'#4da3ff'}
-  ];
-  const LINKS=[[0,1],[0,2],[0,3],[0,4],[1,2],[3,4]];
-  function toVec(lat,lon){const p=lat*Math.PI/180,l=lon*Math.PI/180;
-    return [Math.cos(p)*Math.sin(l),Math.sin(p),Math.cos(p)*Math.cos(l)];}
-  function greatCircle(a,b,n){
-    const A=toVec(a.lat,a.lon),B=toVec(b.lat,b.lon);
-    const dot=Math.max(-1,Math.min(1,A[0]*B[0]+A[1]*B[1]+A[2]*B[2]));
-    const w=Math.acos(dot)||1e-6,out=[];
-    for(let i=0;i<=n;i++){const t=i/n,s1=Math.sin((1-t)*w)/Math.sin(w),s2=Math.sin(t*w)/Math.sin(w);
-      out.push([Math.asin(A[1]*s1+B[1]*s2)*180/Math.PI,Math.atan2(A[0]*s1+B[0]*s2,A[2]*s1+B[2]*s2)*180/Math.PI]);}
-    return out;
-  }
-  const ARCS=LINKS.map(([a,b],i)=>({a:NODES[a],b:NODES[b],pts:greatCircle(NODES[a],NODES[b],64),phase:i*.41,speed:.26+(i%3)*.08}));
-  function project(lat,lon,rot){
-    const p=lat*Math.PI/180,l=lon*Math.PI/180+rot;
-    const x=Math.cos(p)*Math.sin(l),y=Math.sin(p),z=Math.cos(p)*Math.cos(l);
-    const y2=y*Math.cos(TILT)-z*Math.sin(TILT),z2=y*Math.sin(TILT)+z*Math.cos(TILT);
-    return {x:cx+R*x,y:cy-R*y2,z:z2};
-  }
-  let dotsG=[];
-  const mask=new Image();
-  mask.onload=function(){
-    const off=document.createElement('canvas'); off.width=360; off.height=180;
-    const octx=off.getContext('2d'); octx.drawImage(mask,0,0);
-    const px=octx.getImageData(0,0,360,180).data;
-    const N=18000;
-    for(let i=0;i<N;i++){
-      const yy=1-2*(i+.5)/N,rr=Math.sqrt(Math.max(0,1-yy*yy)),th=i*2.39996323;
-      const lat=Math.asin(yy)*180/Math.PI,lon=Math.atan2(rr*Math.cos(th),rr*Math.sin(th))*180/Math.PI;
-      const ix=Math.min(359,Math.max(0,Math.round((lon+180)/360*359)));
-      const iy=Math.min(179,Math.max(0,Math.round((90-lat)/180*179)));
-      if(px[(iy*360+ix)*4]>110)dotsG.push([lat,lon]);
+  const cv=document.getElementById('ring'); if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const TAU=Math.PI*2;
+  const COLS=['#00e5ff','#22ff9c','#a855f7','#ffb347','#4da3ff','#ff5cae','#ff4458','#62e6c7','#ffd23f','#9aa6ff','#ff7b54','#b5ef3a'];
+  const N=12;
+
+  // 固定种子伪随机，保证每次打开星环结构一致
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  const R=mulberry32(20261121);
+  const rg=()=>{let u=0,v=0;while(!u)u=R();while(!v)v=R();return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v);};
+
+  // 团：径向抖动 + 局部散点（单位 = R）
+  const clusters=[];
+  for(let i=0;i<N;i++){
+    const jitter=(R()-.5)*.06;
+    const pts=[];
+    for(let k=0;k<14;k++){pts.push({x:rg()*.035,y:rg()*.035,s:.010+R()*.008,a:.55+R()*.4});}
+    const arms=6;
+    for(let d=0;d<arms;d++){
+      const ang=R()*TAU,len=.07+R()*.06;
+      for(let k=0;k<4;k++){const u=k/3;pts.push({x:Math.cos(ang)*len*u+rg()*.012,y:Math.sin(ang)*len*u+rg()*.012,s:.008+R()*.008*(1-u),a:.3+.45*(1-u)});}
     }
-    loopG();
-  };
-  mask.src="data:image/png;base64,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";
-  let rot=-100*Math.PI/180;
-  function loopG(){
-    rot+=.0020;
-    g.setTransform(DPR,0,0,DPR,0,0); g.clearRect(0,0,SW,SH);
-    const sph=g.createRadialGradient(cx-R*.4,cy-R*.45,R*.05,cx,cy,R*1.02);
-    sph.addColorStop(0,'#0c2f49');sph.addColorStop(.5,'#071e30');sph.addColorStop(1,'#03101c');
-    g.beginPath();g.arc(cx,cy,R,0,TAU);g.fillStyle=sph;g.fill();
-    g.lineWidth=.55;g.strokeStyle='rgba(0,229,255,.06)';
-    for(let lat=-60;lat<=60;lat+=30){g.beginPath();let st=false;
-      for(let lon=-180;lon<=180;lon+=5){const pt=project(lat,lon,rot);
-        if(pt.z<=.02){st=false;continue;} st?g.lineTo(pt.x,pt.y):(g.moveTo(pt.x,pt.y),st=true);} g.stroke();}
-    for(let lon=0;lon<360;lon+=30){g.beginPath();let st=false;
-      for(let lat=-88;lat<=88;lat+=4){const pt=project(lat,lon,rot);
-        if(pt.z<=.02){st=false;continue;} st?g.lineTo(pt.x,pt.y):(g.moveTo(pt.x,pt.y),st=true);} g.stroke();}
-    for(let i=0;i<dotsG.length;i++){
-      const pt=project(dotsG[i][0],dotsG[i][1],rot);
-      if(pt.z<=.01)continue;
-      const a=.10+pt.z*.62,s=pt.z>.55?1.9:1.6;
-      g.fillStyle='rgba(104,230,255,'+a.toFixed(3)+')'; g.fillRect(pt.x-s/2,pt.y-s/2,s,s);
-    }
-    const shade=g.createRadialGradient(cx-R*.3,cy-R*.32,R*.2,cx,cy,R);
-    shade.addColorStop(0,'rgba(0,0,0,0)');shade.addColorStop(.66,'rgba(2,10,20,.10)');shade.addColorStop(1,'rgba(1,5,12,.55)');
-    g.beginPath();g.arc(cx,cy,R,0,TAU);g.fillStyle=shade;g.fill();
-    ARCS.forEach(function(arc,idx){
-      g.beginPath();let prev=null;
-      for(let i=0;i<arc.pts.length;i++){const pt=project(arc.pts[i][0],arc.pts[i][1],rot);
-        if(pt.z<=.02){prev=null;continue;} prev?g.lineTo(pt.x,pt.y):(g.moveTo(pt.x,pt.y)); prev=pt;}
-      g.strokeStyle='rgba(0,229,255,.34)';g.lineWidth=1.2;g.stroke();
-      const t=(performance.now()/1000*arc.speed+arc.phase)%1;
-      const pos=sampleArc(arc.pts,t),p1=project(pos[0],pos[1],rot);
-      if(p1.z>.02){const rad=8+Math.sin(t*Math.PI)*4;
-        const gr=g.createRadialGradient(p1.x,p1.y,0,p1.x,p1.y,rad);
-        gr.addColorStop(0,'rgba(230,255,255,.95)');gr.addColorStop(.4,arc.b.c+'AA');gr.addColorStop(1,'rgba(0,0,0,0)');
-        g.beginPath();g.arc(p1.x,p1.y,rad,0,TAU);g.fillStyle=gr;g.fill();}
-    });
-    const now=performance.now()/1000;
-    NODES.forEach(function(n,i){
-      const pt=project(n.lat,n.lon,rot); if(pt.z<=.05)return;
-      const pulse=Math.sin(now*1.8+i*1.3)*.5+.5,rr=3.4+pulse*1.6;
-      g.beginPath();g.arc(pt.x,pt.y,rr+5,0,TAU);g.fillStyle=n.c+'1c';g.fill();
-      g.beginPath();g.arc(pt.x,pt.y,rr,0,TAU);g.fillStyle=n.c;g.fill();
-      g.beginPath();g.arc(pt.x,pt.y,rr+6,0,TAU);g.strokeStyle=n.c+'55';g.lineWidth=.9;g.stroke();
-      if(n.main){g.beginPath();g.arc(pt.x,pt.y,rr+13,0,TAU);g.strokeStyle='rgba(34,255,156,.30)';g.stroke();}
-      g.font='600 9px "Segoe UI",Arial,sans-serif';g.fillStyle=n.c;g.globalAlpha=.9;
-      g.fillText(n.k,pt.x+rr+5,pt.y+3.2);g.globalAlpha=1;
-    });
-    const ring=g.createRadialGradient(cx,cy,R*.9,cx,cy,R*1.16);
-    ring.addColorStop(0,'rgba(0,229,255,0)');ring.addColorStop(.5,'rgba(0,229,255,.13)');ring.addColorStop(1,'rgba(0,229,255,0)');
-    g.beginPath();g.arc(cx,cy,R*1.16,0,TAU);g.fillStyle=ring;g.fill();
-    requestAnimationFrame(loopG);
+    clusters.push({jitter,pts,col:COLS[i]});
   }
-  function sampleArc(pts,t){const f=t*(pts.length-1),i=Math.floor(f),k=f-i;
-    const a=pts[Math.min(i,pts.length-1)],b=pts[Math.min(i+1,pts.length-1)];
-    return [a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];}
+  // 背景灰质散点
+  const dust=[];
+  for(let k=0;k<150;k++){const t=R()*TAU,rr=Math.pow(R(),.5)*.95;dust.push({x:Math.cos(t)*rr,y:Math.sin(t)*rr,s:.006+R()*.008,a:.05+R()*.09});}
+
+  // 突触束：中心↔团；相邻团之间
+  const links=[];
+  for(let i=0;i<N;i++)links.push({type:'c2n',to:i});
+  for(let i=0;i<N;i++)links.push({type:'n2n',a:i,b:(i+1)%N});
+
+  // 脉冲池
+  const pulses=[];
+  function spawn(){const lk=links[(R()*links.length)|0];pulses.push({lk,t:0,speed:.18+R()*.22});}
+  for(let k=0;k<10;k++){spawn();pulses[k].t=R();}
+
+  let W=0,H=0,cx=0,cy=0,Rr=0,DPR=1,rot=0;
+  function resize(){
+    const box=cv.parentElement;
+    DPR=Math.min(2,window.devicePixelRatio||1);
+    W=box.clientWidth;H=box.clientHeight;
+    cv.width=Math.max(1,Math.round(W*DPR));cv.height=Math.max(1,Math.round(H*DPR));
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    cx=W/2;cy=H/2;Rr=Math.min(W,H)*.44;
+  }
+  if('ResizeObserver' in window){new ResizeObserver(resize).observe(cv.parentElement);}
+  window.addEventListener('resize',resize);
+  resize();
+
+  function clusterUnit(i){
+    const a=-Math.PI/2+rot+i/N*TAU;
+    const rr=.62+clusters[i].jitter;
+    return [Math.cos(a)*rr,Math.sin(a)*rr];
+  }
+  function linkPoints(lk){
+    if(lk.type==='c2n'){return [[0,0],clusterUnit(lk.to)];}
+    const A=clusterUnit(lk.a),B=clusterUnit(lk.b);
+    const mx=(A[0]+B[0])/2,my=(A[1]+B[1])/2;
+    const m=Math.hypot(mx,my)||1,push=.14;
+    return [A,[mx+mx/m*push,my+my/m*push],B];
+  }
+  function quad(p0,c,p1,t){const u=1-t;return [u*u*p0[0]+2*u*t*c[0]+t*t*p1[0],u*u*p0[1]+2*u*t*c[1]+t*t*p1[1]];}
+  function lin(p0,p1,t){return [p0[0]+(p1[0]-p0[0])*t,p0[1]+(p1[1]-p0[1])*t];}
+
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let last=performance.now();
+
+  function draw(now){
+    const dt=Math.min(.05,(now-last)/1000);last=now;
+    if(!reduce)rot+=dt*.05;
+    ctx.clearRect(0,0,W,H);
+
+    // 背景灰质
+    dust.forEach(d=>{ctx.globalAlpha=d.a;ctx.fillStyle='#9fd8ef';ctx.beginPath();ctx.arc(cx+d.x*Rr,cy+d.y*Rr,Math.max(.6,d.s*Rr),0,TAU);ctx.fill();});
+    ctx.globalAlpha=1;
+
+    // 突触连线
+    links.forEach(lk=>{
+      const pts=linkPoints(lk);
+      ctx.beginPath();
+      if(lk.type==='c2n'){const p=pts[1];ctx.moveTo(cx,cy);ctx.lineTo(cx+p[0]*Rr,cy+p[1]*Rr);}
+      else{const A=pts[0],C=pts[1],B=pts[2];ctx.moveTo(cx+A[0]*Rr,cy+A[1]*Rr);ctx.quadraticCurveTo(cx+C[0]*Rr,cy+C[1]*Rr,cx+B[0]*Rr,cy+B[1]*Rr);}
+      ctx.strokeStyle=lk.type==='c2n'?'rgba(120,200,235,.16)':'rgba(120,200,235,.10)';
+      ctx.lineWidth=.7;ctx.stroke();
+    });
+
+    // 神经团散点与节点
+    clusters.forEach((cl,i)=>{
+      const [ux,uy]=clusterUnit(i);
+      cl.pts.forEach(p=>{
+        ctx.globalAlpha=p.a;ctx.fillStyle=cl.col;
+        ctx.beginPath();ctx.arc(cx+(ux+p.x)*Rr,cy+(uy+p.y)*Rr,Math.max(.6,p.s*Rr),0,TAU);ctx.fill();
+      });
+      const pulse=Math.sin(now/1000*1.6+i*1.3)*.5+.5;
+      const px=cx+ux*Rr,py=cy+uy*Rr,rr=Math.max(2.2,(.028+pulse*.012)*Rr);
+      ctx.globalAlpha=.16;ctx.beginPath();ctx.arc(px,py,rr+5,0,TAU);ctx.fillStyle=cl.col;ctx.fill();
+      ctx.globalAlpha=1;ctx.beginPath();ctx.arc(px,py,rr,0,TAU);ctx.fillStyle=cl.col;ctx.fill();
+      ctx.globalAlpha=.5;ctx.beginPath();ctx.arc(px,py,rr+6,0,TAU);ctx.strokeStyle=cl.col;ctx.lineWidth=.8;ctx.stroke();
+      ctx.globalAlpha=1;
+    });
+
+    // 中心中枢核
+    const chief=1+.12*Math.sin(now/1000*2),cr=Rr*.13*chief;
+    const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,cr*1.7);
+    cg.addColorStop(0,'rgba(230,250,255,.95)');cg.addColorStop(.35,'rgba(0,229,255,.55)');cg.addColorStop(1,'rgba(0,229,255,0)');
+    ctx.beginPath();ctx.arc(cx,cy,cr*1.7,0,TAU);ctx.fillStyle=cg;ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy,cr*.55,0,TAU);ctx.fillStyle='#eafcff';ctx.fill();
+    ctx.font='600 10px "Segoe UI","Noto Sans SC",Arial,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(200,235,250,.85)';ctx.fillText('中枢',cx,cy+cr+12);
+
+    // 信号脉冲
+    pulses.forEach(po=>{
+      po.t+=po.speed*dt;
+      if(po.t>=1){po.t=0;po.lk=links[(R()*links.length)|0];po.speed=.18+R()*.22;}
+      const pts=linkPoints(po.lk);
+      const pos=po.lk.type==='c2n'?lin([0,0],pts[1],po.t):quad(pts[0],pts[1],pts[2],po.t);
+      const px=cx+pos[0]*Rr,py=cy+pos[1]*Rr;
+      const col=po.lk.type==='n2n'?COLS[po.lk.b]:COLS[po.lk.to];
+      const rad=Math.max(4,Rr*.045);
+      const g=ctx.createRadialGradient(px,py,0,px,py,rad);
+      g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.4,col+'cc');g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath();ctx.arc(px,py,rad,0,TAU);ctx.fillStyle=g;ctx.fill();
+    });
+
+    // HUD 外环与刻度
+    ctx.globalAlpha=.35;ctx.strokeStyle='rgba(166,241,255,.5)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(cx,cy,Rr*.98,0,TAU);ctx.stroke();
+    ctx.globalAlpha=.15;ctx.beginPath();ctx.arc(cx,cy,Rr*.94,0,TAU);ctx.stroke();
+    ctx.globalAlpha=.5;ctx.strokeStyle='rgba(166,241,255,.55)';
+    for(let i=0;i<72;i++){const t=i/72*TAU,long=i%6===0,len=long?Rr*.035:Rr*.016;
+      ctx.lineWidth=long?1:.6;
+      ctx.beginPath();
+      ctx.moveTo(cx+Math.cos(t)*Rr*.98,cy+Math.sin(t)*Rr*.98);
+      ctx.lineTo(cx+Math.cos(t)*(Rr*.98+len),cy+Math.sin(t)*(Rr*.98+len));ctx.stroke();}
+    ctx.globalAlpha=1;
+
+    // 雷达扫描扇面
+    if(ctx.createConicGradient){
+      const sa=now/1000*.5;
+      const sg=ctx.createConicGradient(sa,cx,cy);
+      sg.addColorStop(0,'rgba(0,229,255,.22)');sg.addColorStop(.18,'rgba(0,229,255,0)');sg.addColorStop(1,'rgba(0,229,255,0)');
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,Rr*.9,0,TAU);ctx.fillStyle=sg;ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
 })();
 
 /* ============ 阿里云 ECS ============ */
