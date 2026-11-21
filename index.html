@@ -424,6 +424,13 @@ main{display:contents}
       <div class="heat" id="heat"></div>
     </section>
 
+    <!-- 京东账户 -->
+    <section class="panel" style="--accent:var(--red)">
+      <h2>京东账户 <span class="tag" id="jdTag">会话读取</span></h2>
+      <div class="kd-summary" id="jdSummary"></div>
+      <div class="ali" id="jdOrders"></div>
+    </section>
+
     <!-- 阿里云 ECS -->
     <section class="panel" style="--accent:var(--blue)">
       <h2>阿里云 ECS <span class="tag" id="aliTag">等待同步</span></h2>
@@ -1047,6 +1054,31 @@ DATA.tasks.forEach((t,i)=>{
 /* ============ 签到 + 热力 ============ */
 document.getElementById("signs").innerHTML=DATA.signs.map(s=>
   `<div class="item"><div class="t">${s.t}</div><div class="r ${s.r?'':'dim'}">${s.r||"未接入"}</div></div>`).join("");
+
+/* ============ 京东账户 ============ */
+(function(){
+  const box=document.getElementById("jdSummary");
+  const obox=document.getElementById("jdOrders");
+  const tag=document.getElementById("jdTag");
+  if(!box||!obox) return;
+  const jd=DATA.jd;
+  if(!jd){ box.innerHTML='<div>待接入</div>'; obox.innerHTML=''; if(tag)tag.textContent='待接入'; return; }
+  const o=jd.orders||{};
+  const ci=jd.checkin||{};
+  const money=x=>'¥'+(Number(x==null?0:x).toFixed(2));
+  const gift=jd.giftCard!=null?jd.giftCard:jd.walletBalance;
+  const signCol=ci.done?'var(--green)':'var(--orange)';
+  box.innerHTML=[
+    ['京豆', jd.beans==null?'—':jd.beans],
+    ['优惠券', jd.coupon==null?'—':jd.coupon+' 张'],
+    ['礼品卡', money(gift)],
+    ['签到', `<b style="color:${signCol}">${ci.state||'—'}</b>`]
+  ].map(([k,v])=>`<div>${k} ${v}</div>`).join("");
+  const orders=[['待付款',o.waitPay],['待收货',o.waitReceive],['待评价',o.waitComment],['售后',o.afterSale]];
+  obox.innerHTML=orders.map(([k,v])=>
+    `<div class="cell"><div class="k">${k}</div><div class="v">${v==null?'—':v}</div></div>`).join("");
+  if(tag) tag.textContent = jd.updated? jd.updated.slice(5,16) : '会话读取';
+})();
 const heat=document.getElementById("heat");
 const hv=(DATA.heat||[]).map(h=>h.v), hmax=Math.max(0.1,...hv);
 (DATA.heat||[]).forEach((h,i)=>{
