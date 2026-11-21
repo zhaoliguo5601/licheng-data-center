@@ -491,16 +491,6 @@ main{display:contents}
           </tbody>
         </table>
       </div>
-      <div class="nav">
-        <a href="https://www.95598.cn" target="_blank">网上国网 <b>电费</b></a>
-        <a href="https://pan.baidu.com" target="_blank">百度网盘 <b>230G</b></a>
-        <a href="https://www.alipan.com" target="_blank">阿里云盘 <b>备份</b></a>
-        <a href="https://www.wo.cn" target="_blank">联通云盘 <b>迁移</b></a>
-        <a href="https://ecs.console.aliyun.com/" target="_blank">阿里云 ECS <b>主机</b></a>
-        <a href="https://www.jd.com" target="_blank">京东 <b>签到</b></a>
-        <a href="https://www.taofenba.com" target="_blank">淘粉吧 <b>返利</b></a>
-        <a href="https://www.workbuddy.cn" target="_blank">WorkBuddy <b>Agent</b></a>
-      </div>
     </section>
 
     <!-- GitHub 源码仓库 -->
@@ -531,341 +521,394 @@ main{display:contents}
 
 <script>
 /* ================= 数据层 ================= */
-const __FALLBACK = {
-  /*__ALIYUN_BEGIN__*/
-  "aliyun": {
-    "updated": "2026-11-20 07:48",
-    "instanceId": "i-2ze9gch4l1m9vyi7nryc",
-    "instanceName": "iZl1m9vyi7nrycZ",
-    "status": "Running",
-    "region": "华北2（北京）",
-    "spec": "ecs.e-c1m1.large · 2核 2G",
-    "os": "Windows Server 2022 数据中心版",
-    "publicIp": "8.152.6.148",
-    "privateIp": "172.25.96.69",
-    "cpu": 45.1,
-    "mem": 95.3,
-    "disk": 65.0,
-    "rules": [
+const __FALLBACK =   {
+    "aliyun": {
+      "updated": "2026-11-20 07:48",
+      "instanceId": "i-2ze9gch4l1m9vyi7nryc",
+      "instanceName": "iZl1m9vyi7nrycZ",
+      "status": "Running",
+      "region": "华北2（北京）",
+      "spec": "ecs.e-c1m1.large · 2核 2G",
+      "os": "Windows Server 2022 数据中心版",
+      "publicIp": "8.152.6.148",
+      "privateIp": "172.25.96.69",
+      "cpu": 45.1,
+      "mem": 95.3,
+      "disk": 65.0,
+      "rules": [
+        {
+          "name": "CPU 高负载",
+          "threshold": ">85%",
+          "period": "连续15分钟"
+        },
+        {
+          "name": "内存占用过高",
+          "threshold": ">97%",
+          "period": "连续15分钟"
+        },
+        {
+          "name": "磁盘占用过高",
+          "threshold": ">85%",
+          "period": "连续15分钟"
+        }
+      ]
+    },
+    "updated": "2026-11-19",
+    "genAt": "11-20 07:44",
+    "meters": [
       {
-        "name": "CPU 高负载",
-        "threshold": ">85%",
-        "period": "连续15分钟"
+        "name": "*凌志",
+        "no": "3700272293458",
+        "balance": -137.89,
+        "day": 20.15,
+        "avg6": 15.82,
+        "yearKwh": 3738,
+        "yearFee": 2089.72,
+        "status": "neg",
+        "sum6": 94.92
       },
       {
-        "name": "内存占用过高",
-        "threshold": ">97%",
-        "period": "连续15分钟"
-      },
-      {
-        "name": "磁盘占用过高",
-        "threshold": ">85%",
-        "period": "连续15分钟"
+        "name": "*立国",
+        "no": "3750037351078",
+        "balance": 47.25,
+        "day": 0.25,
+        "avg6": 0.25,
+        "yearKwh": 167,
+        "yearFee": 91.34,
+        "status": "ok",
+        "sum6": 1.47
       }
-    ]
-  },
-  /*__ALIYUN_END__*/
-  "updated": "2026-11-19",
-  "genAt": "11-20 07:44",
-  "meters": [
-    {
-      "name": "*立国",
-      "no": "3750037351078",
-      "balance": 47.25,
-      "day": 0.25,
-      "avg6": 0.25,
-      "yearKwh": 167,
-      "yearFee": 91.34,
-      "status": "ok",
-      "sum6": 1.47
-    },
-    {
-      "name": "*凌志",
-      "no": "3700272293458",
-      "balance": -137.89,
-      "day": 20.15,
-      "avg6": 15.82,
-      "yearKwh": 3738,
-      "yearFee": 2089.72,
-      "status": "neg",
-      "sum6": 94.92
-    }
-  ],
-  "drives": [
-    {
-      "name": "百度网盘",
-      "key": "baidu",
-      "files": 54829,
-      "bytes": 247649020227,
-      "color": "#3b82f6",
-      "ico": "百",
-      "gb": 230.64,
-      "pct": 95.0
-    },
-    {
-      "name": "联通云盘",
-      "key": "unicom",
-      "files": 2100,
-      "bytes": 10999410528,
-      "color": "#22ff9c",
-      "ico": "联",
-      "gb": 10.24,
-      "pct": 4.2
-    },
-    {
-      "name": "阿里云盘",
-      "key": "ali",
-      "files": 169,
-      "bytes": 1863761961,
-      "color": "#ffb347",
-      "ico": "阿",
-      "gb": 1.74,
-      "pct": 0.7
-    },
-    {
-      "name": "123云盘",
-      "key": "pan123",
-      "files": 2,
-      "bytes": 149684755,
-      "color": "#f5567b",
-      "ico": "1",
-      "gb": 0.14,
-      "pct": 0.1,
-      "pending": false
-    }
-  ],
-  "tasks": [
-    {
-      "name": "国网两户台账·日采集",
-      "status": "ok",
-      "pct": 100
-    },
-    {
-      "name": "云盘清单扫描核对",
-      "status": "ok",
-      "pct": 100
-    },
-    {
-      "name": "驾驶舱数据重算",
-      "status": "ok",
-      "pct": 100
-    },
-    {
-      "name": "京东每日签到",
-      "status": "none",
-      "pct": 0
-    },
-    {
-      "name": "淘粉吧好评任务",
-      "status": "none",
-      "pct": 0
-    },
-    {
-      "name": "红手指云机待开通",
-      "status": "wait",
-      "pct": 0
-    },
-    {
-      "name": "大华摄像头待接入",
-      "status": "wait",
-      "pct": 0
-    }
-  ],
-  "signs": [
-    {
-      "t": "京东",
-      "r": null
-    },
-    {
-      "t": "淘粉吧",
-      "r": null
-    }
-  ],
-  "heat": [
-    {
-      "d": "10-23",
-      "v": 0.0
-    },
-    {
-      "d": "10-24",
-      "v": 0.0
-    },
-    {
-      "d": "10-25",
-      "v": 0.0
-    },
-    {
-      "d": "10-26",
-      "v": 0.0
-    },
-    {
-      "d": "10-27",
-      "v": 0.0
-    },
-    {
-      "d": "10-28",
-      "v": 0.0
-    },
-    {
-      "d": "10-29",
-      "v": 0.0
-    },
-    {
-      "d": "10-30",
-      "v": 0.0
-    },
-    {
-      "d": "10-31",
-      "v": 0.0
-    },
-    {
-      "d": "11-01",
-      "v": 0.0
-    },
-    {
-      "d": "11-02",
-      "v": 0.0
-    },
-    {
-      "d": "11-03",
-      "v": 0.0
-    },
-    {
-      "d": "11-04",
-      "v": 0.0
-    },
-    {
-      "d": "11-05",
-      "v": 0.0
-    },
-    {
-      "d": "11-06",
-      "v": 0.0
-    },
-    {
-      "d": "11-07",
-      "v": 0.0
-    },
-    {
-      "d": "11-08",
-      "v": 0.0
-    },
-    {
-      "d": "11-09",
-      "v": 0.0
-    },
-    {
-      "d": "11-10",
-      "v": 0.0
-    },
-    {
-      "d": "11-11",
-      "v": 0.0
-    },
-    {
-      "d": "11-12",
-      "v": 0.0
-    },
-    {
-      "d": "11-13",
-      "v": 0.0
-    },
-    {
-      "d": "11-14",
-      "v": 0.0
-    },
-    {
-      "d": "11-15",
-      "v": 0.0
-    },
-    {
-      "d": "11-16",
-      "v": 0.0
-    },
-    {
-      "d": "11-17",
-      "v": 0.0
-    },
-    {
-      "d": "11-18",
-      "v": 15.37
-    },
-    {
-      "d": "11-19",
-      "v": 20.4
-    }
-  ],
-  /*__UNICOM_BEGIN__*/
-  "unicom": {
-    "updated": "2026-11-20 13:48:47",
-    "items": [
-      {
-        "no": "132****5601",
-        "plan": "4G全国流量王8元套餐",
-        "flowTotal": "400MB",
-        "flowUsed": "0MB",
-        "flowRemain": "400MB",
-        "usedPct": 0.0,
-        "smsUsed": 0,
-        "smsRemain": 0,
-        "status": "ok",
-        "note": "通用流量200MB当月+200MB上月结转"
-      },
-      {
-        "no": "132****5602",
-        "plan": "4G全国流量王8元套餐",
-        "flowTotal": "400MB",
-        "flowUsed": "0MB",
-        "flowRemain": "400MB",
-        "usedPct": 0.0,
-        "smsUsed": 0,
-        "smsRemain": 0,
-        "status": "ok",
-        "note": "通用流量200MB当月+200MB上月结转"
-      },
-      {
-        "no": "132****5605",
-        "plan": "联通智家全屋光宽带99元-套内5G主卡",
-        "flowTotal": "96.32GB",
-        "flowUsed": "28.54GB",
-        "flowRemain": "67.78GB",
-        "usedPct": 29.6,
-        "smsUsed": 0,
-        "smsRemain": 0,
-        "status": "ok",
-        "note": "通用流量50GB当月+46.32GB上月结转(共享)；另公免流量已用27.38MB"
-      }
-    ]
-  },
-  "github": {
-    "repo": "licheng-data-center",
-    "owner": "zhaoliguo5601",
-    "private": true,
-    "branch": "main",
-    "language": "Python",
-    "files": 22,
-    "commits": 11,
-    "branches": 1,
-    "stars": 0,
-    "forks": 0,
-    "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-20 21:06",
-    "types": [
-      { "name": "Python", "count": 12, "color": "#3b82f6" },
-      { "name": "Shell", "count": 4, "color": "#22ff9c" },
-      { "name": "HTML", "count": 2, "color": "#ffb347" },
-      { "name": "文档/配置", "count": 4, "color": "#a855f7" }
     ],
-    "recent": [
-      { "sha": "7604440", "msg": "更新 README：补充目录结构、脚本环境变量与安全边界说明", "time": "21:06" },
-      { "sha": "0cf0a35", "msg": "新增：落地核对、补传与清理脚本（凭证走环境变量）", "time": "21:05" },
-      { "sha": "201559d", "msg": "新增：百度/阿里跨盘迁移脚本（凭证走环境变量）", "time": "21:04" },
-      { "sha": "bef3d68", "msg": "新增：网盘清单遍历脚本（凭证走环境变量）", "time": "21:03" },
-      { "sha": "9c3de90", "msg": "新增：网盘迁移看门狗 shell 脚本", "time": "21:03" }
-    ]
+    "drives": [
+      {
+        "name": "百度网盘",
+        "key": "baidu",
+        "files": 54829,
+        "bytes": 247649020227,
+        "color": "#3b82f6",
+        "ico": "百",
+        "gb": 230.64,
+        "pct": 95.0
+      },
+      {
+        "name": "联通云盘",
+        "key": "unicom",
+        "files": 2100,
+        "bytes": 10999410528,
+        "color": "#22ff9c",
+        "ico": "联",
+        "gb": 10.24,
+        "pct": 4.2
+      },
+      {
+        "name": "阿里云盘",
+        "key": "ali",
+        "files": 169,
+        "bytes": 1863761961,
+        "color": "#ffb347",
+        "ico": "阿",
+        "gb": 1.74,
+        "pct": 0.7
+      },
+      {
+        "name": "123云盘",
+        "key": "pan123",
+        "files": 2,
+        "bytes": 149684755,
+        "color": "#f5567b",
+        "ico": "1",
+        "gb": 0.14,
+        "pct": 0.1,
+        "pending": false
+      }
+    ],
+    "tasks": [
+      {
+        "name": "国网两户台账·日采集",
+        "status": "ok",
+        "pct": 100
+      },
+      {
+        "name": "云盘清单扫描核对",
+        "status": "ok",
+        "pct": 100
+      },
+      {
+        "name": "驾驶舱数据重算",
+        "status": "ok",
+        "pct": 100
+      },
+      {
+        "name": "京东每日签到",
+        "status": "wait",
+        "pct": 0
+      },
+      {
+        "name": "淘粉吧好评任务",
+        "status": "none",
+        "pct": 0
+      },
+      {
+        "name": "红手指云机待开通",
+        "status": "wait",
+        "pct": 0
+      },
+      {
+        "name": "大华摄像头待接入",
+        "status": "wait",
+        "pct": 0
+      }
+    ],
+    "signs": [
+      {
+        "t": "京东",
+        "r": "未签到"
+      },
+      {
+        "t": "淘粉吧",
+        "r": "已签到 +3（余额17）"
+      }
+    ],
+    "heat": [
+      {
+        "d": "10-24",
+        "v": 0.0
+      },
+      {
+        "d": "10-25",
+        "v": 0.0
+      },
+      {
+        "d": "10-26",
+        "v": 0.0
+      },
+      {
+        "d": "10-27",
+        "v": 0.0
+      },
+      {
+        "d": "10-28",
+        "v": 0.0
+      },
+      {
+        "d": "10-29",
+        "v": 0.0
+      },
+      {
+        "d": "10-30",
+        "v": 0.0
+      },
+      {
+        "d": "10-31",
+        "v": 0.0
+      },
+      {
+        "d": "11-01",
+        "v": 0.0
+      },
+      {
+        "d": "11-02",
+        "v": 0.0
+      },
+      {
+        "d": "11-03",
+        "v": 0.0
+      },
+      {
+        "d": "11-04",
+        "v": 0.0
+      },
+      {
+        "d": "11-05",
+        "v": 0.0
+      },
+      {
+        "d": "11-06",
+        "v": 0.0
+      },
+      {
+        "d": "11-07",
+        "v": 0.0
+      },
+      {
+        "d": "11-08",
+        "v": 0.0
+      },
+      {
+        "d": "11-09",
+        "v": 0.0
+      },
+      {
+        "d": "11-10",
+        "v": 0.0
+      },
+      {
+        "d": "11-11",
+        "v": 0.0
+      },
+      {
+        "d": "11-12",
+        "v": 0.0
+      },
+      {
+        "d": "11-13",
+        "v": 0.0
+      },
+      {
+        "d": "11-14",
+        "v": 0.0
+      },
+      {
+        "d": "11-15",
+        "v": 0.0
+      },
+      {
+        "d": "11-16",
+        "v": 0.0
+      },
+      {
+        "d": "11-17",
+        "v": 0.0
+      },
+      {
+        "d": "11-18",
+        "v": 15.37
+      },
+      {
+        "d": "11-19",
+        "v": 20.4
+      },
+      {
+        "d": "11-21",
+        "v": 20.4
+      }
+    ],
+    "unicom": {
+      "updated": "2026-11-21 18:15:09",
+      "items": [
+        {
+          "no": "132****5601",
+          "plan": "",
+          "flowTotal": "",
+          "flowUsed": "",
+          "flowRemain": "",
+          "usedPct": 0.0,
+          "smsUsed": 0,
+          "smsRemain": 0,
+          "status": "wait",
+          "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务”，本次未取到套餐/流量/短信数据，未用0或常识值填充；需重新接管浏览器登录后补录。上次成功快照(2026-11-20 13:41)：4G全国流量王8元套餐，流量剩400MB(已用0MB/共400MB)，短信0条；通用流量200MB当月+200MB上月结转"
+        },
+        {
+          "no": "132****5602",
+          "plan": "",
+          "flowTotal": "",
+          "flowUsed": "",
+          "flowRemain": "",
+          "usedPct": 0.0,
+          "smsUsed": 0,
+          "smsRemain": 0,
+          "status": "wait",
+          "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务”，本次未取到套餐/流量/短信数据，未用0或常识值填充；需重新接管浏览器登录后补录。上次成功快照(2026-11-20 13:47)：4G全国流量王8元套餐，流量剩400MB(已用0MB/共400MB)，短信0条；通用流量200MB当月+200MB上月结转"
+        },
+        {
+          "no": "132****5605",
+          "plan": "",
+          "flowTotal": "",
+          "flowUsed": "",
+          "flowRemain": "",
+          "usedPct": 0.0,
+          "smsUsed": 0,
+          "smsRemain": 0,
+          "status": "wait",
+          "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务”，本次未取到套餐/流量/短信数据，未用0或常识值填充；需重新接管浏览器登录后补录。上次成功快照(2026-11-20 13:48)：联通智家全屋光宽带99元-套内5G主卡，流量剩67.78GB(已用28.54GB/共96.32GB)，短信0条；通用流量50GB当月+46.32GB上月结转(共享)，另公免流量已用27.38MB"
+        }
+      ]
+    },
+    "github": {
+      "repo": "licheng-data-center",
+      "owner": "zhaoliguo5601",
+      "private": true,
+      "branch": "main",
+      "language": "Python",
+      "files": 23,
+      "commits": 24,
+      "branches": 2,
+      "stars": 0,
+      "forks": 0,
+      "url": "https://github.com/zhaoliguo5601/licheng-data-center",
+      "updated": "11-21 15:55",
+      "types": [
+        {
+          "name": "Python",
+          "count": 13,
+          "color": "#3b82f6"
+        },
+        {
+          "name": "Shell",
+          "count": 3,
+          "color": "#22ff9c"
+        },
+        {
+          "name": "HTML",
+          "count": 2,
+          "color": "#ffb347"
+        },
+        {
+          "name": "文档/配置",
+          "count": 5,
+          "color": "#a855f7"
+        }
+      ],
+      "recent": [
+        {
+          "sha": "988bac4",
+          "msg": "商标续展倒计时卡片展示全部6件已注册商标，压缩卡片与表格间距",
+          "time": "15:28"
+        },
+        {
+          "sha": "cbd8832",
+          "msg": "换回水彩入水老虎素材，保留水波纹与眨眼/耳朵动效，更新favicon",
+          "time": "14:09"
+        },
+        {
+          "sha": "75c81fc",
+          "msg": "重绘正脸双耳老虎头像，恢复底部水波纹动效，优化头部对齐与favicon",
+          "time": "13:20"
+        },
+        {
+          "sha": "c0e7e7e",
+          "msg": "云盘资产替换为真实APP图标；标题改为立橙·数据中心",
+          "time": "12:57"
+        },
+        {
+          "sha": "971387e",
+          "msg": "标签页标题改立橙数据中心，favicon 更换为老虎头像",
+          "time": "12:29"
+        }
+      ]
+    },
+    "capturedAt": "2026-11-21 17:59:16",
+    "jd": {
+      "source": "browser_session",
+      "updated": "2026-11-21 16:19",
+      "walletBalance": 0.0,
+      "giftCard": 0.0,
+      "beans": 46,
+      "coupon": 3,
+      "orders": {
+        "waitPay": 0,
+        "waitReceive": 0,
+        "waitComment": 0,
+        "afterSale": 0
+      },
+      "checkin": {
+        "done": false,
+        "state": "未签到",
+        "tasks": []
+      }
+    }
   }
-  /*__UNICOM_END__*/
-};
+;
 let DATA;
 function __deepMerge(a,b){
   if(a&&b&&typeof a==='object'&&typeof b==='object'&&!Array.isArray(a)&&!Array.isArray(b)){
