@@ -352,17 +352,6 @@ main{display:contents}
 .gh-foot a{color:#8fe9ff;text-decoration:none}
 
 /* ============ 固定大屏：不再使用响应式断点，整体等比缩放 ============ */
-
-/* 顶部六卡：窄屏降级 3 列 / 2 列（仅作用于顶部 KPI 网格） */
-@media (max-width:1100px){
-  .kpi{grid-template-columns:repeat(3,1fr);gap:12px}
-}
-@media (max-width:640px){
-  .kpi{grid-template-columns:repeat(2,1fr);gap:10px}
-  .flip-card,.flip-inner{min-height:138px}
-  .kpi-card{padding:12px 14px 12px}
-  .kpi-card .val{font-size:clamp(20px,2.6vw,28px)}
-}
 </style>
 </head>
 <body>
