@@ -104,15 +104,15 @@ header{display:flex;align-items:center;gap:18px;flex:none}
 .kpi-stage{position:relative;flex:none;padding-bottom:16px}
 .kpi-viewport{overflow:hidden}
 .kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;perspective:1400px}
-.flip-card{position:relative;min-height:104px;perspective:1400px;
+.flip-card{position:relative;min-height:150px;perspective:1400px;
   transform:translateY(14px);opacity:0;animation:cardIn .5s cubic-bezier(.2,.8,.3,1) forwards}
-.flip-inner{position:relative;width:100%;min-height:104px;transform-style:preserve-3d;
+.flip-inner{position:relative;width:100%;min-height:150px;transform-style:preserve-3d;
   transition:transform .65s cubic-bezier(.35,.15,.25,1)}
 .kpi-stage.flipped .flip-inner{transform:rotateY(180deg)}
 .flip-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
   border-radius:15px;display:flex;flex-direction:column}
 .flip-back{transform:rotateY(180deg)}
-.kpi-card{position:relative;padding:16px 18px 14px;border-radius:15px;overflow:hidden;min-height:104px;
+.kpi-card{padding:16px 18px 14px;border-radius:15px;overflow:hidden;min-height:104px;
   background:linear-gradient(160deg,rgba(12,28,52,.9),rgba(6,14,28,.72));border:1px solid var(--line);
   box-shadow:0 8px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)}
 .kpi-card::before{content:"";position:absolute;left:0;top:0;width:60%;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
