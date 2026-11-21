@@ -1,6 +1,6 @@
 # 立橙 · 数据中心（LICHENG DATA CENTER）
 
-立橙自研的数据大屏、AI 模型网关与网盘运维脚本仓库。面板汇聚国网电表、云盘资产、
+立橙自研的数据大屏与网盘运维脚本仓库。面板汇聚国网电表、云盘资产、
 联通手机卡、商标续展、Agent 任务、阿里云 ECS、快递查询等本地台账数据；大屏为单文件
 HTML 自包含，无需构建即可在浏览器打开。
 
@@ -18,8 +18,6 @@ HTML 自包含，无需构建即可在浏览器打开。
 | 路径 | 说明 |
 | --- | --- |
 | `index.html` | 数据中心主大屏（单文件，样式与脚本内联，资源 base64 内嵌） |
-| `ai-model-hub.html` | AI 模型中枢展示页（混元 / DeepSeek 接入矩阵、对话演示台、网关架构说明） |
-| `llm_gateway.py` | LLM 模型网关代理（Python 3 标准库，零第三方依赖），保管上游密钥并转发 OpenAI 兼容接口 |
 | `scripts/` | 网盘清单遍历、跨盘迁移、落地核对、缺失补传、源盘清理与看门狗脚本 |
 | `docs/运维汇总台账.md` | 脱敏汇总台账：电表、云盘资产、ECS 快照、迁移与比对结论 |
 | `data/summary.json` | 同上汇总数据的结构化版本（脱敏） |
@@ -28,14 +26,6 @@ HTML 自包含，无需构建即可在浏览器打开。
 ## 本地运行
 
 - 大屏页面：直接用浏览器打开 `index.html`，数据写在页面底部 `DATA` 对象中。
-- 网关服务（可选）：
-
-```bash
-export HUNYUAN_KEY="sk-xxxxxxxx"
-export DEEPSEEK_KEY="sk-xxxxxxxx"
-python3 llm_gateway.py
-# 默认监听 8788 端口：/api/health 健康检查，/api/llm 对话转发
-```
 
 - 运维脚本（`scripts/`）：运行前先注入 AList 环境变量，脚本内本地路径按部署环境调整。
 
