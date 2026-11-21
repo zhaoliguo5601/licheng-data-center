@@ -149,9 +149,6 @@ header{display:flex;align-items:center;gap:18px;flex:none}
   display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;line-height:1;transition:all .2s}
 .kpi-arrow:hover{background:rgba(0,229,255,.18);border-color:var(--cyan)}
 .kpi-arrow.prev{left:-14px}.kpi-arrow.next{right:-14px}
-.kpi-dots{display:flex;gap:7px;justify-content:center;align-items:center;height:14px;margin-top:2px}
-.kpi-dots i{width:7px;height:7px;border-radius:50%;background:rgba(127,163,192,.35);cursor:pointer;transition:all .25s}
-.kpi-dots i.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan);width:18px;border-radius:4px}
 .spark{position:absolute;right:12px;bottom:10px;width:56px;height:22px;opacity:.85}
 .spark path{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linecap:round;stroke-dasharray:120;stroke-dashoffset:120;animation:draw 1.6s .5s ease forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
@@ -398,7 +395,6 @@ main{display:contents}
     </div>
     <button class="kpi-arrow prev" id="kpiPrev" aria-label="上一屏">‹</button>
     <button class="kpi-arrow next" id="kpiNext" aria-label="下一屏">›</button>
-    <div class="kpi-dots" id="kpiDots"></div>
   </section>
 
   <!-- ===== 固定三栏枢纽：左槽轮播 | 地球固定 | 右槽轮播 ===== -->
@@ -1059,23 +1055,15 @@ PAIRS.forEach((pair,i)=>{
   board.appendChild(card);
 });
 
-/* ---- 顶部概览双面翻卡：指标面 ⇄ 模型面，自动轮播 + 手势/箭头/指示点 ---- */
+/* ---- 顶部概览双面翻卡：指标面 ⇄ 模型面，自动轮播 + 手势/箭头/悬停/点击翻面 ---- */
 (function(){
   const stage = document.getElementById("kpiStage");
   const board = document.getElementById("kpiBoard");
-  const dotsBox = document.getElementById("kpiDots");
   const vp = document.getElementById("kpiViewport");
   const n = 2;
   let cur = 0, timer;
-  for(let i=0;i<n;i++){
-    const d=document.createElement("i");
-    d.addEventListener("click",()=>{go(i);reset();});
-    dotsBox.appendChild(d);
-  }
-  const dotsEls = Array.from(dotsBox.children);
   function render(){
     stage.classList.toggle("flipped", cur===1);
-    dotsEls.forEach((d,i)=>d.classList.toggle("on",i===cur));
   }
   function go(i){cur=(i+n)%n;render();}
   function next(){go(cur+1);}
