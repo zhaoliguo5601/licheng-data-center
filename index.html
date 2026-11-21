@@ -104,7 +104,7 @@ header{display:flex;align-items:center;gap:18px;flex:none}
 .kpi-stage{position:relative;flex:none;padding-bottom:16px}
 .kpi-viewport{overflow:hidden}
 .kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;perspective:1400px}
-.flip-card{position:relative;min-height:150px;perspective:1400px;
+.flip-card{position:relative;min-height:150px;perspective:1400px;cursor:pointer;
   transform:translateY(14px);opacity:0;animation:cardIn .5s cubic-bezier(.2,.8,.3,1) forwards}
 .flip-inner{position:relative;width:100%;min-height:150px;transform-style:preserve-3d;
   transition:transform .65s cubic-bezier(.35,.15,.25,1)}
@@ -113,8 +113,13 @@ header{display:flex;align-items:center;gap:18px;flex:none}
   border-radius:15px;display:flex;flex-direction:column}
 .flip-back{transform:rotateY(180deg)}
 .kpi-card{padding:16px 18px 14px;border-radius:15px;overflow:hidden;min-height:104px;
-  background:linear-gradient(160deg,rgba(12,28,52,.9),rgba(6,14,28,.72));border:1px solid var(--line);
-  box-shadow:0 8px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)}
+  background:linear-gradient(160deg,rgba(12,28,52,.92),rgba(6,14,28,.74));border:1px solid var(--line);
+  box-shadow:0 10px 26px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(255,255,255,.06),inset 0 -14px 22px rgba(0,0,0,.28);
+  transition:box-shadow .3s ease,border-color .3s ease}
+.flip-card:hover .kpi-card{border-color:rgba(127,163,192,.4);
+  box-shadow:0 16px 34px rgba(0,0,0,.58),0 4px 10px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.09),inset 0 -14px 22px rgba(0,0,0,.28)}
 .kpi-card::before{content:"";position:absolute;left:0;top:0;width:60%;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
 .kpi-card .label{font-size:11.5px;color:var(--dim);letter-spacing:.16em;margin-bottom:10px}
 .kpi-card .val{font-size:clamp(24px,2.3vw,36px);font-weight:800;letter-spacing:.01em;
@@ -347,6 +352,17 @@ main{display:contents}
 .gh-foot a{color:#8fe9ff;text-decoration:none}
 
 /* ============ 固定大屏：不再使用响应式断点，整体等比缩放 ============ */
+
+/* 顶部六卡：窄屏降级 3 列 / 2 列（仅作用于顶部 KPI 网格） */
+@media (max-width:1100px){
+  .kpi{grid-template-columns:repeat(3,1fr);gap:12px}
+}
+@media (max-width:640px){
+  .kpi{grid-template-columns:repeat(2,1fr);gap:10px}
+  .flip-card,.flip-inner{min-height:138px}
+  .kpi-card{padding:12px 14px 12px}
+  .kpi-card .val{font-size:clamp(20px,2.6vw,28px)}
+}
 </style>
 </head>
 <body>
@@ -1018,16 +1034,18 @@ const IC = {
   gemini: "data:image/png;base64,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"
 };
 const MODELS = [
-  { name:"豆包", en:"Doubao", ico:"豆", img:IC.doubao, accent:"#3b82f6", sub:"云端大模型端口 · 待配置" },
-  { name:"WorkBuddy", en:"Agent", ico:"W", accent:"#ffb347", sub:"内部 Agent 端口 · 待配置" },
-  { name:"DeepThink", en:"Reasoning", ico:"D", img:IC.deepseek, accent:"#a855f7", sub:"推理模型端口 · 待配置" },
-  { name:"千问", en:"Qwen", ico:"千", img:IC.qwen, accent:"#22ff9c", sub:"通义千问端口 · 待配置" },
-  { name:"Grok", en:"xAI", ico:"G", img:IC.grok, accent:"#e5e7eb", sub:"xAI 大模型端口 · 待配置" },
-  { name:"Gemini", en:"Google", ico:"G", img:IC.gemini, accent:"#4da3ff", sub:"Google 大模型端口 · 待配置" }
+  { name:"豆包", en:"Doubao", ico:"豆", img:IC.doubao, accent:"#3b82f6", sub:"云端大模型端口 · 待配置", status:"待接入", statusDot:"idle" },
+  { name:"WorkBuddy", en:"Agent", ico:"W", accent:"#ffb347", sub:"内部 Agent 端口 · 待配置", status:"待接入", statusDot:"idle" },
+  { name:"DeepThink", en:"Reasoning", ico:"D", img:IC.deepseek, accent:"#a855f7", sub:"推理模型端口 · 待配置", status:"待接入", statusDot:"idle" },
+  { name:"千问", en:"Qwen", ico:"千", img:IC.qwen, accent:"#22ff9c", sub:"通义千问端口 · 待配置", status:"待接入", statusDot:"idle" },
+  { name:"Grok", en:"xAI", ico:"G", img:IC.grok, accent:"#e5e7eb", sub:"xAI 大模型端口 · 待配置", status:"待接入", statusDot:"idle" },
+  { name:"Gemini", en:"Google", ico:"G", img:IC.gemini, accent:"#4da3ff", sub:"Google 大模型端口 · 待配置", status:"待接入", statusDot:"idle" }
 ];
+/* 指标 ↔ 模型 配对表：正面 KPI 指标，背面对应大模型；后期调换配对或接 API 改状态，只动这张表 */
+const PAIRS = KPI.map((k,i)=>({ kpi:k, model:MODELS[i] }));
 const board = document.getElementById("kpiBoard");
-KPI.forEach((k,i)=>{
-  const m = MODELS[i];
+PAIRS.forEach((pair,i)=>{
+  const k=pair.kpi, m=pair.model;
   const card = document.createElement("div");
   card.className = "flip-card";
   card.style.animationDelay = (i*.05)+"s";
@@ -1044,7 +1062,7 @@ KPI.forEach((k,i)=>{
         <div class="label">${m.name}<span class="tag-en">${m.en}</span></div>
         <div class="model-mid">
           <div class="model-ico">${m.img?`<img src="${m.img}" alt="${m.name}">`:m.ico}</div>
-          <div class="model-status"><i class="dot idle"></i>待接入</div>
+          <div class="model-status"><i class="dot ${m.statusDot||'idle'}"></i>${m.status||"待接入"}</div>
         </div>
         <div class="sub">${m.sub}</div>
       </div>
@@ -1055,6 +1073,7 @@ KPI.forEach((k,i)=>{
 /* ---- 顶部概览双面翻卡：指标面 ⇄ 模型面，自动轮播 + 手势/箭头/指示点 ---- */
 (function(){
   const stage = document.getElementById("kpiStage");
+  const board = document.getElementById("kpiBoard");
   const dotsBox = document.getElementById("kpiDots");
   const vp = document.getElementById("kpiViewport");
   const n = 2;
@@ -1073,8 +1092,13 @@ KPI.forEach((k,i)=>{
   function next(){go(cur+1);}
   function prev(){go(cur-1);}
   function reset(){clearInterval(timer);timer=setInterval(next,5000);}
+  function pause(){clearInterval(timer);}
   document.getElementById("kpiPrev").addEventListener("click",()=>{prev();reset();});
   document.getElementById("kpiNext").addEventListener("click",()=>{next();reset();});
+  /* 悬停在卡片区暂停自动翻，移开后恢复；点击任意卡片手动翻面 */
+  stage.addEventListener("mouseenter",pause);
+  stage.addEventListener("mouseleave",reset);
+  board.addEventListener("click",()=>{go(cur?0:1);reset();});
   let sx=null;
   vp.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;},{passive:true});
   vp.addEventListener("touchend",e=>{
