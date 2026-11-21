@@ -101,18 +101,18 @@ header{display:flex;align-items:center;gap:18px;flex:none}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
 
 /* ---------- 顶部概览：指标页 ⇄ 大模型端口页 分页滑屏 ---------- */
-.kpi-stage{position:relative;flex:none;padding-bottom:16px}
+.kpi-stage{position:relative;flex:none;padding-bottom:10px}
 .kpi-viewport{overflow:hidden}
 .kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;perspective:1400px}
-.flip-card{position:relative;min-height:150px;perspective:1400px;cursor:pointer;
+.flip-card{position:relative;min-height:118px;perspective:1400px;cursor:pointer;
   transform:translateY(14px);opacity:0;animation:cardIn .5s cubic-bezier(.2,.8,.3,1) forwards}
-.flip-inner{position:relative;width:100%;min-height:150px;transform-style:preserve-3d;
+.flip-inner{position:relative;width:100%;min-height:118px;transform-style:preserve-3d;
   transition:transform .65s cubic-bezier(.35,.15,.25,1)}
 .kpi-stage.flipped .flip-inner{transform:rotateY(180deg)}
 .flip-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
   border-radius:15px;display:flex;flex-direction:column}
 .flip-back{transform:rotateY(180deg)}
-.kpi-card{padding:16px 18px 14px;border-radius:15px;overflow:hidden;min-height:104px;
+.kpi-card{padding:11px 16px 9px;border-radius:15px;overflow:hidden;min-height:80px;
   background:linear-gradient(160deg,rgba(12,28,52,.92),rgba(6,14,28,.74));border:1px solid var(--line);
   box-shadow:0 10px 26px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.4),
     inset 0 1px 0 rgba(255,255,255,.06),inset 0 -14px 22px rgba(0,0,0,.28);
@@ -121,20 +121,20 @@ header{display:flex;align-items:center;gap:18px;flex:none}
   box-shadow:0 16px 34px rgba(0,0,0,.58),0 4px 10px rgba(0,0,0,.45),
     inset 0 1px 0 rgba(255,255,255,.09),inset 0 -14px 22px rgba(0,0,0,.28)}
 .kpi-card::before{content:"";position:absolute;left:0;top:0;width:60%;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
-.kpi-card .label{font-size:11.5px;color:var(--dim);letter-spacing:.16em;margin-bottom:10px}
+.kpi-card .label{font-size:11.5px;color:var(--dim);letter-spacing:.16em;margin-bottom:6px}
 .kpi-card .val{font-size:clamp(24px,2.3vw,36px);font-weight:800;letter-spacing:.01em;
   font-variant-numeric:tabular-nums;line-height:1;
   background:linear-gradient(180deg,#ffffff,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 .kpi-card .unit{font-size:12px;color:var(--dim);margin-left:5px;font-weight:500;-webkit-text-fill-color:var(--dim)}
-.kpi-card .sub{margin-top:10px;font-size:11px;color:var(--dim2);display:flex;gap:6px;align-items:center;line-height:1.4}
+.kpi-card .sub{margin-top:6px;font-size:11px;color:var(--dim2);display:flex;gap:6px;align-items:center;line-height:1.4}
 .kpi-card.bad .val{background:linear-gradient(180deg,#fff,#ff8fa3);-webkit-background-clip:text}
 
 /* ---------- 大模型端口占位卡 ---------- */
-.model-card{display:flex;flex-direction:column;gap:8px}
+.model-card{display:flex;flex-direction:column;gap:6px}
 .model-card .tag-en{font-size:10px;color:var(--dim2);letter-spacing:.08em;margin-left:6px;font-weight:500}
 .model-mid{display:flex;align-items:center;gap:12px;flex:1}
-.model-ico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:none;overflow:hidden;
-  font-size:19px;font-weight:800;color:#fff;
+.model-ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;overflow:hidden;
+  font-size:18px;font-weight:800;color:#fff;
   background:linear-gradient(150deg,var(--accent),rgba(255,255,255,.08));
   box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18)}
 .model-ico img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
