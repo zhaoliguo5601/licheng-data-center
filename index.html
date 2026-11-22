@@ -6626,8 +6626,10 @@ function updateScene(dt){
     themeCur.lerp(themeTarget, 1 - Math.exp(-dt * 3));
   }
   // 对话互动：思考中提升能量系数并在神经团之间打脉冲，回复后回落
-  const chatTarget = chatMode === 'thinking' ? 1 : 0;
+  const chatTarget = (chatMode === 'thinking' || chatMode === 'listening') ? 1 : 0;
   chatBoost += (chatTarget - chatBoost) * (1 - Math.exp(-dt * (chatTarget ? 5 : 1.4)));
+  // 聆听态：整环随呼吸正弦起伏（Siri/豆包待命聆听感）
+  const breathe = chatMode === 'listening' ? (0.5 + 0.5 * Math.sin(animT * 4.2)) : 0;
   if (chatMode === 'thinking') {
     chatPulseAcc += dt;
     if (chatPulseAcc > .26) {
@@ -6699,10 +6701,10 @@ function updateScene(dt){
   for (let s = 0; s < NSEG; s++) segFlash[s] *= Math.exp(-dt * 3.2);
   hits.forEach(h => { if (!h.s.visible) return; h.t += dt; const k = h.t / .55; if (k >= 1) { h.s.visible = false; return; } h.s.scale.setScalar(.1 + .32 * k); h.s.material.opacity = 1 - k; });
   if (themeCur) coreSpr.material.color.copy(themeCur);
-  coreSpr.material.opacity = .1 + AF[0] * .14 + boost * .05 + chatBoost * .13;
+  coreSpr.material.opacity = .1 + AF[0] * .14 + boost * .05 + chatBoost * .13 + breathe * .12;
   chanSpr.forEach((s, j) => { const f = chanFlash[j]; s.material.opacity = f; s.scale.setScalar(.12 + .55 * f); });
   scans.forEach(s => { if (!s.m.visible) return; s.t += dt; const k = s.t / 1.2; if (k >= 1) { s.m.visible = false; return; } if (themeCur) s.m.material.color.copy(themeCur); s.m.scale.setScalar(.07 + .38 * k); s.m.material.opacity = (1 - k) * .9; s.m.lookAt(camera.position); });
-  streaks.material.uniforms.uTime.value = animT; streaks.material.uniforms.uBoost.value = boost + chatBoost;
+  streaks.material.uniforms.uTime.value = animT; streaks.material.uniforms.uBoost.value = boost + chatBoost + breathe * .35;
   dust.rotation.y = animT * .004; dust.rotation.x = animT * .002;
 }
 function decay(dt){
@@ -6821,6 +6823,8 @@ cv.addEventListener('pointermove', e => {
 cv.addEventListener('pointerup', e => {
   const wasDrag = drag && drag.moved; drag = null; cv.classList.remove('drag');
   if (wasDrag) return;
+  // 星环作为语音入口：非拖拽的点按/触摸即派发语音切换（开始/结束聆听）
+  host.dispatchEvent(new CustomEvent('lc-voice-toggle'));
   const r = host.getBoundingClientRect(), i = pickAt(e.clientX - r.left, e.clientY - r.top);
   focus = (i >= 0 && i < NCL && focus !== i) ? i : -1;
   needsT = 1.5;
@@ -6876,7 +6880,7 @@ host.__nr = {ff(sec){ for (let t = 0; t < sec; t += .05) { simStep(.05); decay(.
 /* 对话面板桥接：setState('thinking'|'idle') 驱动 3D 互动，pulse() 回复后核心脉冲一下；
    node(ai, colHex) 点亮指定星环节点（flash + 高亮计时），并由 CHIEF 发一条该颜色信号过去。 */
 host.__chatFx = {
-  setState(s){ chatMode = s === 'thinking' ? 'thinking' : 'idle'; },
+  setState(s){ chatMode = (s === 'thinking' || s === 'listening') ? s : 'idle'; },
   pulse(){ boost = Math.min(1.4, boost + .3); },
   setTheme(hex){ setThemeHex(hex); },
   node(ai, colHex){
@@ -21216,7 +21220,7 @@ requestAnimationFrame(frame);
 #lcModel option{background:#0a141c;color:#eafcff}
 #lcKey{font-size:13px;color:#6f9aa6;background:none;border:none;cursor:pointer;padding:2px 4px;line-height:1}
 #lcKey:hover{color:#eafcff}
-#lcMicBtn{position:relative;width:64px;height:64px;border-radius:50%;border:1px solid rgba(0,229,255,.45);background:rgba(0,229,255,.12);color:#eafcff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s;outline:none}
+#lcMicBtn{position:relative;width:64px;height:64px;border-radius:50%;border:1px solid rgba(0,229,255,.45);background:rgba(0,229,255,.12);color:#eafcff;cursor:pointer;display:none;align-items:center;justify-content:center;transition:all .25s;outline:none}
 #lcMicBtn svg{width:26px;height:26px}
 #lcMicBtn::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(0,229,255,.3);opacity:0;transition:opacity .25s}
 #lcMicBtn.listening::before,#lcMicBtn.thinking::before,#lcMicBtn.speaking::before{opacity:1;animation:lcRing 1.4s infinite}
@@ -21249,7 +21253,7 @@ requestAnimationFrame(frame);
   <button id="lcMicBtn" type="button" aria-label="语音对话">
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3 3 0 003-3V6a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-2.08A7 7 0 0019 12h-2z"/></svg>
   </button>
-  <div id="lcStatus" class="status"><span id="lcDot"></span><span id="lcStatusText">待命 · 点麦克风说话</span></div>
+  <div id="lcStatus" class="status"><span id="lcDot"></span><span id="lcStatusText">待命 · 点按星环说话</span></div>
   <div id="lcFallbackRow">
     <input id="lcInput" type="text" placeholder="问点什么…" autocomplete="off">
     <button id="lcSend" type="button">发送</button>
@@ -21288,6 +21292,29 @@ requestAnimationFrame(frame);
   var asrPcm=[];              // 待发的 Float32 样本缓冲
   var asrInterim="";          // 最新临时识别文本（上屏）
   var ASR_RATE=16000, ASR_FRAME=3200; // 16kHz，200ms/包
+
+  /* 3D 状态桥接：idle 待命 / listening 聆听 / thinking 思考；无 3D 时安全跳过 */
+  function fxSetState(s){ var f=fx(); if(f&&f.setState) f.setState(s); }
+
+  /* Siri 式柔和双音开场提示音：WebAudio 合成，免外部音频文件；两声正弦上扬、指数衰减 */
+  var chimeCtx=null;
+  function playChime(){
+    try{
+      if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(chimeCtx.state==='suspended') chimeCtx.resume();
+      var t0=chimeCtx.currentTime;
+      [[659.25,0,.16],[987.77,.12,.22]].forEach(function(n){
+        var osc=chimeCtx.createOscillator(), g=chimeCtx.createGain();
+        osc.type='sine'; osc.frequency.value=n[0];
+        var start=t0+n[1];
+        g.gain.setValueAtTime(0.0001,start);
+        g.gain.linearRampToValueAtTime(.16,start+.025);
+        g.gain.exponentialRampToValueAtTime(.0001,start+n[2]);
+        osc.connect(g); g.connect(chimeCtx.destination);
+        osc.start(start); osc.stop(start+n[2]+.05);
+      });
+    }catch(e){ /* 音频不可用则静默 */ }
+  }
 
   /* 3D 星环互动桥接：神经星环主题挂载后挂在 host-neural.__chatFx；其他主题或无 3D 时安全跳过 */
   function fx(){ var h=document.getElementById('host-neural'); return (h&&h.__chatFx)||null; }
@@ -21358,18 +21385,18 @@ requestAnimationFrame(frame);
     fetch(TTS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})})
       .then(function(r){ return r.json(); })
       .then(function(d){
-        if(!d||!d.audio){ setStatus('待命 · 点麦克风说话','idle'); return; }
+        if(!d||!d.audio){ setStatus('待命 · 点按星环说话','idle'); return; }
         var bin=atob(d.audio), u8=new Uint8Array(bin.length);
         for(var i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
         var blob=new Blob([u8],{type:'audio/mpeg'});
         var url=URL.createObjectURL(blob);
         audioEl=new Audio(url);
         setStatus('播报中…','speaking');
-        audioEl.onended=function(){ URL.revokeObjectURL(url); audioEl=null; if(!working) setStatus('待命 · 点麦克风说话','idle'); };
-        audioEl.onerror=function(){ URL.revokeObjectURL(url); audioEl=null; if(!working) setStatus('待命 · 点麦克风说话','idle'); };
-        audioEl.play().catch(function(){ URL.revokeObjectURL(url); audioEl=null; if(!working) setStatus('待命 · 点麦克风说话','idle'); });
+        audioEl.onended=function(){ URL.revokeObjectURL(url); audioEl=null; if(!working) setStatus('待命 · 点按星环说话','idle'); };
+        audioEl.onerror=function(){ URL.revokeObjectURL(url); audioEl=null; if(!working) setStatus('待命 · 点按星环说话','idle'); };
+        audioEl.play().catch(function(){ URL.revokeObjectURL(url); audioEl=null; if(!working) setStatus('待命 · 点按星环说话','idle'); });
       })
-      .catch(function(){ if(!working) setStatus('待命 · 点麦克风说话','idle'); });
+      .catch(function(){ if(!working) setStatus('待命 · 点按星环说话','idle'); });
   }
 
   function isOpenCommand(text){
@@ -21490,17 +21517,21 @@ requestAnimationFrame(frame);
     if(asrStream){ try{asrStream.getTracks().forEach(function(t){t.stop();});}catch(e){} asrStream=null; }
     if(asrWs){ try{asrWs.close();}catch(e){} asrWs=null; }
     asrPcm=[]; asrInterim='';
+    fxSetState('idle');
   }
 
   function asrFail(msg){
     asrCleanup();
     setStatus(msg||'语音识别不可用','idle');
-    setTimeout(function(){ if(!working) setStatus('待命 · 点麦克风说话','idle'); },1800);
+    setTimeout(function(){ if(!working) setStatus('待命 · 点按星环说话','idle'); },1800);
   }
 
   async function asrStart(){
     asrBusy=true; setStatus('正在申请麦克风…','listening');
     try{
+      /* 手势上下文内解锁 WebAudio，确保开场提示音不被自动播放策略拦截 */
+      try{ if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)(); if(chimeCtx.state==='suspended') chimeCtx.resume(); }catch(e){}
+      playChime();
       asrStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
       asrCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:ASR_RATE});
       asrSource=asrCtx.createMediaStreamSource(asrStream);
@@ -21511,7 +21542,7 @@ requestAnimationFrame(frame);
 
       asrWs=new WebSocket(STREAM_ENDPOINT);
       asrWs.binaryType='arraybuffer';
-      asrWs.onopen=function(){ asrRecording=true; asrBusy=false; setStatus('聆听中…','listening'); asrSendParams(); };
+      asrWs.onopen=function(){ asrRecording=true; asrBusy=false; fxSetState('listening'); setStatus('聆听中…','listening'); asrSendParams(); };
       asrWs.onmessage=onAsrMessage;
       asrWs.onerror=function(){ asrFail('语音通道连接失败'); };
       asrWs.onclose=function(){ if(asrRecording) asrFail('语音通道已断开'); };
@@ -21523,14 +21554,19 @@ requestAnimationFrame(frame);
     if(asrWs && asrWs.readyState===1){
       asrSendAudio(asrPcm.splice(0,asrPcm.length),true);
     }
+    fxSetState('thinking');
     setStatus('识别中…','thinking');
     setTimeout(function(){ if(asrRecording===false && !working) asrCleanup(); }, 8000);
   }
 
-  micBtn.addEventListener('click',function(){
+  function toggleVoice(){
     if(working||asrBusy) return;
     if(asrRecording){ asrStop(); } else { asrStart(); }
-  });
+  }
+  micBtn.addEventListener('click', toggleVoice);
+  /* 3D 星环作为语音入口：neural 主题在非拖拽点击/触摸星环时派发 lc-voice-toggle 事件 */
+  var hostEl=document.getElementById('host-neural');
+  if(hostEl) hostEl.addEventListener('lc-voice-toggle', toggleVoice);
 
   /* 隐藏兜底文字输入（ASR 未通期间备用；主界面默认不显示打字框） */
   keyBtn.addEventListener('click',function(){
