@@ -678,8 +678,9 @@ body{background:var(--page);overflow:hidden}
 .m-stats b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .m-wm{margin-top:6px;font-family:var(--display);font-size:8px;letter-spacing:.3em;color:var(--dim);text-align:center}
 .glfail{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:340px;text-align:center;font-family:var(--cjk);font-size:13px;line-height:1.7;color:var(--ink2);border:1px solid var(--hair2);padding:14px 18px;background:rgba(4,7,13,.85)}
-.lc-brand{position:absolute;top:max(18px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));pointer-events:none;z-index:6;line-height:1.25}
-.lc-brand-main{font-family:var(--cjk);font-weight:900;color:#fff;font-size:20px;letter-spacing:.08em;text-shadow:0 0 18px rgba(166,241,255,.35)}
+.lc-brand{position:absolute;top:max(18px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));pointer-events:auto;cursor:pointer;z-index:6;line-height:1.25;user-select:none;-webkit-tap-highlight-color:transparent}
+.lc-brand:hover .lc-brand-main{color:#fff;text-shadow:0 0 24px rgba(0,229,255,.65)}
+.lc-brand-main{font-family:var(--cjk);font-weight:900;color:#fff;font-size:20px;letter-spacing:.08em;text-shadow:0 0 18px rgba(166,241,255,.35);transition:all .2s}
 .lc-brand-sub{margin-top:5px;font-family:var(--cjk);font-weight:400;color:#d7e6f5;font-size:12px;letter-spacing:.16em;opacity:.55}
 /* 纯 3D 演示：隐藏标题/顶部脉冲/左列/右列/底部指标条/水印/窄屏信息与悬停提示；保留右上角视角切换与全屏按钮，隐藏主题切换 */
 .hd,.cap,.lt,.rc,.bs,.wm,.mini,.tip{display:none!important}
@@ -690,7 +691,7 @@ body{background:var(--page);overflow:hidden}
 <canvas class="gl" id="gl" aria-label="神经星环：13 个智能体神经团，脉冲沿突触束在它们之间传递任务。拖动可转动视角，点击神经团可聚焦"></canvas>
 <div class="vig" aria-hidden="true"></div>
 <div class="nr" id="nr">
-<div class="lc-brand">
+<div class="lc-brand" role="button" tabindex="0" title="进入数据中心">
   <div class="lc-brand-main">立橙 · 数据中心</div>
   <div class="lc-brand-sub">物种进化神经星环智能体</div>
 </div>
@@ -21238,20 +21239,15 @@ requestAnimationFrame(frame);
   show('neural');
 })();
 </script>
-<style>
-#lcEnter{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;padding:13px 26px;border:1px solid rgba(0,229,255,.4);border-radius:999px;background:rgba(4,10,16,.55);color:#eafcff;font-family:'Noto Sans SC',system-ui,sans-serif;font-size:15px;letter-spacing:.14em;cursor:pointer;backdrop-filter:blur(10px);box-shadow:0 8px 30px rgba(0,0,0,.5),inset 0 0 18px rgba(0,229,255,.12);transition:all .25s}
-#lcEnter:hover{background:rgba(0,229,255,.16);border-color:rgba(0,229,255,.8);box-shadow:0 8px 34px rgba(0,229,255,.25)}
-#lcEnter .arr{font-size:16px;transition:transform .25s}
-#lcEnter:hover .arr{transform:translateX(4px)}
-@media(max-width:640px){#lcEnter{bottom:22px;font-size:13px;padding:11px 20px}}
-</style>
-<button id="lcEnter" type="button">进入数据中心 <span class="arr">→</span></button>
 <script>
 (function(){
   function enterDashboard(){ location.href='dashboard.html'; }
-  window.enterDashboard = enterDashboard; /* 预留：后期语音唤醒调用同一入口 */
-  var b=document.getElementById('lcEnter');
-  if(b) b.addEventListener('click', enterDashboard);
+  window.enterDashboard = enterDashboard; /* 语音唤醒 / 标题点击共用同一入口 */
+  var brand=document.querySelector('.lc-brand');
+  if(brand){
+    brand.addEventListener('click', enterDashboard);
+    brand.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); enterDashboard(); } });
+  }
 })();
 </script>
 
