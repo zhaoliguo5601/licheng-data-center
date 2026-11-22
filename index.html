@@ -21262,6 +21262,7 @@ requestAnimationFrame(frame);
   var MODELS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/models");
   var TTS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/tts");
   var ASR_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/asr");
+  var STREAM_ENDPOINT = CHAT_ENDPOINT.replace(/^http/, "ws").replace(/\/chat$/, "/asr/stream");
   var CMDS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/commands");
 
   var OPEN_WORDS = ["打开大屏","进入大屏","打开数据中心","进入数据中心","打开看板","进入看板","打开主页","进入主页","回到主页","打开首页","进入首页","跳转大屏","跳转数据中心","打开控制台","进入控制台"];
@@ -21280,6 +21281,13 @@ requestAnimationFrame(frame);
   var modelColor={};   // key → 主题色 hex，来自 Worker 清单/回复
   var audioEl=null;    // 当前播报音频实例
   var cmdSeq=0;        // 跨端总线已消费到的最大序号
+
+  /* —— 流式语音识别（WebSocket 中继）采集状态 —— */
+  var asrWs=null, asrStream=null, asrCtx=null, asrProcessor=null, asrSource=null, asrSink=null;
+  var asrRecording=false, asrBusy=false;
+  var asrPcm=[];              // 待发的 Float32 样本缓冲
+  var asrInterim="";          // 最新临时识别文本（上屏）
+  var ASR_RATE=16000, ASR_FRAME=3200; // 16kHz，200ms/包
 
   /* 3D 星环互动桥接：神经星环主题挂载后挂在 host-neural.__chatFx；其他主题或无 3D 时安全跳过 */
   function fx(){ var h=document.getElementById('host-neural'); return (h&&h.__chatFx)||null; }
@@ -21403,11 +21411,125 @@ requestAnimationFrame(frame);
     callModel(text);
   }
 
-  /* 麦克风：ASR 通道尚未开通，点击先给出提示；录音采集与识别接通后在此接 MediaRecorder → /api/asr */
+  /* —— 流式语音识别：浏览器采集 16kHz PCM，经 Worker WS 中继送上游大模型流式 ASR —— */
+  function gzipBytes(input){
+    var s=new Blob([input]).stream().pipeThrough(new CompressionStream('gzip'));
+    return new Response(s).arrayBuffer();
+  }
+  function gunzipBytes(input){
+    var s=new Blob([input]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return new Response(s).arrayBuffer();
+  }
+  function asrFrame(type,flags,serial,comp,payload){
+    var h=new Uint8Array(4);
+    h[0]=0x11; h[1]=(type<<4)|flags; h[2]=(serial<<4)|comp; h[3]=0;
+    var size=new Uint8Array(4); new DataView(size.buffer).setUint32(0,payload.length,false);
+    return new Blob([h,size,payload],{type:'application/octet-stream'});
+  }
+  function read32(b,o){ return new DataView(b.buffer,b.byteOffset,b.byteLength).getUint32(o,false); }
+
+  async function asrSendParams(){
+    var params={user:{uid:'lcdc-web'},audio:{format:'pcm',rate:ASR_RATE,bits:16,channel:1},
+      request:{model_name:'bigmodel',enable_itn:true,enable_punc:true}};
+    var json=new TextEncoder().encode(JSON.stringify(params));
+    var gz=new Uint8Array(await gzipBytes(json));
+    asrWs.send(asrFrame(1,0,1,1,gz));
+  }
+
+  function asrPcmToS16(f32){
+    var buf=new ArrayBuffer(f32.length*2), v=new DataView(buf);
+    for(var i=0;i<f32.length;i++){ var s=Math.max(-1,Math.min(1,f32[i])); v.setInt16(i*2, s<0?s*0x8000:s*0x7FFF, true); }
+    return buf;
+  }
+
+  async function asrSendAudio(f32,isLast){
+    var pcm=asrPcmToS16(f32);
+    var gz=new Uint8Array(await gzipBytes(pcm));
+    asrWs.send(asrFrame(2,isLast?0x2:0x0,0,1,gz));
+  }
+
+  function asrPushPcm(f32){
+    asrPcm=asrPcm.concat(Array.from(f32));
+    while(asrPcm.length>=ASR_FRAME){
+      var chunk=asrPcm.splice(0,ASR_FRAME);
+      asrSendAudio(chunk,false);
+    }
+  }
+
+  async function onAsrMessage(ev){
+    var buf=new Uint8Array(ev.data);
+    if(buf.length<4) return;
+    var type=(buf[1]>>4)&0x0f, flags=buf[1]&0x0f, comp=buf[2]&0x0f;
+    if(type===15){ asrFail('识别服务返回错误'); return; }
+    if(type!==9) return;
+    var off=4;
+    if(flags===1||flags===3){ off+=4; } // 带 sequence
+    var psize=read32(buf,off); off+=4;
+    var payload=buf.slice(off,off+psize);
+    if(comp===1){ payload=new Uint8Array(await gunzipBytes(payload)); }
+    var j; try{ j=JSON.parse(new TextDecoder().decode(payload)); }catch{ return; }
+    var result=j.result||{};
+    var text=result.text||'';
+    var utts=result.utterances||[];
+    var definite=utts.filter(function(u){return u.definite;});
+    if(text) asrInterim=text;
+    if(asrRecording) setStatus('聆听中 · '+(asrInterim||'…'),'listening');
+    if(definite.length){
+      var sent=definite.map(function(u){return u.text||'';}).join('').trim();
+      asrInterim='';
+      if(sent){ asrStop(); handleText(sent); }
+    }
+  }
+
+  function asrCleanup(){
+    asrRecording=false;
+    if(asrProcessor){ try{asrProcessor.disconnect();}catch(e){} asrProcessor=null; }
+    if(asrSource){ try{asrSource.disconnect();}catch(e){} asrSource=null; }
+    if(asrSink){ try{asrSink.disconnect();}catch(e){} asrSink=null; }
+    if(asrCtx){ try{asrCtx.close();}catch(e){} asrCtx=null; }
+    if(asrStream){ try{asrStream.getTracks().forEach(function(t){t.stop();});}catch(e){} asrStream=null; }
+    if(asrWs){ try{asrWs.close();}catch(e){} asrWs=null; }
+    asrPcm=[]; asrInterim='';
+  }
+
+  function asrFail(msg){
+    asrCleanup();
+    setStatus(msg||'语音识别不可用','idle');
+    setTimeout(function(){ if(!working) setStatus('待命 · 点麦克风说话','idle'); },1800);
+  }
+
+  async function asrStart(){
+    asrBusy=true; setStatus('正在申请麦克风…','listening');
+    try{
+      asrStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+      asrCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:ASR_RATE});
+      asrSource=asrCtx.createMediaStreamSource(asrStream);
+      asrProcessor=asrCtx.createScriptProcessor(4096,1,1);
+      asrSink=asrCtx.createGain(); asrSink.gain.value=0;
+      asrSource.connect(asrProcessor); asrProcessor.connect(asrSink); asrSink.connect(asrCtx.destination);
+      asrProcessor.onaudioprocess=function(e){ if(asrRecording){ asrPushPcm(e.inputBuffer.getChannelData(0)); } };
+
+      asrWs=new WebSocket(STREAM_ENDPOINT);
+      asrWs.binaryType='arraybuffer';
+      asrWs.onopen=function(){ asrRecording=true; asrBusy=false; setStatus('聆听中…','listening'); asrSendParams(); };
+      asrWs.onmessage=onAsrMessage;
+      asrWs.onerror=function(){ asrFail('语音通道连接失败'); };
+      asrWs.onclose=function(){ if(asrRecording) asrFail('语音通道已断开'); };
+    }catch(e){ asrBusy=false; asrFail('无法访问麦克风：'+((e&&e.name)||'权限被拒')); }
+  }
+
+  function asrStop(){
+    asrRecording=false;
+    if(asrWs && asrWs.readyState===1){
+      asrSendAudio(asrPcm.splice(0,asrPcm.length),true);
+    }
+    setStatus('识别中…','thinking');
+    setTimeout(function(){ if(asrRecording===false && !working) asrCleanup(); }, 8000);
+  }
+
   micBtn.addEventListener('click',function(){
-    if(working) return;
-    setStatus('语音识别通道尚未接通','listening');
-    setTimeout(function(){ if(!working) setStatus('待命 · 点麦克风说话','idle'); }, 1800);
+    if(working||asrBusy) return;
+    if(asrRecording){ asrStop(); } else { asrStart(); }
   });
 
   /* 隐藏兜底文字输入（ASR 未通期间备用；主界面默认不显示打字框） */
