@@ -21293,6 +21293,8 @@ requestAnimationFrame(frame);
   var asrPcm=[];              // 待发的 Float32 样本缓冲
   var asrInterim="";          // 最新临时识别文本（上屏）
   var ASR_RATE=16000, ASR_FRAME=3200; // 16kHz，200ms/包
+  var asrNativeRate=ASR_RATE; // 音频上下文实际采样率（浏览器回落时需重采样到 16k）
+  var vadSpoke=false, vadSilentMs=0;  // VAD：是否已检出语音 / 累计静音毫秒
 
   /* 3D 状态桥接：idle 待命 / listening 聆听 / thinking 思考；无 3D 时安全跳过 */
   function fxSetState(s){ var f=fx(); if(f&&f.setState) f.setState(s); }
@@ -21474,6 +21476,17 @@ requestAnimationFrame(frame);
     return buf;
   }
 
+  /* 线性重采样：浏览器录音回落 44.1/48k 时，降采样到 16k，避免出字错乱 */
+  function resampleLinear(f32, from, to){
+    if(!from||from===to) return f32;
+    var ratio=to/from, n=Math.max(1,Math.floor(f32.length*ratio)), out=new Float32Array(n);
+    for(var i=0;i<n;i++){
+      var x=i/ratio, i0=Math.floor(x), f=x-i0, i1=Math.min(i0+1,f32.length-1);
+      out[i]=f32[i0]*(1-f)+f32[i1]*f;
+    }
+    return out;
+  }
+
   async function asrSendAudio(f32,isLast){
     var pcm=asrPcmToS16(f32);
     var gz=new Uint8Array(await gzipBytes(pcm));
@@ -21522,6 +21535,7 @@ requestAnimationFrame(frame);
     if(asrStream){ try{asrStream.getTracks().forEach(function(t){t.stop();});}catch(e){} asrStream=null; }
     if(asrWs){ try{asrWs.close();}catch(e){} asrWs=null; }
     asrPcm=[]; asrInterim='';
+    vadSpoke=false; vadSilentMs=0;
     fxSetState('idle');
   }
 
@@ -21539,11 +21553,26 @@ requestAnimationFrame(frame);
       playChime();
       asrStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
       asrCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:ASR_RATE});
+      asrNativeRate=asrCtx.sampleRate||ASR_RATE;
+      vadSpoke=false; vadSilentMs=0;
       asrSource=asrCtx.createMediaStreamSource(asrStream);
       asrProcessor=asrCtx.createScriptProcessor(4096,1,1);
       asrSink=asrCtx.createGain(); asrSink.gain.value=0;
       asrSource.connect(asrProcessor); asrProcessor.connect(asrSink); asrSink.connect(asrCtx.destination);
-      asrProcessor.onaudioprocess=function(e){ if(asrRecording){ asrPushPcm(e.inputBuffer.getChannelData(0)); } };
+      asrProcessor.onaudioprocess=function(e){
+        if(!asrRecording) return;
+        var raw=e.inputBuffer.getChannelData(0);
+        var f32=resampleLinear(raw, asrNativeRate, ASR_RATE);
+        /* VAD：检出语音后累计静音，超过 1.2s 自动判停，无需手动再点 */
+        var rms=0; for(var i=0;i<f32.length;i++) rms+=f32[i]*f32[i]; rms=Math.sqrt(rms/f32.length);
+        var frameMs=f32.length/ASR_RATE*1000;
+        if(rms>0.02){ vadSpoke=true; vadSilentMs=0; }
+        else if(vadSpoke){
+          vadSilentMs+=frameMs;
+          if(vadSilentMs>=1200){ var fallback=asrInterim; asrStop(); if(fallback) handleText(fallback); return; }
+        }
+        asrPushPcm(f32);
+      };
 
       asrWs=new WebSocket(STREAM_ENDPOINT);
       asrWs.binaryType='arraybuffer';
