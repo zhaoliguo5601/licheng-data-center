@@ -21305,16 +21305,11 @@ requestAnimationFrame(frame);
 </script>
 
 <style>
-#lcChat{position:fixed;right:24px;bottom:96px;z-index:9997;width:min(300px,calc(100vw-48px));display:flex;flex-direction:column;align-items:center;gap:10px;background:rgba(4,10,16,.78);border:1px solid rgba(0,229,255,.25);border-radius:20px;padding:16px 14px;backdrop-filter:blur(12px)}
-#lcHead{width:100%;display:flex;align-items:center;gap:8px;font-size:13px;color:#eafcff;letter-spacing:.06em}
-#lcModel{flex:0 1 auto;font:500 10px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:rgba(255,255,255,.06);border:1px solid rgba(0,229,255,.25);border-radius:10px;padding:9px 11px;outline:none;cursor:pointer;max-width:120px}
+#lcChat{position:fixed;right:24px;bottom:96px;z-index:9997;width:min(300px,calc(100vw-48px));display:flex;flex-direction:column;align-items:stretch;gap:8px}
+#lcHead{display:flex;align-items:stretch;font-size:13px;color:#eafcff;letter-spacing:.06em;background:rgba(4,10,16,.78);border:1px solid rgba(0,229,255,.25);border-radius:14px;overflow:hidden;backdrop-filter:blur(12px)}
+#lcModel{flex:0 1 auto;font:500 10px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:transparent;border:none;border-right:1px solid rgba(0,229,255,.25);border-radius:13px 0 0 13px;padding:9px 11px;outline:none;cursor:pointer;max-width:120px}
 #lcModel option{background:#0a141c;color:#eafcff}
-#lcMicBtn{position:relative;width:64px;height:64px;border-radius:50%;border:1px solid rgba(0,229,255,.45);background:rgba(0,229,255,.12);color:#eafcff;cursor:pointer;display:none;align-items:center;justify-content:center;transition:all .25s;outline:none}
-#lcMicBtn svg{width:26px;height:26px}
-#lcMicBtn::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(0,229,255,.3);opacity:0;transition:opacity .25s}
-#lcMicBtn.listening::before,#lcMicBtn.thinking::before,#lcMicBtn.speaking::before{opacity:1;animation:lcRing 1.4s infinite}
-@keyframes lcRing{0%{transform:scale(.9);opacity:.6}70%{transform:scale(1.18);opacity:0}100%{opacity:0}}
-#lcMicBtn:disabled{opacity:.5;cursor:default}
+#lcMicBtn{display:none}
 #lcStatus{width:100%;display:flex;align-items:center;gap:6px;font-size:11px;color:#7fd9e8;letter-spacing:.08em;min-height:15px;text-align:left;justify-content:flex-start}
 #lcDot{width:7px;height:7px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a}
 #lcStatus.thinking,#lcStatus.speaking{color:#ffd23f}
@@ -21322,9 +21317,9 @@ requestAnimationFrame(frame);
 #lcStatus.listening{color:#45e6f5}
 #lcStatus.listening #lcDot{background:#45e6f5;box-shadow:0 0 8px #45e6f5}
 @keyframes lcPulse{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
-#lcInput{flex:1;min-width:0;background:rgba(255,255,255,.08);border:1px solid rgba(0,229,255,.25);border-radius:10px;padding:9px 11px;color:#eafcff;font-size:13px;outline:none}
+#lcInput{flex:1;min-width:0;background:transparent;border:none;border-radius:0;padding:9px 11px;color:#eafcff;font-size:13px;outline:none}
 #lcInput::placeholder{color:#6f9aa6}
-#lcSend{border:1px solid rgba(0,229,255,.4);background:rgba(0,229,255,.12);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
+#lcSend{border:none;border-left:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.12);color:#eafcff;border-radius:0 13px 13px 0;padding:9px 14px;font-size:13px;cursor:pointer}
 #lcSend:disabled{opacity:.45;cursor:default}
 @media(max-width:640px){#lcChat{right:16px;bottom:80px}}
 </style>
@@ -21343,9 +21338,6 @@ requestAnimationFrame(frame);
     <button id="lcSend" type="button">发送</button>
   </div>
   <div id="lcStatus" class="status"><span id="lcStatusText">待命 · 点按星环说话</span></div>
-  <button id="lcMicBtn" type="button" aria-label="语音对话">
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3 3 0 003-3V6a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-2.08A7 7 0 0019 12h-2z"/></svg>
-  </button>
 </div>
 <script>
 (function(){
@@ -21518,7 +21510,7 @@ requestAnimationFrame(frame);
   function setStatus(text, mode){
     statusText.textContent=text;
     status.className='status'+(mode?' '+mode:'');
-    micBtn.className=mode||'';
+    if(micBtn) micBtn.className=mode||'';
     /* 标题状态灯：待命/接通=绿，请求/聆听/思考/播报=蓝 */
     var d=brandDot(); if(d) d.classList.toggle('busy', !!mode && mode!=='idle');
   }
@@ -21732,8 +21724,16 @@ requestAnimationFrame(frame);
         asrRecording=true; asrBusy=false; fxSetState('listening'); setStatus('聆听中…','listening'); asrSendParams();
       };
       asrWs.onmessage=onAsrMessage;
-      asrWs.onerror=function(){ asrFail('语音通道连接失败'); };
-      asrWs.onclose=function(){ if(asrRecording || asrBusy) asrFail('语音通道已断开'); };
+      /* 失败时探测一次 HTTP 模型清单：区分是对话服务整体不可达，还是仅语音 WS 被拦 */
+      var asrErr=false;
+      function probeThenFail(){
+        if(asrErr) return; asrErr=true;
+        fetch(MODELS_ENDPOINT).then(function(r){ return r.ok; }).catch(function(){ return false; }).then(function(ok){
+          asrFail(ok ? '语音通道被网络拦截，可先用下方打字框输入' : '对话服务连不上，请检查网络后重试');
+        });
+      }
+      asrWs.onerror=probeThenFail;
+      asrWs.onclose=function(){ if(asrRecording || asrBusy) probeThenFail(); };
     }catch(e){
       asrBusy=false;
       var nm=(e&&e.name)||'';
@@ -21759,7 +21759,7 @@ requestAnimationFrame(frame);
     if(working||asrBusy) return;
     if(asrRecording){ asrStop(); } else { asrStart(); }
   }
-  micBtn.addEventListener('click', toggleVoice);
+  if(micBtn) micBtn.addEventListener('click', toggleVoice);
   /* 语音入口仅标题中间状态灯；3D 星环空白点击不再唤起语音 */
   var hostEl=document.getElementById('host-neural');
   /* 标题中间状态灯点击 = 唤起/挂断语音 */
