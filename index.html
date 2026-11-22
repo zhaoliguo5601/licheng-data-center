@@ -683,8 +683,9 @@ body{background:var(--page);overflow:hidden}
 .lc-brand-pre{cursor:default}
 .lc-brand-link{cursor:pointer}
 .lc-brand-link:hover{color:#fff;text-shadow:0 0 24px rgba(0,229,255,.65)}
-.lc-brand-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a;margin:0 .4em;vertical-align:middle;transition:background .25s,box-shadow .25s}
+.lc-brand-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a;margin:0 .4em;vertical-align:middle;cursor:pointer;transition:background .25s,box-shadow .25s;animation:lcDotBreath 3.2s ease-in-out infinite}
 .lc-brand-dot.busy{background:#45e6f5;box-shadow:0 0 8px #45e6f5}
+@keyframes lcDotBreath{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.72;transform:scale(.86)}}
 .lc-brand-sub{margin-top:5px;font-family:var(--cjk);font-weight:400;color:#d7e6f5;font-size:12px;letter-spacing:.16em;opacity:.55}
 /* 纯 3D 演示：隐藏标题/顶部脉冲/左列/右列/底部指标条/水印/窄屏信息与悬停提示；保留右上角视角切换与全屏按钮，隐藏主题切换 */
 .hd,.cap,.lt,.rc,.bs,.wm,.mini,.tip{display:none!important}
@@ -6893,14 +6894,13 @@ function endPointer(e) {
     const wasDrag = drag && drag.moved;
     drag = null; cv.classList.remove('drag');
     if (wasDrag || wasPinch) return; // 拖拽或捏合抬手，不触发点按
-    // 点到外圈模型卡 → 切换调用该模型（与下拉框同步）；点空白才派发语音切换
+    // 点到外圈模型卡 → 切换调用该模型（与下拉框同步）；点空白不再唤起语音（语音入口仅标题状态灯）
     const r = host.getBoundingClientRect(), i = pickAt(e.clientX - r.left, e.clientY - r.top);
     if (i >= 0 && i < NCL) {
       const m = slotModel(i);
       if (m && host.__chatPick) host.__chatPick(m.key);
       focus = (focus !== i) ? i : -1;
     } else {
-      host.dispatchEvent(new CustomEvent('lc-voice-toggle'));
       focus = -1;
     }
     needsT = 1.5;
@@ -21747,9 +21747,11 @@ requestAnimationFrame(frame);
     if(asrRecording){ asrStop(); } else { asrStart(); }
   }
   micBtn.addEventListener('click', toggleVoice);
-  /* 3D 星环作为语音入口：neural 主题在非拖拽点击/触摸星环时派发 lc-voice-toggle 事件 */
+  /* 语音入口仅标题中间状态灯；3D 星环空白点击不再唤起语音 */
   var hostEl=document.getElementById('host-neural');
-  if(hostEl) hostEl.addEventListener('lc-voice-toggle', toggleVoice);
+  /* 标题中间状态灯点击 = 唤起/挂断语音 */
+  var brandEl=brandDot();
+  if(brandEl) brandEl.addEventListener('click', toggleVoice);
   /* 3D 外圈模型卡点击 → 反向切换对话模型（与下拉框同步） */
   if(hostEl) hostEl.__chatPick=function(key){ if(key!=null) selectModel(key); };
 
