@@ -5751,6 +5751,8 @@ let slotHead = 0, slotAcc = 0, slotTok = 0;
 const crawl = {patrols: 6, read: 1836, bugs: 3, target: 3};
 const chanN = CH.map(() => 0), chanFlash = CH.map(() => 0);
 let boost = 0, lastHand = null, bunHot = new Float32Array(48);
+/* 对话互动状态：idle 待命 / thinking 模型思考中，由外部对话面板经 host.__chatFx 驱动 */
+let chatMode = 'idle', chatBoost = 0, chatPulseAcc = 0;
 
 function newTask(wi){
   const w = WF[wi];
@@ -6608,6 +6610,17 @@ function writeSignals(){
 let sigLast = 0;
 
 function updateScene(dt){
+  // 对话互动：思考中提升能量系数并在神经团之间打脉冲，回复后回落
+  const chatTarget = chatMode === 'thinking' ? 1 : 0;
+  chatBoost += (chatTarget - chatBoost) * (1 - Math.exp(-dt * (chatTarget ? 5 : 1.4)));
+  if (chatMode === 'thinking') {
+    chatPulseAcc += dt;
+    if (chatPulseAcc > .26) {
+      chatPulseAcc = 0;
+      const b = AG[1 + ((Math.random() * 12) | 0)];
+      sendSignal(0, b.i, CYAN, null, 'chat');
+    }
+  }
   // 神经团活跃度：干活时按节律放电，刚收到信号时闪一下
   for (let i = 0; i < NCL; i++) {
     const a = AG[i];
@@ -6634,7 +6647,7 @@ function updateScene(dt){
   probe.trail.unshift(probe.p.clone()); if (probe.trail.length > 16) probe.trail.pop();
   writeSignals();
   // HUD 转动
-  spin.rotation.z = animT * .035;                     // 约 3 分钟转一圈
+  spin.rotation.z = animT * (.035 + chatBoost * .07);   // 约 3 分钟转一圈；对话思考时加速
   tickA.rotation.z = animT * .02; tickB.rotation.z = -animT * .008;
   tapeRing.rotation.z = -animT * .028; dashRing.rotation.z = animT * .05;
   arcsA.rotation.z = animT * .09; arcsB.rotation.z = -animT * .06;
@@ -6670,10 +6683,10 @@ function updateScene(dt){
   barcode.geometry.attributes.color.needsUpdate = true;
   for (let s = 0; s < NSEG; s++) segFlash[s] *= Math.exp(-dt * 3.2);
   hits.forEach(h => { if (!h.s.visible) return; h.t += dt; const k = h.t / .55; if (k >= 1) { h.s.visible = false; return; } h.s.scale.setScalar(.1 + .32 * k); h.s.material.opacity = 1 - k; });
-  coreSpr.material.opacity = .1 + AF[0] * .14 + boost * .05;
+  coreSpr.material.opacity = .1 + AF[0] * .14 + boost * .05 + chatBoost * .13;
   chanSpr.forEach((s, j) => { const f = chanFlash[j]; s.material.opacity = f; s.scale.setScalar(.12 + .55 * f); });
   scans.forEach(s => { if (!s.m.visible) return; s.t += dt; const k = s.t / 1.2; if (k >= 1) { s.m.visible = false; return; } s.m.scale.setScalar(.07 + .38 * k); s.m.material.opacity = (1 - k) * .9; s.m.lookAt(camera.position); });
-  streaks.material.uniforms.uTime.value = animT; streaks.material.uniforms.uBoost.value = boost;
+  streaks.material.uniforms.uTime.value = animT; streaks.material.uniforms.uBoost.value = boost + chatBoost;
   dust.rotation.y = animT * .004; dust.rotation.x = animT * .002;
 }
 function decay(dt){
@@ -6844,6 +6857,11 @@ clockTick(); setInterval(clockTick, 1000);
 syncButtons();
 // 调试用：快进模拟若干秒（控制台里 document.getElementById('host-neural').__nr.ff(20)）
 host.__nr = {ff(sec){ for (let t = 0; t < sec; t += .05) { simStep(.05); decay(.05); animT += .05; } needsT = 1; }};
+/* 对话面板桥接：setState('thinking'|'idle') 驱动 3D 互动，pulse() 回复后核心脉冲一下 */
+host.__chatFx = {
+  setState(s){ chatMode = s === 'thinking' ? 'thinking' : 'idle'; },
+  pulse(){ boost = Math.min(1.4, boost + .3); }
+};
 requestAnimationFrame(frame);
 }
 
@@ -21169,29 +21187,32 @@ requestAnimationFrame(frame);
 </script>
 
 <style>
-#lcMic{position:fixed;right:24px;bottom:34px;z-index:9998;width:54px;height:54px;border-radius:50%;border:1px solid rgba(0,229,255,.4);background:rgba(4,10,16,.55);color:#eafcff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px);font-size:22px;box-shadow:0 8px 26px rgba(0,0,0,.5),inset 0 0 16px rgba(0,229,255,.12);transition:all .25s}
-#lcMic:hover{background:rgba(0,229,255,.16);border-color:rgba(0,229,255,.8)}
-#lcMic.listening{background:rgba(0,229,255,.28);border-color:#00e5ff;animation:lcPulse 1.4s infinite}
-@keyframes lcPulse{0%{box-shadow:0 0 0 0 rgba(0,229,255,.4)}70%{box-shadow:0 0 0 14px rgba(0,229,255,0)}100%{box-shadow:0 0 0 0 rgba(0,229,255,0)}}
-#lcChat{position:fixed;right:24px;bottom:100px;z-index:9997;width:min(340px,calc(100vw-48px));max-height:46vh;display:none;flex-direction:column;gap:8px;background:rgba(4,10,16,.74);border:1px solid rgba(0,229,255,.25);border-radius:16px;padding:12px;backdrop-filter:blur(12px)}
-#lcChat.open{display:flex}
-#lcMsgs{display:flex;flex-direction:column;gap:8px;overflow-y:auto}
-#lcMsgs .msg{max-width:85%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.55;color:#eafcff;word-break:break-word}
+#lcChat{position:fixed;right:24px;bottom:96px;z-index:9997;width:min(360px,calc(100vw-48px));max-height:56vh;display:flex;flex-direction:column;gap:8px;background:rgba(4,10,16,.78);border:1px solid rgba(0,229,255,.25);border-radius:16px;padding:12px;backdrop-filter:blur(12px)}
+#lcHead{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:#eafcff;letter-spacing:.06em}
+#lcModel{font:500 10px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;border:1px solid rgba(0,229,255,.25);border-radius:6px;padding:3px 7px}
+#lcMsgs{display:flex;flex-direction:column;gap:8px;overflow-y:auto;min-height:40px}
+#lcMsgs .msg{max-width:85%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.55;color:#eafcff;word-break:break-word;animation:lcIn .18s ease}
+@keyframes lcIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 #lcMsgs .msg.user{align-self:flex-end;background:rgba(0,229,255,.18);border:1px solid rgba(0,229,255,.3)}
 #lcMsgs .msg.bot{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
-#lcStatus{align-self:center;font-size:11px;color:#7fd9e8;letter-spacing:.08em;min-height:15px}
+#lcStatus{display:flex;align-items:center;gap:6px;font-size:11px;color:#7fd9e8;letter-spacing:.08em;min-height:15px}
+#lcDot{width:7px;height:7px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a}
+#lcStatus.thinking{color:#ffd23f}
+#lcStatus.thinking #lcDot{background:#ffd23f;box-shadow:0 0 8px #ffd23f;animation:lcPulse 1.1s infinite}
+@keyframes lcPulse{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
 #lcInputRow{display:flex;gap:8px;margin-top:4px}
 #lcInput{flex:1;min-width:0;background:rgba(255,255,255,.08);border:1px solid rgba(0,229,255,.25);border-radius:10px;padding:9px 11px;color:#eafcff;font-size:13px;outline:none}
 #lcInput::placeholder{color:#6f9aa6}
 #lcSend{border:1px solid rgba(0,229,255,.4);background:rgba(0,229,255,.12);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
-@media(max-width:640px){#lcMic{right:16px;bottom:22px;width:48px;height:48px;font-size:19px}#lcChat{right:16px;bottom:84px}}
+#lcSend:disabled{opacity:.45;cursor:default}
+@media(max-width:640px){#lcChat{right:16px;bottom:80px;max-height:48vh}}
 </style>
-<button id="lcMic" type="button" title="语音对话">🎙</button>
-<div id="lcChat" role="dialog" aria-label="语音助手">
+<div id="lcChat" role="dialog" aria-label="立橙智能助手">
+  <div id="lcHead"><span id="lcTitle">立橙智能助手</span><span id="lcModel">豆包 lite</span></div>
   <div id="lcMsgs"></div>
-  <div id="lcStatus" class="status">点击麦克风开始对话</div>
+  <div id="lcStatus" class="status"><span id="lcDot"></span><span id="lcStatusText">在线 · 直接输入问题即可对话</span></div>
   <div id="lcInputRow">
-    <input id="lcInput" type="text" placeholder="输入问题…" autocomplete="off">
+    <input id="lcInput" type="text" placeholder="问点什么…" autocomplete="off">
     <button id="lcSend" type="button">发送</button>
   </div>
 </div>
@@ -21202,15 +21223,21 @@ requestAnimationFrame(frame);
 
   var OPEN_WORDS = ["打开大屏","进入大屏","打开数据中心","进入数据中心","打开看板","进入看板","打开主页","进入主页","回到主页","打开首页","进入首页","跳转大屏","跳转数据中心","打开控制台","进入控制台"];
 
-  var mic=document.getElementById('lcMic'), chat=document.getElementById('lcChat'),
+  var chat=document.getElementById('lcChat'),
       msgs=document.getElementById('lcMsgs'), status=document.getElementById('lcStatus'),
-      input=document.getElementById('lcInput'), send=document.getElementById('lcSend');
+      statusText=document.getElementById('lcStatusText'),
+      input=document.getElementById('lcInput'), send=document.getElementById('lcSend'),
+      modelTag=document.getElementById('lcModel');
 
-  var history=[];           // {role,content}
-  var rec=null, listening=false, speaking=false;
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  var history=[], working=false;
 
-  function setStatus(t){ status.textContent=t; }
+  /* 3D 星环互动桥接：神经星环主题挂载后挂在 host-neural.__chatFx；其他主题或无 3D 时安全跳过 */
+  function fx(){ var h=document.getElementById('host-neural'); return (h&&h.__chatFx)||null; }
+
+  function setStatus(text, mode){
+    statusText.textContent=text;
+    status.classList.toggle('thinking', mode==='thinking');
+  }
   function addMsg(role,text){
     var d=document.createElement('div'); d.className='msg '+role; d.textContent=text;
     msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
@@ -21219,71 +21246,41 @@ requestAnimationFrame(frame);
     var t=(text||'').replace(/\s+/g,'');
     return OPEN_WORDS.some(function(w){ return t.indexOf(w)>=0; });
   }
-  function speak(text){
-    if(!('speechSynthesis' in window)) return;
-    try{
-      speechSynthesis.cancel();
-      var u=new SpeechSynthesisUtterance(text); u.lang='zh-CN'; u.rate=1.02;
-      speaking=true;
-      u.onend=u.onerror=function(){ speaking=false; };
-      speechSynthesis.speak(u);
-    }catch(e){ speaking=false; }
-  }
 
   function callModel(text){
-    setStatus('思考中…');
+    working=true; send.disabled=true;
+    setStatus('思考中…','thinking');
+    var f=fx(); if(f) f.setState('thinking');
     history.push({role:'user',content:text});
     fetch(CHAT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history.slice(-10)})})
       .then(function(r){ return r.json(); })
       .then(function(data){
         var reply=(data&&data.reply)||'我这边暂时没回答上来，换个问题试试。';
         history.push({role:'assistant',content:reply});
-        addMsg('bot',reply); setStatus(''); speak(reply);
+        addMsg('bot',reply);
+        if(f){ f.setState('idle'); f.pulse(); }
+        setStatus('在线 · 直接输入问题即可对话','idle');
       })
       .catch(function(){
-        setStatus(''); addMsg('bot','网络或对话服务暂时不可用，请稍后再试。');
-      });
+        addMsg('bot','网络或对话服务暂时不可用，请稍后再试。');
+        if(f) f.setState('idle');
+        setStatus('在线 · 直接输入问题即可对话','idle');
+      })
+      .finally(function(){ working=false; send.disabled=false; });
   }
 
   function handleText(text){
-    text=(text||'').trim(); if(!text) return;
+    text=(text||'').trim(); if(!text||working) return;
     addMsg('user',text);
     if(isOpenCommand(text)){
-      setStatus('正在进入数据中心…');
+      setStatus('正在进入数据中心…','idle');
       if(window.enterDashboard) window.enterDashboard(); else location.href='dashboard.html';
       return;
     }
     callModel(text);
   }
 
-  /* 语音识别 */
-  if(SR){
-    rec=new SR(); rec.lang='zh-CN'; rec.continuous=false; rec.interimResults=true;
-    rec.onresult=function(e){
-      var final='';
-      for(var i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) final+=e.results[i][0].transcript; }
-      if(final){ setStatus('听到：'+final); handleText(final); }
-    };
-    rec.onerror=function(ev){ setStatus('语音识别不可用，可用下方文字输入'); stopListen(); };
-    rec.onend=function(){ stopListen(); };
-  } else {
-    mic.addEventListener('click',function(){ chat.classList.toggle('open'); });
-    setStatus('当前浏览器不支持语音识别，可文字输入');
-  }
-
-  function startListen(){
-    if(!rec) return;
-    try{ rec.start(); listening=true; mic.classList.add('listening'); setStatus('正在听…'); }
-    catch(e){}
-  }
-  function stopListen(){ listening=false; mic.classList.remove('listening'); }
-
-  if(rec){
-    mic.addEventListener('click',function(){
-      chat.classList.toggle('open');
-      if(chat.classList.contains('open')){ listening?stopListen():startListen(); }
-    });
-  }
+  addMsg('bot','你好，我是立橙数据中心智能助手，直接输入问题就能聊。');
   send.addEventListener('click',function(){ var v=input.value; input.value=''; handleText(v); });
   input.addEventListener('keydown',function(e){ if(e.key==='Enter'){ var v=input.value; input.value=''; handleText(v); } });
 })();
