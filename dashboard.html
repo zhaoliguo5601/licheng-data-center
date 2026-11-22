@@ -455,6 +455,13 @@ main{display:contents}
       <div class="ali" id="jdOrders"></div>
     </section>
 
+    <!-- 淘粉吧 -->
+    <section class="panel" style="--accent:var(--orange)">
+      <h2>淘粉吧 <span class="tag" id="tfbTag">会话读取</span></h2>
+      <div class="kd-summary" id="tfbSum"></div>
+      <div class="ali" id="tfbDetail"></div>
+    </section>
+
     <!-- 阿里云 ECS -->
     <section class="panel" style="--accent:var(--blue)">
       <h2>阿里云 ECS <span class="tag" id="aliTag">等待同步</span></h2>
@@ -465,27 +472,13 @@ main{display:contents}
 
     <!-- 快递查询 -->
     <section class="panel" style="--accent:var(--purple)">
-      <h2>快递查询 <span class="tag" id="kdTag">号码快照</span></h2>
-      <div class="kd-summary">
-        <div>登记号码 <b>5</b> 个</div>
-        <div>在库包裹 <b>1</b> 件</div>
-        <div>在途 <b style="color:var(--orange)">0</b> ／ 已签收 <b style="color:var(--green)">1</b></div>
-        <div>覆盖 <b>3</b> 人</div>
-      </div>
-      <div class="kd-nums">
-        <div class="kd-card" style="--c:var(--cyan)"><div class="who">赵立国 · 本人</div><div class="no">132****5601</div></div>
-        <div class="kd-card" style="--c:var(--cyan)"><div class="who">赵立国 · 本人</div><div class="no">132****5602</div></div>
-        <div class="kd-card" style="--c:var(--cyan)"><div class="who">赵立国 · 本人</div><div class="no">132****5605</div></div>
-        <div class="kd-card" style="--c:var(--orange)"><div class="who">赵凌志 · 父亲</div><div class="no">139****8534</div></div>
-        <div class="kd-card" style="--c:var(--purple)"><div class="who">孙甲花 · 母亲</div><div class="no">135****7470</div></div>
-      </div>
+      <h2>快递查询 <span class="tag" id="kdTag">会话读取</span></h2>
+      <div class="kd-summary" id="kdSummary"></div>
+      <div class="kd-nums" id="kdNums"></div>
       <div class="scroll">
         <table class="kd-table">
-          <thead><tr><th>包裹</th><th>运单号</th><th>内容</th><th>归属</th><th>状态</th><th>最新节点</th><th>时间</th></tr></thead>
-          <tbody>
-            <tr><td>京东</td><td>JDVB71711044988</td><td>水龙头防溅头</td><td>赵立国 · 132****5601</td>
-              <td style="color:var(--green)">已签收</td><td>本人签收 · 配送员李峰</td><td>2026-10-31 15:57</td></tr>
-          </tbody>
+          <thead><tr><th>包裹</th><th>运单号</th><th>归属 / 店铺</th><th>状态</th><th>最新节点</th><th>时间</th></tr></thead>
+          <tbody id="kdBody"></tbody>
         </table>
       </div>
     </section>
@@ -546,398 +539,382 @@ main{display:contents}
 <script>
 /* ================= 数据层 ================= */
 const __FALLBACK =   {
-    "aliyun": {
-      "updated": "2026-11-20 07:48",
-      "instanceId": "i-2ze9gch4l1m9vyi7nryc",
-      "instanceName": "iZl1m9vyi7nrycZ",
-      "status": "Running",
-      "region": "华北2（北京）",
-      "spec": "ecs.e-c1m1.large · 2核 2G",
-      "os": "Windows Server 2022 数据中心版",
-      "publicIp": "8.152.6.148",
-      "privateIp": "172.25.96.69",
-      "cpu": 45.1,
-      "mem": 95.3,
-      "disk": 65.0,
-      "rules": [
-        {
-          "name": "CPU 高负载",
-          "threshold": ">85%",
-          "period": "连续15分钟"
-        },
-        {
-          "name": "内存占用过高",
-          "threshold": ">97%",
-          "period": "连续15分钟"
-        },
-        {
-          "name": "磁盘占用过高",
-          "threshold": ">85%",
-          "period": "连续15分钟"
-        }
-      ]
+  "aliyun": {
+    "updated": "2026-11-22 22:08",
+    "instanceId": "i-2ze9gch4l1m9vyi7nryc",
+    "instanceName": "iZl1m9vyi7nrycZ",
+    "status": "Running",
+    "region": "华北2（北京）",
+    "spec": "ecs.e-c1m1.large · 2核2G",
+    "os": "Windows Server  2022 数据中心版 64位中文版",
+    "publicIp": "8.152.6.148",
+    "privateIp": "172.25.96.69",
+    "cpu": 17.0,
+    "mem": 78.4,
+    "disk": 63.0,
+    "rules": [
+      {
+        "name": "CPU 高负载",
+        "threshold": ">85%",
+        "period": "连续15分钟"
+      },
+      {
+        "name": "内存占用过高",
+        "threshold": ">97%",
+        "period": "连续15分钟"
+      },
+      {
+        "name": "磁盘占用过高",
+        "threshold": ">85%",
+        "period": "连续15分钟"
+      }
+    ]
+  },
+  "updated": "2026-11-22",
+  "genAt": "11-22 22:08",
+  "meters": [
+    {
+      "name": "*凌志",
+      "no": "3700272293458",
+      "balance": -219.38,
+      "day": 72.36,
+      "avg6": 25.55,
+      "yearKwh": 3738,
+      "yearFee": 2089.72,
+      "status": "neg",
+      "sum6": 153.29
     },
-    "updated": "2026-11-19",
-    "genAt": "11-20 07:44",
-    "meters": [
-      {
-        "name": "*凌志",
-        "no": "3700272293458",
-        "balance": -137.89,
-        "day": 20.15,
-        "avg6": 15.82,
-        "yearKwh": 3738,
-        "yearFee": 2089.72,
-        "status": "neg",
-        "sum6": 94.92
-      },
-      {
-        "name": "*立国",
-        "no": "3750037351078",
-        "balance": 47.25,
-        "day": 0.25,
-        "avg6": 0.25,
-        "yearKwh": 167,
-        "yearFee": 91.34,
-        "status": "ok",
-        "sum6": 1.47
-      }
-    ],
-    "drives": [
-      {
-        "name": "百度网盘",
-        "key": "baidu",
-        "files": 54829,
-        "bytes": 247649020227,
-        "color": "#3b82f6",
-        "ico": "百",
-        "gb": 230.64,
-        "pct": 95.0
-      },
-      {
-        "name": "联通云盘",
-        "key": "unicom",
-        "files": 2100,
-        "bytes": 10999410528,
-        "color": "#22ff9c",
-        "ico": "联",
-        "gb": 10.24,
-        "pct": 4.2
-      },
-      {
-        "name": "阿里云盘",
-        "key": "ali",
-        "files": 169,
-        "bytes": 1863761961,
-        "color": "#ffb347",
-        "ico": "阿",
-        "gb": 1.74,
-        "pct": 0.7
-      },
-      {
-        "name": "123云盘",
-        "key": "pan123",
-        "files": 2,
-        "bytes": 149684755,
-        "color": "#f5567b",
-        "ico": "1",
-        "gb": 0.14,
-        "pct": 0.1,
-        "pending": false
-      }
-    ],
-    "tasks": [
-      {
-        "name": "国网两户台账·日采集",
-        "status": "ok",
-        "pct": 100
-      },
-      {
-        "name": "云盘清单扫描核对",
-        "status": "ok",
-        "pct": 100
-      },
-      {
-        "name": "驾驶舱数据重算",
-        "status": "ok",
-        "pct": 100
-      },
-      {
-        "name": "京东每日签到",
-        "status": "ok",
-        "pct": 100
-      },
-      {
-        "name": "淘粉吧好评任务",
-        "status": "none",
-        "pct": 0
-      },
-      {
-        "name": "红手指云机待开通",
-        "status": "wait",
-        "pct": 0
-      },
-      {
-        "name": "大华摄像头待接入",
-        "status": "wait",
-        "pct": 0
-      }
-    ],
-    "signs": [
-      {
-        "t": "京东",
-        "r": "已签到"
-      },
-      {
-        "t": "淘粉吧",
-        "r": "已签到 +3（余额17）"
-      }
-    ],
-    "heat": [
-      {
-        "d": "10-24",
-        "v": 0.0
-      },
-      {
-        "d": "10-25",
-        "v": 0.0
-      },
-      {
-        "d": "10-26",
-        "v": 0.0
-      },
-      {
-        "d": "10-27",
-        "v": 0.0
-      },
-      {
-        "d": "10-28",
-        "v": 0.0
-      },
-      {
-        "d": "10-29",
-        "v": 0.0
-      },
-      {
-        "d": "10-30",
-        "v": 0.0
-      },
-      {
-        "d": "10-31",
-        "v": 0.0
-      },
-      {
-        "d": "11-01",
-        "v": 0.0
-      },
-      {
-        "d": "11-02",
-        "v": 0.0
-      },
-      {
-        "d": "11-03",
-        "v": 0.0
-      },
-      {
-        "d": "11-04",
-        "v": 0.0
-      },
-      {
-        "d": "11-05",
-        "v": 0.0
-      },
-      {
-        "d": "11-06",
-        "v": 0.0
-      },
-      {
-        "d": "11-07",
-        "v": 0.0
-      },
-      {
-        "d": "11-08",
-        "v": 0.0
-      },
-      {
-        "d": "11-09",
-        "v": 0.0
-      },
-      {
-        "d": "11-10",
-        "v": 0.0
-      },
-      {
-        "d": "11-11",
-        "v": 0.0
-      },
-      {
-        "d": "11-12",
-        "v": 0.0
-      },
-      {
-        "d": "11-13",
-        "v": 0.0
-      },
-      {
-        "d": "11-14",
-        "v": 0.0
-      },
-      {
-        "d": "11-15",
-        "v": 0.0
-      },
-      {
-        "d": "11-16",
-        "v": 0.0
-      },
-      {
-        "d": "11-17",
-        "v": 0.0
-      },
-      {
-        "d": "11-18",
-        "v": 15.37
-      },
-      {
-        "d": "11-19",
-        "v": 20.4
-      },
-      {
-        "d": "11-21",
-        "v": 20.4
-      }
-    ],
-    "unicom":     {
-      "updated": "2026-11-21 19:10:00",
-      "items": [
-        {
-          "no": "132****5601",
-          "plan": "4G全国流量王8元套餐",
-          "flowTotal": "400MB",
-          "flowUsed": "0 MB",
-          "flowRemain": "400 MB",
-          "usedPct": 0.0,
-          "smsUsed": 0,
-          "smsRemain": 0,
-          "feeUsed": "16.90 元",
-          "feeRemain": "38.65 元",
-          "status": "ok",
-          "note": "实时话费16.9元；账户余额38.65元；通用流量200MB当月+200MB上月结转；短信已用0/剩0；4G后付费，状态开通，积分30"
-        },
-        {
-          "no": "132****5602",
-          "plan": "4G全国流量王8元套餐",
-          "flowTotal": "400MB",
-          "flowUsed": "0 MB",
-          "flowRemain": "400 MB",
-          "usedPct": 0.0,
-          "smsUsed": 0,
-          "smsRemain": 0,
-          "feeUsed": "16.90 元",
-          "feeRemain": "38.65 元",
-          "status": "ok",
-          "note": "实时话费16.9元；账户余额38.65元；通用流量200MB当月+200MB上月结转；短信已用0/剩0；4G后付费，状态开通，积分126；与5601疑为合账共享余额"
-        },
-        {
-          "no": "132****5605",
-          "plan": "联通智家全屋光宽带99元-套内5G主卡",
-          "flowTotal": "96.32GB",
-          "flowUsed": "29.99 GB",
-          "flowRemain": "66.33 GB",
-          "usedPct": 31.1,
-          "smsUsed": 0,
-          "smsRemain": 0,
-          "feeUsed": "99.10 元",
-          "feeRemain": "269.67 元",
-          "status": "ok",
-          "note": "实时话费99.1元；账户余额269.67元；通用流量50GB当月+46.32GB上月结转=96.32GB，已用29.99GB剩66.33GB；另其他流量已用29.64MB剩0MB；短信已用0/剩0；5G后付费，状态开通，积分431，合约2026-05-21至2029-05-31"
-        }
-      ]
-    },
-    "github": {
-      "repo": "licheng-data-center",
-      "owner": "zhaoliguo5601",
-      "private": true,
-      "branch": "main",
-      "language": "Python",
-      "files": 23,
-      "commits": 24,
-      "branches": 2,
-      "stars": 0,
-      "forks": 0,
-      "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-      "updated": "11-21 15:55",
-      "types": [
-        {
-          "name": "Python",
-          "count": 13,
-          "color": "#3b82f6"
-        },
-        {
-          "name": "Shell",
-          "count": 3,
-          "color": "#22ff9c"
-        },
-        {
-          "name": "HTML",
-          "count": 2,
-          "color": "#ffb347"
-        },
-        {
-          "name": "文档/配置",
-          "count": 5,
-          "color": "#a855f7"
-        }
-      ],
-      "recent": [
-        {
-          "sha": "988bac4",
-          "msg": "商标续展倒计时卡片展示全部6件已注册商标，压缩卡片与表格间距",
-          "time": "15:28"
-        },
-        {
-          "sha": "cbd8832",
-          "msg": "换回水彩入水老虎素材，保留水波纹与眨眼/耳朵动效，更新favicon",
-          "time": "14:09"
-        },
-        {
-          "sha": "75c81fc",
-          "msg": "重绘正脸双耳老虎头像，恢复底部水波纹动效，优化头部对齐与favicon",
-          "time": "13:20"
-        },
-        {
-          "sha": "c0e7e7e",
-          "msg": "云盘资产替换为真实APP图标；标题改为立橙·数据中心",
-          "time": "12:57"
-        },
-        {
-          "sha": "971387e",
-          "msg": "标签页标题改立橙数据中心，favicon 更换为老虎头像",
-          "time": "12:29"
-        }
-      ]
-    },
-    "capturedAt": "2026-11-21 19:16:23",
-    "jd": {
-      "source": "manual_report",
-      "updated": "2026-11-21 18:37",
-      "walletBalance": 0.0,
-      "giftCard": 0.0,
-      "beans": 3358,
-      "coupon": 3,
-      "orders": {
-        "waitPay": 0,
-        "waitReceive": 0,
-        "waitComment": 0,
-        "afterSale": 0
-      },
-      "checkin": {
-        "done": true,
-        "state": "已签到",
-        "tasks": []
-      }
+    {
+      "name": "*立国",
+      "no": "3750037351078",
+      "balance": 47.25,
+      "day": 0.24,
+      "avg6": 0.24,
+      "yearKwh": 167,
+      "yearFee": 91.34,
+      "status": "ok",
+      "sum6": 1.46
     }
+  ],
+  "drives": [
+    {
+      "name": "百度网盘",
+      "key": "baidu",
+      "color": "#3b82f6",
+      "ico": "百",
+      "files": 52796,
+      "bytes": 245849350126,
+      "gb": 228.97,
+      "pct": 39.5
+    },
+    {
+      "name": "阿里云盘",
+      "key": "ali",
+      "color": "#ffb347",
+      "ico": "阿",
+      "files": 4371,
+      "bytes": 375033007625,
+      "gb": 349.28,
+      "pct": 60.3
+    },
+    {
+      "name": "123云盘",
+      "key": "pan123",
+      "color": "#f5567b",
+      "ico": "1",
+      "files": 148,
+      "bytes": 881891307,
+      "gb": 0.82,
+      "pct": 0.1
+    },
+    {
+      "name": "联通云盘",
+      "key": "wopan",
+      "color": "#22ff9c",
+      "ico": "联",
+      "files": 0,
+      "bytes": 0,
+      "gb": 0.0,
+      "pending": true,
+      "note": "initialize user data: request failed with rsp_code: 1001,rep_desc: 无效的令牌！",
+      "pct": null
+    }
+  ],
+  "tasks": [
+    {
+      "name": "国网两户台账·日采集",
+      "status": "ok",
+      "pct": 100
+    },
+    {
+      "name": "云盘清单扫描核对",
+      "status": "ok",
+      "pct": 100
+    },
+    {
+      "name": "驾驶舱数据重算",
+      "status": "ok",
+      "pct": 100
+    },
+    {
+      "name": "京东每日签到",
+      "status": "ok",
+      "pct": 100
+    },
+    {
+      "name": "淘粉吧好评任务",
+      "status": "none",
+      "pct": 0
+    },
+    {
+      "name": "红手指云机待开通",
+      "status": "wait",
+      "pct": 0
+    },
+    {
+      "name": "大华摄像头待接入",
+      "status": "wait",
+      "pct": 0
+    }
+  ],
+  "signs": [
+    {
+      "t": "京东",
+      "r": "已签到 +28 京豆（京豆 74）"
+    },
+    {
+      "t": "淘粉吧",
+      "r": "已签到 +3 积分（余额 20）"
+    }
+  ],
+  "heat": [
+    {
+      "d": "11-19",
+      "v": 20.4
+    },
+    {
+      "d": "11-22",
+      "v": 72.6
+    }
+  ],
+  "unicom": {
+    "updated": "2026-11-22 18:14:19",
+    "items": [
+      {
+        "no": "132****5601",
+        "plan": "",
+        "flowTotal": "",
+        "flowUsed": "",
+        "flowRemain": "",
+        "smsUsed": 0,
+        "smsRemain": 0,
+        "status": "wait",
+        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试”，本次未取到套餐/流量/短信数",
+        "updated": "2026-11-22 18:14:19"
+      },
+      {
+        "no": "132****5602",
+        "plan": "",
+        "flowTotal": "",
+        "flowUsed": "",
+        "flowRemain": "",
+        "smsUsed": 0,
+        "smsRemain": 0,
+        "status": "wait",
+        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试”，本次未取到套餐/流量/短信数",
+        "updated": "2026-11-22 18:14:19"
+      },
+      {
+        "no": "132****5605",
+        "plan": "",
+        "flowTotal": "",
+        "flowUsed": "",
+        "flowRemain": "",
+        "smsUsed": 0,
+        "smsRemain": 0,
+        "status": "wait",
+        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试”，本次未取到套餐/流量/短信数",
+        "updated": "2026-11-22 18:14:19"
+      }
+    ]
+  },
+  "github": {
+    "repo": "licheng-data-center",
+    "owner": "zhaoliguo5601",
+    "private": true,
+    "branch": "main",
+    "language": "Python",
+    "files": 7,
+    "commits": 69,
+    "branches": 5,
+    "stars": 0,
+    "forks": 0,
+    "url": "https://github.com/zhaoliguo5601/licheng-data-center",
+    "updated": "11-22 22:08",
+    "types": [
+      {
+        "name": "Python",
+        "count": 13,
+        "color": "#3b82f6"
+      },
+      {
+        "name": "Shell",
+        "count": 3,
+        "color": "#22ff9c"
+      },
+      {
+        "name": "HTML",
+        "count": 2,
+        "color": "#ffb347"
+      },
+      {
+        "name": "文档/配置",
+        "count": 5,
+        "color": "#a855f7"
+      }
+    ],
+    "recent": [
+      {
+        "sha": "7eebe4a",
+        "msg": "对话面板拉取模型清单分组渲染；3D 星环按模型主题色动态染色（核心/扫描环/思考脉冲），海外模型预留置灰",
+        "time": "11-22 18:27"
+      },
+      {
+        "sha": "406c3de",
+        "msg": "开场页对话面板加多模型下拉切换，配合 Worker 多模型路由",
+        "time": "11-22 18:08"
+      },
+      {
+        "sha": "6a74940",
+        "msg": "开场页：移除语音麦克风/朗读，改常驻文字对话面板；星环随对话思考/回复三态互动",
+        "time": "11-22 17:29"
+      },
+      {
+        "sha": "770a792",
+        "msg": "开场页接入语音对话助手：CF Worker 代理方舟豆包 lite，麦克风/文字问答+语音开门跳大屏",
+        "time": "11-22 16:14"
+      },
+      {
+        "sha": "6edaba7",
+        "msg": "星环开场首屏：3D神经星环开场页(index) + 整套大屏第二页(dashboard)，快照 data.json 更新",
+        "time": "11-22 14:13"
+      },
+      {
+        "sha": "d0ebdff",
+        "msg": "刷新国网两户电费电量快照 2026-11-22",
+        "time": "11-22 12:47"
+      }
+    ]
+  },
+  "capturedAt": "2026-11-22 22:08:24",
+  "jd": {
+    "source": "browser_session",
+    "updated": "2026-11-22 22:00",
+    "walletBalance": 0.0,
+    "giftCard": 0.0,
+    "beans": 74,
+    "coupon": 3,
+    "orders": {
+      "waitPay": 0,
+      "waitReceive": 0,
+      "waitComment": 0,
+      "afterSale": 0
+    },
+    "checkin": {
+      "done": true,
+      "state": "已签到",
+      "tasks": [],
+      "date": "2026-11-22",
+      "gain": 28,
+      "streak": null,
+      "note": "22:00:51 网页端天天签到 +28 京豆，京豆 46→74"
+    },
+    "account": "zg9885c7jril30",
+    "loginState": "ok"
+  },
+  "drivesUpdated": "2026-11-22 21:58:47",
+  "driveFiles": 57315,
+  "driveBytes": 621764249058.0,
+  "tfb": {
+    "source": "browser_session",
+    "account": "乐邦cheng",
+    "updated": "2026-11-22 22:06",
+    "rebate": {
+      "total": 63.9,
+      "tracking": 0,
+      "pending": 0,
+      "paid": 1,
+      "last": {
+        "name": "60D高密度沙发海绵垫定做加厚加硬实木红木椅子垫卡座屁股垫定制",
+        "amount": 5,
+        "arrive": "2026-10-31"
+      }
+    },
+    "points": {
+      "available": 20,
+      "expire": {
+        "points": 5,
+        "date": "2027-01-01"
+      }
+    },
+    "sign": {
+      "date": "2026-11-22",
+      "done": true,
+      "gain": 3,
+      "streak": 6,
+      "from": 17,
+      "to": 20
+    },
+    "loginState": "ok"
+  },
+  "kuaidi": {
+    "updated": "2026-11-22 22:02",
+    "source": "jd_order_detail",
+    "numbers": [
+      {
+        "who": "赵立国",
+        "no": "132****5601"
+      },
+      {
+        "who": "赵立国",
+        "no": "132****5602"
+      },
+      {
+        "who": "赵立国",
+        "no": "132****5605"
+      },
+      {
+        "who": "赵凌志",
+        "no": "139****8534"
+      },
+      {
+        "who": "孙甲花",
+        "no": "135****7470"
+      }
+    ],
+    "parcels": [
+      {
+        "no": "JDVB71711044988",
+        "who": "赵立国",
+        "carrier": "京东快递",
+        "status": "已签收",
+        "orderNo": "3665410005722334",
+        "shop": "京喜自营官方店",
+        "amount": 1.0,
+        "lastTime": "2026-10-31 15:57:12",
+        "lastDesc": "本人签收（济南仲宫站派送，快递员李峰）"
+      }
+    ],
+    "stats": {
+      "numbers": 5,
+      "parcels": 1,
+      "transit": 0,
+      "signed": 1,
+      "people": 3
+    },
+    "failedWaybills": []
   }
+}
 ;
 let DATA;
 function __deepMerge(a,b){
@@ -1137,9 +1114,9 @@ DATA.drives.forEach((d,i)=>{
     <div class="top">
       <div class="ico"><img src="${DRIVE_ICONS[d.key]}" alt="${d.name}"></div>
       <div>${d.name}</div>
-      <div class="num">${d.gb===null?'<span style="color:var(--dim2)">待扫描接入</span>':d.gb+' GB · '+d.files.toLocaleString("en-US")+' 个'}</div>
+      <div class="num">${(d.gb===null||d.pending)?`<span style="color:var(--dim2)">${d.pending?'待登录':'待扫描接入'}</span>`:d.gb+' GB · '+d.files.toLocaleString("en-US")+' 个'}</div>
     </div>
-    <div class="bar"><i style="background:linear-gradient(90deg,${d.color},${d.color}88);animation-delay:${.3+i*.18}s" data-w="${d.gb===null?0:d.pct}"></i></div>`;
+    <div class="bar"><i style="background:linear-gradient(90deg,${d.color},${d.color}88);animation-delay:${.3+i*.18}s" data-w="${(d.gb===null||d.pending)?0:d.pct}"></i></div>`;
   dBox.appendChild(el);
 });
 document.getElementById("sumGb").textContent=totalGb.toFixed(2);
@@ -1237,6 +1214,38 @@ const hv=(DATA.heat||[]).map(h=>h.v), hmax=Math.max(0.1,...hv);
   n.style.background=c; n.style.animationDelay=(i*.02)+"s"; n.title=h.d+" · "+h.v.toFixed(2)+" 度";
   heat.appendChild(n);
 });
+
+/* ============ 淘粉吧 ============ */
+(function(){
+  const box=document.getElementById("tfbSum"), det=document.getElementById("tfbDetail"), tag=document.getElementById("tfbTag");
+  if(!box) return; const t=DATA.tfb;
+  if(!t){ box.innerHTML='<div>待接入</div>'; if(tag)tag.textContent='待接入'; return; }
+  const r=t.rebate||{}, p=t.points||{}, sg=t.sign||{};
+  const money=x=>'¥'+Number(x||0).toFixed(2);
+  box.innerHTML=[['累计返利',money(r.total)],['跟踪中',(r.tracking||0)+' 笔'],['待发放',(r.pending||0)+' 笔'],['积分',(p.available==null?'—':p.available)]]
+    .map(([a,b])=>`<div>${a} <b>${b}</b></div>`).join("");
+  det.innerHTML=`<div class="cell"><div class="k">账号</div><div class="v">${t.account||'—'}</div></div>
+    <div class="cell"><div class="k">已发放</div><div class="v">${r.paid==null?'—':r.paid+' 笔'}</div></div>
+    <div class="cell"><div class="k">签到</div><div class="v">${sg.done?'+'+sg.gain+' 积分':'未签到'}${sg.streak?' · 连签'+sg.streak+'天':''}</div></div>
+    <div class="cell"><div class="k">积分到期</div><div class="v">${p.expire?p.expire.points+' 分 / '+p.expire.date:'—'}</div></div>`;
+  if(tag)tag.textContent=t.updated||'会话读取';
+})();
+
+/* ============ 快递 ============ */
+(function(){
+  const sum=document.getElementById("kdSummary"), nums=document.getElementById("kdNums"),
+        body=document.getElementById("kdBody"), tag=document.getElementById("kdTag");
+  if(!sum) return; const k=DATA.kuaidi;
+  if(!k){ sum.innerHTML='<div>待接入</div>'; return; }
+  const st=k.stats||{};
+  sum.innerHTML=[['登记号码',(st.numbers==null?0:st.numbers)+' 个'],['在库包裹',(st.parcels==null?0:st.parcels)+' 件'],
+    ['在途',`<b style="color:var(--orange)">${st.transit==null?0:st.transit}</b>`],['已签收',`<b style="color:var(--green)">${st.signed==null?0:st.signed}</b>`],['覆盖',(st.people==null?0:st.people)+' 人']]
+    .map(([a,b])=>`<div>${a} <b>${b}</b></div>`).join("");
+  nums.innerHTML=(k.numbers||[]).map(n=>`<div class="kd-card" style="--c:var(--cyan)"><div class="who">${n.who}</div><div class="no">${n.no}</div></div>`).join("");
+  body.innerHTML=(k.parcels||[]).map(x=>`<tr><td>${x.carrier||'—'}</td><td>${x.no}</td><td>${x.who||''}${x.shop?' · '+x.shop:''}</td>
+    <td style="color:${x.status==='已签收'?'var(--green)':'var(--orange)'}">${x.status||'—'}</td><td>${x.lastDesc||''}</td><td>${(x.lastTime||'').slice(0,16)}</td></tr>`).join("");
+  if(tag)tag.textContent='扫描于 '+(k.updated||'—').slice(5);
+})();
 
 /* ============ 续展提醒 ============ */
 (function(){
