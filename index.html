@@ -21285,11 +21285,17 @@ requestAnimationFrame(frame);
 (function(){
   function enterDashboard(){ location.href='dashboard.html'; }
   window.enterDashboard = enterDashboard; /* 语音唤醒 / 标题点击共用同一入口 */
-  var brand=document.querySelector('.lc-brand');
-  if(brand){
-    brand.addEventListener('click', enterDashboard);
-    brand.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); enterDashboard(); } });
+  function bindBrand(root){
+    var b = root && root.querySelector ? root.querySelector('.lc-brand') : null;
+    if(!b) return false;
+    b.addEventListener('click', enterDashboard);
+    b.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); enterDashboard(); } });
+    return true;
   }
+  /* 标题在 neural 主题的 Shadow DOM 内，主文档 querySelector 穿透不到，需从 host-neural.shadowRoot 取 */
+  var host=document.getElementById('host-neural');
+  var sr=host && host.shadowRoot;
+  if(sr){ if(!bindBrand(sr)) bindBrand(document); } else { bindBrand(document); }
 })();
 </script>
 
