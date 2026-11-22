@@ -5730,6 +5730,14 @@ const TOKR = [25, 140, 90, 150, 110, 160, 30, 80, 60, 50, 40, 90, 25];         /
 const INR  = [.8, .92, .7, .55, .6, .62, .75, .88, .8, .7, .75, .7, .85];      // 输入 token 占比
 const AGC = AG.map(a => hex3(a.col));
 
+/* ===== 外圈模型卡：槽 0 = 自动分派，槽 1..12 对应 Worker 下发的可用模型（对话面板经桥接填充） ===== */
+let slotModels = [];    // 与槽 1..12 对齐：{key,name,color,available,vendor}
+let slotUsage = {};     // key → {calls,inTok,outTok,sec,lastTs}
+let selKey = 'auto';    // 当前选中模型 key，由对话面板桥接
+const AUTO_MODEL = {key:'auto', name:'自动分派', color:CYAN};
+function slotModel(k){ return k === 0 ? AUTO_MODEL : (slotModels[k - 1] || null); }
+function slotUsageOf(k){ const m = slotModel(k); return m ? (slotUsage[m.key] || null) : null; }
+
 /* ================= 2. 模拟状态（接真实数据时替换这一段） ================= */
 let simT = 0, animT = 0, paused = false;
 let tid = 40, chiefT = 1.0, chiefDur = 1.0, passN = 388, failN = 30, lastDispatch = 'T-040';
@@ -6535,29 +6543,38 @@ function drawRing(){
       q.fillText(`${ch.en} ${ch.zh} · ${fmt(chanN[j])}`, 0, 1);
     });
   });
-  // 智能体扇区
+  // 外圈模型卡：槽 0=自动分派，槽 1..12=在线模型；竖条=运行/连通，横条=累计用量，选中铺主题色浅底
   const sw = RW / NCL;
+  let maxCalls = 1;
+  for (let k = 0; k < NCL; k++) { const u = slotUsageOf(k); if (u && u.calls > maxCalls) maxCalls = u.calls; }
   for (let k = 0; k < NCL; k++) {
-    const a = AG[k], th = secAng(k), on = k === 0 || !!a.cur, flip = Math.sin(th + spinA()) < -1e-4;
-    const prog = k === 0 ? 1 - clamp(chiefT / chiefDur, 0, 1) : a.cur ? a.prog : 0, hit = clamp(a.hitT, 0, 1);
+    const a = AG[k], m = slotModel(k), th = secAng(k), flip = Math.sin(th + spinA()) < -1e-4;
+    const col = m ? m.color : a.col;
+    const active = m ? m.key === selKey : (k === 0 || !!a.cur);
+    const hit = clamp(a.hitT, 0, 1);
+    const u = m ? slotUsage[m.key] : null;
+    const calls = u ? u.calls : 0, sec = u ? u.sec : 0;
+    const usageRatio = calls > 0 ? clamp(calls / maxCalls, 0, 1) : 0;
     drawAt(c, uOf(th) * RW, 78, flip, q => {
       const w = sw * .93, y0 = 26;
-      if (hit > 0) { q.fillStyle = rgba(a.col, .12 * hit); q.fillRect(-w / 2, -30, w, 60); }
+      if (active) { q.fillStyle = rgba(col, .16); q.fillRect(-w / 2, -30, w, 60); }
+      if (hit > 0) { q.fillStyle = rgba(col, .12 * hit); q.fillRect(-w / 2, -30, w, 60); }
       q.fillStyle = 'rgba(200,225,255,.14)'; q.fillRect(-w / 2, y0, w, 4);
-      q.fillStyle = a.bad > .05 ? rgba('#ff4d5e', .6 + .4 * a.bad) : rgba(a.col, on ? .95 : .4);
-      q.fillRect(-w / 2, y0, w * (on ? prog : 0), 4);
-      q.fillStyle = rgba(a.col, .9); q.fillRect(-w / 2, -24, 3, 46);
+      q.fillStyle = rgba(col, active ? .95 : .55);
+      q.fillRect(-w / 2, y0, w * usageRatio, 4);
+      q.fillStyle = rgba(col, active ? .95 : .32); q.fillRect(-w / 2, -24, 3, 46);
       q.textBaseline = 'middle'; q.textAlign = 'left';
-      q.font = `800 24px ${MONO}`; q.fillStyle = on ? '#ffffff' : 'rgba(225,236,250,.5)';
-      q.fillText(a.k, -w / 2 + 14, -10);
-      const kw = q.measureText(a.k).width;
-      q.font = `500 19px ${CJK}`; q.fillStyle = on ? 'rgba(225,236,250,.8)' : 'rgba(225,236,250,.4)';
-      q.fillText(a.zh, -w / 2 + 24 + kw, -9);
+      const en = m ? (m.key === 'auto' ? 'AUTO' : m.key.toUpperCase()) : a.k;
+      const zh = m ? m.name : a.zh;
+      q.font = `800 24px ${MONO}`; q.fillStyle = active ? '#ffffff' : 'rgba(225,236,250,.5)';
+      q.fillText(en, -w / 2 + 14, -10);
+      const kw = q.measureText(en).width;
+      q.font = `500 19px ${CJK}`; q.fillStyle = active ? 'rgba(225,236,250,.8)' : 'rgba(225,236,250,.4)';
+      q.fillText(zh, -w / 2 + 24 + kw, -9);
       q.font = `500 15px ${MONO}`; q.fillStyle = 'rgba(200,220,240,.62)';
-      const st = k === 0 ? `DISPATCH ${lastDispatch}` : a.cur ? `${a.cur.id} · ${Math.round(a.prog * 100)}%` : a.inbox.length ? `QUEUE ${a.inbox.length}` : 'IDLE';
+      const st = m ? (calls > 0 ? `CALLS ${calls} · ${sec}s` : 'STANDBY')
+                   : (k === 0 ? `DISPATCH ${lastDispatch}` : a.cur ? `${a.cur.id} · ${Math.round(a.prog * 100)}%` : a.inbox.length ? `QUEUE ${a.inbox.length}` : 'IDLE');
       q.fillText(st, -w / 2 + 14, 13);
-      q.textAlign = 'right';
-      for (let p = 0; p < Math.min(6, a.inbox.length); p++) { q.fillStyle = rgba(a.col, .85); q.fillRect(w / 2 - 12 - p * 11, 8, 7, 7); }
     });
   }
   ringTex.needsUpdate = true;
@@ -6798,15 +6815,21 @@ function pickAt(x, y){
 }
 function showTip(i){
   const a = AG[i];
-  let now;
-  if (i === 0) now = `刚派 ${lastDispatch} · 全局排队 ${queueTotal()} · 在途 ${inFlight()}`;
-  else if (i === CRAWLER) now = `${probe.u < 1 ? '飞往' : '扫描'} ${AG[crawl.target].k} · 抓到 bug ${crawl.bugs}`;
-  else now = a.cur ? `${a.cur.id} ${a.cur.name} · ${Math.round(a.prog * 100)}%` : a.inbox.length ? `排队 ${a.inbox.length}` : '待命';
-  const links = i > 0 && i < NCL ? BUN.filter(b => b.a === i || b.b === i).map(b => AG[b.a === i ? b.b : b.a].k).join(' · ') : '';
-  tip.style.setProperty('--c', a.col);
-  tip.innerHTML = `<span><b>${a.k}</b><strong>${a.zh}</strong> · ${a.tag}</span><span>${a.role}</span><span>当前：${now}</span>` +
-    (i < 13 ? `<span>今日完成 ${a.outs} · token ${fmtTok(a.tok)}</span>` : '') + (links ? `<span class="h">连着：${links}</span>` : '') +
-    `<span class="h">${focus === i ? '再点一次取消聚焦' : '点击聚焦这团神经元'}</span>`;
+  const m = i < NCL ? slotModel(i) : null;
+  if (m) {
+    const u = slotUsage[m.key];
+    const en = m.key === 'auto' ? 'AUTO' : m.key.toUpperCase();
+    const usage = u ? `调用 ${u.calls} 次 · ${u.sec}s · 入 ${fmtTok(u.inTok)} / 出 ${fmtTok(u.outTok)}` : '暂无用量记录';
+    tip.style.setProperty('--c', m.color);
+    tip.innerHTML = `<span><b>${en}</b><strong>${m.name}</strong></span><span>${usage}</span><span class="h">${selKey === m.key ? '当前调用中' : '点击切换到该模型'}</span>`;
+  } else {
+    let now;
+    if (i === CRAWLER) now = `${probe.u < 1 ? '飞往' : '扫描'} ${AG[crawl.target].k} · 抓到 bug ${crawl.bugs}`;
+    else now = a.cur ? `${a.cur.id} ${a.cur.name} · ${Math.round(a.prog * 100)}%` : a.inbox.length ? `排队 ${a.inbox.length}` : '待命';
+    tip.style.setProperty('--c', a.col);
+    tip.innerHTML = `<span><b>${a.k}</b><strong>${a.zh}</strong> · ${a.tag}</span><span>${a.role}</span><span>当前：${now}</span>` +
+      `<span class="h">${focus === i ? '再点一次取消聚焦' : '点击聚焦这团神经元'}</span>`;
+  }
   tip.hidden = false;
   const [sx, sy] = screenOf(i === CRAWLER ? probe.p : CL[i]);
   const tw = tip.offsetWidth, th = tip.offsetHeight;
@@ -6859,10 +6882,16 @@ function endPointer(e) {
     const wasDrag = drag && drag.moved;
     drag = null; cv.classList.remove('drag');
     if (wasDrag || wasPinch) return; // 拖拽或捏合抬手，不触发点按
-    // 星环作为语音入口：非拖拽的点按/触摸即派发语音切换（开始/结束聆听）
-    host.dispatchEvent(new CustomEvent('lc-voice-toggle'));
+    // 点到外圈模型卡 → 切换调用该模型（与下拉框同步）；点空白才派发语音切换
     const r = host.getBoundingClientRect(), i = pickAt(e.clientX - r.left, e.clientY - r.top);
-    focus = (i >= 0 && i < NCL && focus !== i) ? i : -1;
+    if (i >= 0 && i < NCL) {
+      const m = slotModel(i);
+      if (m && host.__chatPick) host.__chatPick(m.key);
+      focus = (focus !== i) ? i : -1;
+    } else {
+      host.dispatchEvent(new CustomEvent('lc-voice-toggle'));
+      focus = -1;
+    }
     needsT = 1.5;
     if (i >= 0) showTip(i);
   } else {
@@ -6926,6 +6955,9 @@ host.__chatFx = {
   setState(s){ chatMode = (s === 'thinking' || s === 'listening') ? s : 'idle'; },
   pulse(){ boost = Math.min(1.4, boost + .3); },
   setTheme(hex){ setThemeHex(hex); },
+  setModels(list){ slotModels = (list || []).slice(0, NCL - 1); },
+  setUsage(u){ slotUsage = u || {}; },
+  select(key){ selKey = key; },
   node(ai, colHex){
     const a = AG[ai]; if (!a) return;
     a.flash = 1; a.hitT = 1.2;
@@ -21307,6 +21339,7 @@ requestAnimationFrame(frame);
   var ASR_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/asr");
   var STREAM_ENDPOINT = CHAT_ENDPOINT.replace(/^http/, "ws").replace(/\/chat$/, "/asr/stream");
   var CMDS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/commands");
+  var USAGE_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/usage");
 
   var OPEN_WORDS = ["打开大屏","进入大屏","打开数据中心","进入数据中心","打开看板","进入看板","打开主页","进入主页","回到主页","打开首页","进入首页","跳转大屏","跳转数据中心","打开控制台","进入控制台"];
 
@@ -21322,6 +21355,8 @@ requestAnimationFrame(frame);
   var history=[], working=false;
   var selectedKey=modelSel.value;
   var modelColor={};   // key → 主题色 hex，来自 Worker 清单/回复
+  var modelListCache=[]; //  Worker 下发的模型清单（含 key/name/color/available/vendor）
+  var usageCache={};    // key → {calls,inTok,outTok,sec,lastTs}，来自 /api/usage
   var audioEl=null;    // 当前播报音频实例
   var cmdSeq=0;        // 跨端总线已消费到的最大序号
 
@@ -21379,6 +21414,7 @@ requestAnimationFrame(frame);
   /* 按 Worker 清单渲染分组下拉：国内方舟一组、海外预留一组；未配置项置灰 */
   function renderModels(list){
     if(!list||!list.length) return;
+    modelListCache=list;
     modelSel.innerHTML='';
     var cn=document.createElement('optgroup'); cn.label='国内 · 方舟 / 百炼';
     var gl=document.createElement('optgroup'); gl.label='海外 · 预留';
@@ -21397,7 +21433,17 @@ requestAnimationFrame(frame);
 
   function selectModel(key){
     selectedKey=key;
+    if(modelSel.value!==key) modelSel.value=key;
     if(modelColor[key]) applyTheme(modelColor[key]);
+    var f=fx(); if(f&&f.select) f.select(key);
+  }
+
+  /* 拉取各模型累计用量（次数 / token / 耗时），推给 3D 外圈模型卡画横条 */
+  function fetchUsage(){
+    fetch(USAGE_ENDPOINT).then(function(r){ return r.json(); }).then(function(d){
+      usageCache=(d&&d.models)||{};
+      var f=fx(); if(f&&f.setUsage) f.setUsage(usageCache);
+    }).catch(function(){ /* 用量暂不可达：横条留空 */ });
   }
 
   modelSel.addEventListener('change',function(){ selectModel(modelSel.value); });
@@ -21410,6 +21456,11 @@ requestAnimationFrame(frame);
     if(selectedKey!=='auto' && !modelColor[selectedKey]) selectedKey=def;
     modelSel.value=selectedKey;
     if(modelColor[selectedKey]) applyTheme(modelColor[selectedKey]);
+    /* 把可用模型清单推给 3D 外圈模型卡；拉取累计用量画横条 */
+    var avail=modelListCache.filter(function(m){ return m.available; });
+    var f0=fx(); if(f0&&f0.setModels) f0.setModels(avail);
+    if(f0&&f0.select) f0.select(selectedKey);
+    fetchUsage();
   }).catch(function(){ /* 清单不可达：沿用静态选项与默认青色 */ });
 
   /* 状态机：idle 待命 / listening 聆听 / thinking 思考 / speaking 播报 */
@@ -21463,6 +21514,8 @@ requestAnimationFrame(frame);
         if(!autoMode){ selectedKey=dispatched; modelSel.value=dispatched; }
         if(data&&data.color) applyTheme(data.color);
         applyNode(dispatched, modelColor[dispatched]);
+        var f2=fx(); if(f2&&f2.select) f2.select(dispatched);
+        fetchUsage();
         if(f){ f.setState('idle'); f.pulse(); }
         speak(reply);
       })
@@ -21639,6 +21692,8 @@ requestAnimationFrame(frame);
   /* 3D 星环作为语音入口：neural 主题在非拖拽点击/触摸星环时派发 lc-voice-toggle 事件 */
   var hostEl=document.getElementById('host-neural');
   if(hostEl) hostEl.addEventListener('lc-voice-toggle', toggleVoice);
+  /* 3D 外圈模型卡点击 → 反向切换对话模型（与下拉框同步） */
+  if(hostEl) hostEl.__chatPick=function(key){ if(key!=null) selectModel(key); };
 
   /* 隐藏兜底文字输入（ASR 未通期间备用；主界面默认不显示打字框） */
   keyBtn.addEventListener('click',function(){
