@@ -683,6 +683,8 @@ body{background:var(--page);overflow:hidden}
 .lc-brand-pre{cursor:default}
 .lc-brand-link{cursor:pointer}
 .lc-brand-link:hover{color:#fff;text-shadow:0 0 24px rgba(0,229,255,.65)}
+.lc-brand-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a;margin:0 .4em;vertical-align:middle;transition:background .25s,box-shadow .25s}
+.lc-brand-dot.busy{background:#45e6f5;box-shadow:0 0 8px #45e6f5}
 .lc-brand-sub{margin-top:5px;font-family:var(--cjk);font-weight:400;color:#d7e6f5;font-size:12px;letter-spacing:.16em;opacity:.55}
 /* 纯 3D 演示：隐藏标题/顶部脉冲/左列/右列/底部指标条/水印/窄屏信息与悬停提示；保留右上角视角切换与全屏按钮，隐藏主题切换 */
 .hd,.cap,.lt,.rc,.bs,.wm,.mini,.tip{display:none!important}
@@ -694,7 +696,7 @@ body{background:var(--page);overflow:hidden}
 <div class="vig" aria-hidden="true"></div>
 <div class="nr" id="nr">
 <div class="lc-brand">
-  <div class="lc-brand-main"><span class="lc-brand-pre">立橙 · 数据</span><span class="lc-brand-link" role="button" tabindex="0" title="进入数据中心">中心</span></div>
+  <div class="lc-brand-main"><span class="lc-brand-pre">立橙</span><span id="brandDot" class="lc-brand-dot" title="在线状态"></span><span class="lc-brand-pre">数据</span><span class="lc-brand-link" role="button" tabindex="0" title="进入数据中心">中心</span></div>
   <div class="lc-brand-sub">物种进化神经星环智能体</div>
 </div>
 <div class="fit"><div class="fit-in" id="fitIn">
@@ -21342,7 +21344,7 @@ requestAnimationFrame(frame);
   <button id="lcMicBtn" type="button" aria-label="语音对话">
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3 3 0 003-3V6a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-2.08A7 7 0 0019 12h-2z"/></svg>
   </button>
-  <div id="lcStatus" class="status"><span id="lcDot"></span><span id="lcStatusText">待命 · 点按星环说话</span></div>
+  <div id="lcStatus" class="status"><span id="lcStatusText">待命 · 点按星环说话</span></div>
   <div id="lcFallbackRow">
     <input id="lcInput" type="text" placeholder="问点什么…" autocomplete="off">
     <button id="lcSend" type="button">发送</button>
@@ -21437,6 +21439,8 @@ requestAnimationFrame(frame);
 
   /* 3D 星环互动桥接：神经星环主题挂载后挂在 host-neural.__chatFx；其他主题或无 3D 时安全跳过 */
   function fx(){ var h=document.getElementById('host-neural'); return (h&&h.__chatFx)||null; }
+  /* 标题中间状态灯在 neural 主题 Shadow DOM 内，需穿透 shadowRoot 取 */
+  function brandDot(){ var h=document.getElementById('host-neural'); var sr=h&&h.shadowRoot; return sr?sr.getElementById('brandDot'):null; }
 
   /* 把主题色推给 3D 星环（核心辉光 / 扫描环 / 思考脉冲），无 3D 时安全跳过 */
   function applyTheme(color){ var f=fx(); if(f&&f.setTheme) f.setTheme(color); }
@@ -21520,6 +21524,8 @@ requestAnimationFrame(frame);
     statusText.textContent=text;
     status.className='status'+(mode?' '+mode:'');
     micBtn.className=mode||'';
+    /* 标题状态灯：待命/接通=绿，请求/聆听/思考/播报=蓝 */
+    var d=brandDot(); if(d) d.classList.toggle('busy', !!mode && mode!=='idle');
   }
 
   /* TTS 播报：Worker 聚合返回完整 mp3 base64；失败静默回待命，不打断对话 */
