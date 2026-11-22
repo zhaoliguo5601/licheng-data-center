@@ -21167,5 +21167,126 @@ requestAnimationFrame(frame);
   if(b) b.addEventListener('click', enterDashboard);
 })();
 </script>
+
+<style>
+#lcMic{position:fixed;right:24px;bottom:34px;z-index:9998;width:54px;height:54px;border-radius:50%;border:1px solid rgba(0,229,255,.4);background:rgba(4,10,16,.55);color:#eafcff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px);font-size:22px;box-shadow:0 8px 26px rgba(0,0,0,.5),inset 0 0 16px rgba(0,229,255,.12);transition:all .25s}
+#lcMic:hover{background:rgba(0,229,255,.16);border-color:rgba(0,229,255,.8)}
+#lcMic.listening{background:rgba(0,229,255,.28);border-color:#00e5ff;animation:lcPulse 1.4s infinite}
+@keyframes lcPulse{0%{box-shadow:0 0 0 0 rgba(0,229,255,.4)}70%{box-shadow:0 0 0 14px rgba(0,229,255,0)}100%{box-shadow:0 0 0 0 rgba(0,229,255,0)}}
+#lcChat{position:fixed;right:24px;bottom:100px;z-index:9997;width:min(340px,calc(100vw-48px));max-height:46vh;display:none;flex-direction:column;gap:8px;background:rgba(4,10,16,.74);border:1px solid rgba(0,229,255,.25);border-radius:16px;padding:12px;backdrop-filter:blur(12px)}
+#lcChat.open{display:flex}
+#lcMsgs{display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+#lcMsgs .msg{max-width:85%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.55;color:#eafcff;word-break:break-word}
+#lcMsgs .msg.user{align-self:flex-end;background:rgba(0,229,255,.18);border:1px solid rgba(0,229,255,.3)}
+#lcMsgs .msg.bot{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+#lcStatus{align-self:center;font-size:11px;color:#7fd9e8;letter-spacing:.08em;min-height:15px}
+#lcInputRow{display:flex;gap:8px;margin-top:4px}
+#lcInput{flex:1;min-width:0;background:rgba(255,255,255,.08);border:1px solid rgba(0,229,255,.25);border-radius:10px;padding:9px 11px;color:#eafcff;font-size:13px;outline:none}
+#lcInput::placeholder{color:#6f9aa6}
+#lcSend{border:1px solid rgba(0,229,255,.4);background:rgba(0,229,255,.12);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
+@media(max-width:640px){#lcMic{right:16px;bottom:22px;width:48px;height:48px;font-size:19px}#lcChat{right:16px;bottom:84px}}
+</style>
+<button id="lcMic" type="button" title="语音对话">🎙</button>
+<div id="lcChat" role="dialog" aria-label="语音助手">
+  <div id="lcMsgs"></div>
+  <div id="lcStatus" class="status">点击麦克风开始对话</div>
+  <div id="lcInputRow">
+    <input id="lcInput" type="text" placeholder="输入问题…" autocomplete="off">
+    <button id="lcSend" type="button">发送</button>
+  </div>
+</div>
+<script>
+(function(){
+  /* 对话代理地址：Worker 部署后回填其 workers.dev 子域；本地联调用 wrangler dev 端口 */
+  var CHAT_ENDPOINT = "https://lcdc-chat.13256665601.workers.dev/api/chat";
+
+  var OPEN_WORDS = ["打开大屏","进入大屏","打开数据中心","进入数据中心","打开看板","进入看板","打开主页","进入主页","回到主页","打开首页","进入首页","跳转大屏","跳转数据中心","打开控制台","进入控制台"];
+
+  var mic=document.getElementById('lcMic'), chat=document.getElementById('lcChat'),
+      msgs=document.getElementById('lcMsgs'), status=document.getElementById('lcStatus'),
+      input=document.getElementById('lcInput'), send=document.getElementById('lcSend');
+
+  var history=[];           // {role,content}
+  var rec=null, listening=false, speaking=false;
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+  function setStatus(t){ status.textContent=t; }
+  function addMsg(role,text){
+    var d=document.createElement('div'); d.className='msg '+role; d.textContent=text;
+    msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
+  }
+  function isOpenCommand(text){
+    var t=(text||'').replace(/\s+/g,'');
+    return OPEN_WORDS.some(function(w){ return t.indexOf(w)>=0; });
+  }
+  function speak(text){
+    if(!('speechSynthesis' in window)) return;
+    try{
+      speechSynthesis.cancel();
+      var u=new SpeechSynthesisUtterance(text); u.lang='zh-CN'; u.rate=1.02;
+      speaking=true;
+      u.onend=u.onerror=function(){ speaking=false; };
+      speechSynthesis.speak(u);
+    }catch(e){ speaking=false; }
+  }
+
+  function callModel(text){
+    setStatus('思考中…');
+    history.push({role:'user',content:text});
+    fetch(CHAT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history.slice(-10)})})
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var reply=(data&&data.reply)||'我这边暂时没回答上来，换个问题试试。';
+        history.push({role:'assistant',content:reply});
+        addMsg('bot',reply); setStatus(''); speak(reply);
+      })
+      .catch(function(){
+        setStatus(''); addMsg('bot','网络或对话服务暂时不可用，请稍后再试。');
+      });
+  }
+
+  function handleText(text){
+    text=(text||'').trim(); if(!text) return;
+    addMsg('user',text);
+    if(isOpenCommand(text)){
+      setStatus('正在进入数据中心…');
+      if(window.enterDashboard) window.enterDashboard(); else location.href='dashboard.html';
+      return;
+    }
+    callModel(text);
+  }
+
+  /* 语音识别 */
+  if(SR){
+    rec=new SR(); rec.lang='zh-CN'; rec.continuous=false; rec.interimResults=true;
+    rec.onresult=function(e){
+      var final='';
+      for(var i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) final+=e.results[i][0].transcript; }
+      if(final){ setStatus('听到：'+final); handleText(final); }
+    };
+    rec.onerror=function(ev){ setStatus('语音识别不可用，可用下方文字输入'); stopListen(); };
+    rec.onend=function(){ stopListen(); };
+  } else {
+    mic.addEventListener('click',function(){ chat.classList.toggle('open'); });
+    setStatus('当前浏览器不支持语音识别，可文字输入');
+  }
+
+  function startListen(){
+    if(!rec) return;
+    try{ rec.start(); listening=true; mic.classList.add('listening'); setStatus('正在听…'); }
+    catch(e){}
+  }
+  function stopListen(){ listening=false; mic.classList.remove('listening'); }
+
+  if(rec){
+    mic.addEventListener('click',function(){
+      chat.classList.toggle('open');
+      if(chat.classList.contains('open')){ listening?stopListen():startListen(); }
+    });
+  }
+  send.addEventListener('click',function(){ var v=input.value; input.value=''; handleText(v); });
+  input.addEventListener('keydown',function(e){ if(e.key==='Enter'){ var v=input.value; input.value=''; handleText(v); } });
+})();
+</script>
 </body>
 </html>
