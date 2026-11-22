@@ -6554,7 +6554,8 @@ function drawRing(){
   for (let k = 0; k < NCL; k++) { const u = slotUsageOf(k); if (u && u.calls > maxCalls) maxCalls = u.calls; }
   for (let k = 0; k < NCL; k++) {
     const a = AG[k], m = slotModel(k), th = secAng(k), flip = Math.sin(th + spinA()) < -1e-4;
-    const col = m ? m.color : a.col;
+    // 颜色照搬职能色环顺序：槽 0=AUTO 青，槽 1..12 按 AG 职能色排列（不随模型自身色）
+    const col = k === 0 ? AUTO_MODEL.color : AG[k].col;
     const active = m ? m.key === selKey : (k === 0 || !!a.cur);
     const hit = clamp(a.hitT, 0, 1);
     const u = m ? slotUsage[m.key] : null;
