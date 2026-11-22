@@ -6571,15 +6571,17 @@ function drawRing(){
       q.textBaseline = 'middle'; q.textAlign = 'left';
       const en = m ? (m.key === 'auto' ? 'AUTO' : m.key.toUpperCase()) : a.k;
       const zh = m ? m.name : a.zh;
+      // 上行：英文 key（大字）
       q.font = `800 24px ${MONO}`; q.fillStyle = active ? '#ffffff' : 'rgba(225,236,250,.7)';
       q.fillText(en, -w / 2 + 14, -10);
-      const kw = q.measureText(en).width;
-      q.font = `500 19px ${CJK}`; q.fillStyle = active ? 'rgba(225,236,250,.85)' : 'rgba(225,236,250,.55)';
-      q.fillText(zh, -w / 2 + 24 + kw, -9);
-      q.font = `500 15px ${MONO}`; q.fillStyle = 'rgba(200,220,240,.62)';
+      // 下行：模型中文名（原 STANDBY 位置，小字）；状态/用量右对齐
+      q.font = `500 15px ${CJK}`; q.fillStyle = active ? 'rgba(225,236,250,.85)' : 'rgba(225,236,250,.55)';
+      q.fillText(zh, -w / 2 + 14, 13);
+      q.font = `500 13px ${MONO}`; q.fillStyle = 'rgba(200,220,240,.62)';
       const st = m ? (calls > 0 ? `CALLS ${calls} · ${sec}s` : 'STANDBY')
                    : (k === 0 ? `DISPATCH ${lastDispatch}` : a.cur ? `${a.cur.id} · ${Math.round(a.prog * 100)}%` : a.inbox.length ? `QUEUE ${a.inbox.length}` : 'IDLE');
-      q.fillText(st, -w / 2 + 14, 13);
+      q.textAlign = 'right';
+      q.fillText(st, w / 2 - 14, 13);
     });
   }
   ringTex.needsUpdate = true;
