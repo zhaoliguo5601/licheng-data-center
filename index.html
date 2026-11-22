@@ -6557,19 +6557,24 @@ function drawRing(){
     const usageRatio = calls > 0 ? clamp(calls / maxCalls, 0, 1) : 0;
     drawAt(c, uOf(th) * RW, 78, flip, q => {
       const w = sw * .93, y0 = 26;
-      if (active) { q.fillStyle = rgba(col, .16); q.fillRect(-w / 2, -30, w, 60); }
-      if (hit > 0) { q.fillStyle = rgba(col, .12 * hit); q.fillRect(-w / 2, -30, w, 60); }
+      // 分区底色：未选中也铺一层主题色深底，选中/命中再叠亮
+      q.fillStyle = rgba(col, .16); q.fillRect(-w / 2, -30, w, 60);
+      if (active) { q.fillStyle = rgba(col, .30); q.fillRect(-w / 2, -30, w, 60); }
+      if (hit > 0) { q.fillStyle = rgba(col, .18 * hit); q.fillRect(-w / 2, -30, w, 60); }
+      // 分区彩色描边
+      q.strokeStyle = rgba(col, active ? .6 : .38); q.lineWidth = 1;
+      q.strokeRect(-w / 2, -30, w, 60);
       q.fillStyle = 'rgba(200,225,255,.14)'; q.fillRect(-w / 2, y0, w, 4);
-      q.fillStyle = rgba(col, active ? .95 : .55);
+      q.fillStyle = rgba(col, active ? 1 : .8);
       q.fillRect(-w / 2, y0, w * usageRatio, 4);
-      q.fillStyle = rgba(col, active ? .95 : .32); q.fillRect(-w / 2, -24, 3, 46);
+      q.fillStyle = rgba(col, active ? 1 : .6); q.fillRect(-w / 2, -24, 4, 46);
       q.textBaseline = 'middle'; q.textAlign = 'left';
       const en = m ? (m.key === 'auto' ? 'AUTO' : m.key.toUpperCase()) : a.k;
       const zh = m ? m.name : a.zh;
-      q.font = `800 24px ${MONO}`; q.fillStyle = active ? '#ffffff' : 'rgba(225,236,250,.5)';
+      q.font = `800 24px ${MONO}`; q.fillStyle = active ? '#ffffff' : 'rgba(225,236,250,.7)';
       q.fillText(en, -w / 2 + 14, -10);
       const kw = q.measureText(en).width;
-      q.font = `500 19px ${CJK}`; q.fillStyle = active ? 'rgba(225,236,250,.8)' : 'rgba(225,236,250,.4)';
+      q.font = `500 19px ${CJK}`; q.fillStyle = active ? 'rgba(225,236,250,.85)' : 'rgba(225,236,250,.55)';
       q.fillText(zh, -w / 2 + 24 + kw, -9);
       q.font = `500 15px ${MONO}`; q.fillStyle = 'rgba(200,220,240,.62)';
       const st = m ? (calls > 0 ? `CALLS ${calls} · ${sec}s` : 'STANDBY')
