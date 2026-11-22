@@ -678,6 +678,9 @@ body{background:var(--page);overflow:hidden}
 .m-stats b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .m-wm{margin-top:6px;font-family:var(--display);font-size:8px;letter-spacing:.3em;color:var(--dim);text-align:center}
 .glfail{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:340px;text-align:center;font-family:var(--cjk);font-size:13px;line-height:1.7;color:var(--ink2);border:1px solid var(--hair2);padding:14px 18px;background:rgba(4,7,13,.85)}
+.lc-brand{position:absolute;top:max(18px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));pointer-events:none;z-index:6;line-height:1.25}
+.lc-brand-main{font-family:var(--cjk);font-weight:900;color:#fff;font-size:20px;letter-spacing:.08em;text-shadow:0 0 18px rgba(166,241,255,.35)}
+.lc-brand-sub{margin-top:5px;font-family:var(--cjk);font-weight:400;color:#fff;font-size:12px;letter-spacing:.16em;opacity:.82}
 /* 纯 3D 演示：隐藏标题/顶部脉冲/左列/右列/底部指标条/水印/窄屏信息与悬停提示；保留右上角视角切换与全屏按钮，隐藏主题切换 */
 .hd,.cap,.lt,.rc,.bs,.wm,.mini,.tip{display:none!important}
 .tools [data-series-pick]{display:none!important}
@@ -687,6 +690,10 @@ body{background:var(--page);overflow:hidden}
 <canvas class="gl" id="gl" aria-label="神经星环：13 个智能体神经团，脉冲沿突触束在它们之间传递任务。拖动可转动视角，点击神经团可聚焦"></canvas>
 <div class="vig" aria-hidden="true"></div>
 <div class="nr" id="nr">
+<div class="lc-brand">
+  <div class="lc-brand-main">立橙 · 数据中心</div>
+  <div class="lc-brand-sub">物种进化 · 神经星环</div>
+</div>
 <div class="fit"><div class="fit-in" id="fitIn">
  <div class="board" id="board">
   <header class="hd">
