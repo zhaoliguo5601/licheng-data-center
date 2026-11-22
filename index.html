@@ -21189,7 +21189,8 @@ requestAnimationFrame(frame);
 <style>
 #lcChat{position:fixed;right:24px;bottom:96px;z-index:9997;width:min(360px,calc(100vw-48px));max-height:56vh;display:flex;flex-direction:column;gap:8px;background:rgba(4,10,16,.78);border:1px solid rgba(0,229,255,.25);border-radius:16px;padding:12px;backdrop-filter:blur(12px)}
 #lcHead{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:#eafcff;letter-spacing:.06em}
-#lcModel{font:500 10px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;border:1px solid rgba(0,229,255,.25);border-radius:6px;padding:3px 7px}
+#lcModel{font:500 10px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:rgba(255,255,255,.06);border:1px solid rgba(0,229,255,.25);border-radius:6px;padding:4px 7px;outline:none;cursor:pointer;max-width:150px}
+#lcModel option{background:#0a141c;color:#eafcff}
 #lcMsgs{display:flex;flex-direction:column;gap:8px;overflow-y:auto;min-height:40px}
 #lcMsgs .msg{max-width:85%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.55;color:#eafcff;word-break:break-word;animation:lcIn .18s ease}
 @keyframes lcIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -21208,7 +21209,14 @@ requestAnimationFrame(frame);
 @media(max-width:640px){#lcChat{right:16px;bottom:80px;max-height:48vh}}
 </style>
 <div id="lcChat" role="dialog" aria-label="立橙智能助手">
-  <div id="lcHead"><span id="lcTitle">立橙智能助手</span><span id="lcModel">豆包 lite</span></div>
+  <div id="lcHead"><span id="lcTitle">立橙智能助手</span><select id="lcModel" aria-label="选择模型">
+    <option value="lite" selected>豆包 2.1 Lite</option>
+    <option value="turbo">豆包 2.1 Turbo</option>
+    <option value="glm">GLM 5.3 Flash</option>
+    <option value="kimi">Kimi K3.1 Pro</option>
+    <option value="ds">DeepSeek V4.1 Flash</option>
+    <option value="ds-econ">DeepSeek V4.1 经济版</option>
+  </select></div>
   <div id="lcMsgs"></div>
   <div id="lcStatus" class="status"><span id="lcDot"></span><span id="lcStatusText">在线 · 直接输入问题即可对话</span></div>
   <div id="lcInputRow">
@@ -21227,9 +21235,11 @@ requestAnimationFrame(frame);
       msgs=document.getElementById('lcMsgs'), status=document.getElementById('lcStatus'),
       statusText=document.getElementById('lcStatusText'),
       input=document.getElementById('lcInput'), send=document.getElementById('lcSend'),
-      modelTag=document.getElementById('lcModel');
+      modelSel=document.getElementById('lcModel');
 
   var history=[], working=false;
+  var selectedKey=modelSel.value;
+  modelSel.addEventListener('change',function(){ selectedKey=modelSel.value; });
 
   /* 3D 星环互动桥接：神经星环主题挂载后挂在 host-neural.__chatFx；其他主题或无 3D 时安全跳过 */
   function fx(){ var h=document.getElementById('host-neural'); return (h&&h.__chatFx)||null; }
@@ -21252,12 +21262,13 @@ requestAnimationFrame(frame);
     setStatus('思考中…','thinking');
     var f=fx(); if(f) f.setState('thinking');
     history.push({role:'user',content:text});
-    fetch(CHAT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history.slice(-10)})})
+    fetch(CHAT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:selectedKey,messages:history.slice(-10)})})
       .then(function(r){ return r.json(); })
       .then(function(data){
         var reply=(data&&data.reply)||'我这边暂时没回答上来，换个问题试试。';
         history.push({role:'assistant',content:reply});
         addMsg('bot',reply);
+        if(data&&data.key){ selectedKey=data.key; modelSel.value=data.key; }
         if(f){ f.setState('idle'); f.pulse(); }
         setStatus('在线 · 直接输入问题即可对话','idle');
       })
