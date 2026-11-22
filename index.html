@@ -6964,6 +6964,9 @@ host.__chatFx = {
     if (ai > 0 && colHex) sendSignal(0, ai, colHex, null, 'chat');
   }
 };
+/* 时序兜底：对话面板先于 3D 挂载时已把清单/用量缓存到 window，这里挂载后回拉一次 */
+if (window.__modelList) { const av = window.__modelList.filter(m => m.available); host.__chatFx.setModels(av); }
+if (window.__modelUsage) host.__chatFx.setUsage(window.__modelUsage);
 requestAnimationFrame(frame);
 }
 
@@ -21357,6 +21360,31 @@ requestAnimationFrame(frame);
   var modelColor={};   // key → 主题色 hex，来自 Worker 清单/回复
   var modelListCache=[]; //  Worker 下发的模型清单（含 key/name/color/available/vendor）
   var usageCache={};    // key → {calls,inTok,outTok,sec,lastTs}，来自 /api/usage
+
+  /* Worker 不可达时的静态兜底清单（与 Worker MODELS 表一致；available 仅用于外圈展示分组，真实调用仍由 Worker 判定） */
+  var FALLBACK_MODELS=[
+    {key:"lite",name:"豆包 2.1 Lite",color:"#45e6f5",vendor:"cn",available:true},
+    {key:"turbo",name:"豆包 2.1 Turbo",color:"#3b9dff",vendor:"cn",available:true},
+    {key:"pro",name:"豆包 2.1 Pro",color:"#6d7bff",vendor:"cn",available:true},
+    {key:"d2-lite",name:"豆包 2.0 Lite",color:"#7fd0c8",vendor:"cn",available:true},
+    {key:"d2-mini",name:"豆包 2.0 Mini",color:"#9fd8ff",vendor:"cn",available:true},
+    {key:"char",name:"豆包 Character",color:"#ff5cae",vendor:"cn",available:true},
+    {key:"glm",name:"GLM 5.3 Flash",color:"#2fd27a",vendor:"cn",available:true},
+    {key:"glm-2",name:"GLM 5.2",color:"#1fa86a",vendor:"cn",available:true},
+    {key:"kimi",name:"Kimi K3.1 Pro",color:"#a774ff",vendor:"cn",available:true},
+    {key:"ds",name:"DeepSeek V4.1 Flash",color:"#3b7cff",vendor:"cn",available:true},
+    {key:"ds-econ",name:"DeepSeek V4.1 经济版",color:"#6aa8ff",vendor:"cn",available:true},
+    {key:"ds-flash",name:"DeepSeek V4 Flash GA",color:"#2f6bff",vendor:"cn",available:true},
+    {key:"ds-pro",name:"DeepSeek V4 Pro",color:"#1f4fff",vendor:"cn",available:true},
+    {key:"qwen-max",name:"通义千问 Max",color:"#ff8a3d",vendor:"bailian",available:false},
+    {key:"qwen-plus",name:"通义千问 Plus",color:"#ffb020",vendor:"bailian",available:false},
+    {key:"qwen-turbo",name:"通义千问 Flash",color:"#ffd66b",vendor:"bailian",available:false},
+    {key:"qwen37-flash",name:"通义千问 3.7 Flash",color:"#ffa940",vendor:"bailian",available:false},
+    {key:"qwen38-flash",name:"通义千问 3.8 Flash",color:"#ff7a1a",vendor:"bailian",available:false},
+    {key:"gpt",name:"GPT（预留）",color:"#10a37f",vendor:"global",available:false},
+    {key:"claude",name:"Claude（预留）",color:"#d97757",vendor:"global",available:false},
+    {key:"gemini",name:"Gemini（预留）",color:"#4687ff",vendor:"global",available:false}
+  ];
   var audioEl=null;    // 当前播报音频实例
   var cmdSeq=0;        // 跨端总线已消费到的最大序号
 
@@ -21415,6 +21443,7 @@ requestAnimationFrame(frame);
   function renderModels(list){
     if(!list||!list.length) return;
     modelListCache=list;
+    try{ window.__modelList=list; }catch(e){}
     modelSel.innerHTML='';
     var cn=document.createElement('optgroup'); cn.label='国内 · 方舟 / 百炼';
     var gl=document.createElement('optgroup'); gl.label='海外 · 预留';
@@ -21442,6 +21471,7 @@ requestAnimationFrame(frame);
   function fetchUsage(){
     fetch(USAGE_ENDPOINT).then(function(r){ return r.json(); }).then(function(d){
       usageCache=(d&&d.models)||{};
+      try{ window.__modelUsage=usageCache; }catch(e){}
       var f=fx(); if(f&&f.setUsage) f.setUsage(usageCache);
     }).catch(function(){ /* 用量暂不可达：横条留空 */ });
   }
@@ -21451,6 +21481,7 @@ requestAnimationFrame(frame);
   /* 拉取模型清单（含主题色与可用状态）；失败则保留 HTML 内静态兜底选项 */
   fetch(MODELS_ENDPOINT).then(function(r){ return r.json(); }).then(function(d){
     var list=(d&&d.models)||[];
+    if(!list.length) list=FALLBACK_MODELS;
     renderModels(list);
     var def=(d&&d.default)||selectedKey;
     if(selectedKey!=='auto' && !modelColor[selectedKey]) selectedKey=def;
@@ -21461,7 +21492,13 @@ requestAnimationFrame(frame);
     var f0=fx(); if(f0&&f0.setModels) f0.setModels(avail);
     if(f0&&f0.select) f0.select(selectedKey);
     fetchUsage();
-  }).catch(function(){ /* 清单不可达：沿用静态选项与默认青色 */ });
+  }).catch(function(){
+    /* 清单不可达：用静态兜底清单渲染下拉与外圈模型卡，不再回退旧职能卡 */
+    renderModels(FALLBACK_MODELS);
+    var avail=FALLBACK_MODELS.filter(function(m){ return m.available; });
+    var f=fx(); if(f&&f.setModels) f.setModels(avail);
+    if(f&&f.select) f.select(selectedKey);
+  });
 
   /* 状态机：idle 待命 / listening 聆听 / thinking 思考 / speaking 播报 */
   function setStatus(text, mode){
