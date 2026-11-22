@@ -21306,26 +21306,22 @@ requestAnimationFrame(frame);
 
 <style>
 #lcChat{position:fixed;right:24px;bottom:96px;z-index:9997;width:min(300px,calc(100vw-48px));display:flex;flex-direction:column;align-items:center;gap:10px;background:rgba(4,10,16,.78);border:1px solid rgba(0,229,255,.25);border-radius:20px;padding:16px 14px;backdrop-filter:blur(12px)}
-#lcHead{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:#eafcff;letter-spacing:.06em}
-#lcModel{font:500 10px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:rgba(255,255,255,.06);border:1px solid rgba(0,229,255,.25);border-radius:6px;padding:4px 7px;outline:none;cursor:pointer;max-width:150px}
+#lcHead{width:100%;display:flex;align-items:center;gap:8px;font-size:13px;color:#eafcff;letter-spacing:.06em}
+#lcModel{flex:0 1 auto;font:500 10px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:rgba(255,255,255,.06);border:1px solid rgba(0,229,255,.25);border-radius:10px;padding:9px 11px;outline:none;cursor:pointer;max-width:120px}
 #lcModel option{background:#0a141c;color:#eafcff}
-#lcKey{font-size:13px;color:#6f9aa6;background:none;border:none;cursor:pointer;padding:2px 4px;line-height:1}
-#lcKey:hover{color:#eafcff}
 #lcMicBtn{position:relative;width:64px;height:64px;border-radius:50%;border:1px solid rgba(0,229,255,.45);background:rgba(0,229,255,.12);color:#eafcff;cursor:pointer;display:none;align-items:center;justify-content:center;transition:all .25s;outline:none}
 #lcMicBtn svg{width:26px;height:26px}
 #lcMicBtn::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(0,229,255,.3);opacity:0;transition:opacity .25s}
 #lcMicBtn.listening::before,#lcMicBtn.thinking::before,#lcMicBtn.speaking::before{opacity:1;animation:lcRing 1.4s infinite}
 @keyframes lcRing{0%{transform:scale(.9);opacity:.6}70%{transform:scale(1.18);opacity:0}100%{opacity:0}}
 #lcMicBtn:disabled{opacity:.5;cursor:default}
-#lcStatus{display:flex;align-items:center;gap:6px;font-size:11px;color:#7fd9e8;letter-spacing:.08em;min-height:15px;text-align:center}
+#lcStatus{width:100%;display:flex;align-items:center;gap:6px;font-size:11px;color:#7fd9e8;letter-spacing:.08em;min-height:15px;text-align:left;justify-content:flex-start}
 #lcDot{width:7px;height:7px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a}
 #lcStatus.thinking,#lcStatus.speaking{color:#ffd23f}
 #lcStatus.thinking #lcDot,#lcStatus.speaking #lcDot{background:#ffd23f;box-shadow:0 0 8px #ffd23f;animation:lcPulse 1.1s infinite}
 #lcStatus.listening{color:#45e6f5}
 #lcStatus.listening #lcDot{background:#45e6f5;box-shadow:0 0 8px #45e6f5}
 @keyframes lcPulse{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
-#lcFallbackRow{display:none;width:100%;gap:8px}
-#lcFallbackRow.open{display:flex}
 #lcInput{flex:1;min-width:0;background:rgba(255,255,255,.08);border:1px solid rgba(0,229,255,.25);border-radius:10px;padding:9px 11px;color:#eafcff;font-size:13px;outline:none}
 #lcInput::placeholder{color:#6f9aa6}
 #lcSend{border:1px solid rgba(0,229,255,.4);background:rgba(0,229,255,.12);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
@@ -21333,7 +21329,8 @@ requestAnimationFrame(frame);
 @media(max-width:640px){#lcChat{right:16px;bottom:80px}}
 </style>
 <div id="lcChat" role="dialog" aria-label="立橙智能助手">
-  <div id="lcHead"><span id="lcTitle">立橙智能助手</span><select id="lcModel" aria-label="选择模型">
+  <div id="lcHead">
+    <select id="lcModel" aria-label="选择模型">
     <option value="auto" selected>自动分派（母AI调度）</option>
     <option value="lite">豆包 2.1 Lite</option>
     <option value="turbo">豆包 2.1 Turbo</option>
@@ -21341,15 +21338,14 @@ requestAnimationFrame(frame);
     <option value="kimi">Kimi K3.1 Pro</option>
     <option value="ds">DeepSeek V4.1 Flash</option>
     <option value="ds-econ">DeepSeek V4.1 经济版</option>
-  </select><button id="lcKey" type="button" title="文字输入兜底" aria-label="文字输入兜底">⌨</button></div>
-  <button id="lcMicBtn" type="button" aria-label="语音对话">
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3 3 0 003-3V6a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-2.08A7 7 0 0019 12h-2z"/></svg>
-  </button>
-  <div id="lcStatus" class="status"><span id="lcStatusText">待命 · 点按星环说话</span></div>
-  <div id="lcFallbackRow">
+  </select>
     <input id="lcInput" type="text" placeholder="问点什么…" autocomplete="off">
     <button id="lcSend" type="button">发送</button>
   </div>
+  <div id="lcStatus" class="status"><span id="lcStatusText">待命 · 点按星环说话</span></div>
+  <button id="lcMicBtn" type="button" aria-label="语音对话">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3 3 0 003-3V6a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-2.08A7 7 0 0019 12h-2z"/></svg>
+  </button>
 </div>
 <script>
 (function(){
@@ -21368,9 +21364,7 @@ requestAnimationFrame(frame);
       status=document.getElementById('lcStatus'),
       statusText=document.getElementById('lcStatusText'),
       micBtn=document.getElementById('lcMicBtn'),
-      fallbackRow=document.getElementById('lcFallbackRow'),
       input=document.getElementById('lcInput'), send=document.getElementById('lcSend'),
-      keyBtn=document.getElementById('lcKey'),
       modelSel=document.getElementById('lcModel');
 
   var history=[], working=false;
@@ -21408,7 +21402,7 @@ requestAnimationFrame(frame);
 
   /* —— 流式语音识别（WebSocket 中继）采集状态 —— */
   var asrWs=null, asrStream=null, asrCtx=null, asrProcessor=null, asrSource=null, asrSink=null;
-  var asrRecording=false, asrBusy=false;
+  var asrRecording=false, asrBusy=false, asrHandshakeTimer=null;
   var asrPcm=[];              // 待发的 Float32 样本缓冲
   var asrInterim="";          // 最新临时识别文本（上屏）
   var ASR_RATE=16000, ASR_FRAME=3200; // 16kHz，200ms/包
@@ -21677,7 +21671,8 @@ requestAnimationFrame(frame);
   }
 
   function asrCleanup(){
-    asrRecording=false;
+    asrRecording=false; asrBusy=false;
+    if(asrHandshakeTimer){ clearTimeout(asrHandshakeTimer); asrHandshakeTimer=null; }
     if(asrProcessor){ try{asrProcessor.disconnect();}catch(e){} asrProcessor=null; }
     if(asrSource){ try{asrSource.disconnect();}catch(e){} asrSource=null; }
     if(asrSink){ try{asrSink.disconnect();}catch(e){} asrSink=null; }
@@ -21697,6 +21692,10 @@ requestAnimationFrame(frame);
 
   async function asrStart(){
     asrBusy=true; setStatus('正在申请麦克风…','listening');
+    /* 非安全上下文（http/文件）下 navigator.mediaDevices 可能缺失，先给明确提示 */
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      asrBusy=false; asrFail('麦克风不可用：请在 HTTPS 页面打开并授权'); return;
+    }
     try{
       /* 手势上下文内解锁 WebAudio，确保开场提示音不被自动播放策略拦截 */
       try{ if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)(); if(chimeCtx.state==='suspended') chimeCtx.resume(); }catch(e){}
@@ -21726,11 +21725,24 @@ requestAnimationFrame(frame);
 
       asrWs=new WebSocket(STREAM_ENDPOINT);
       asrWs.binaryType='arraybuffer';
-      asrWs.onopen=function(){ asrRecording=true; asrBusy=false; fxSetState('listening'); setStatus('聆听中…','listening'); asrSendParams(); };
+      /* 握手超时：6s 内未 onopen 视为通道失败，复位 busy 避免界面卡死在“正在申请麦克风…” */
+      asrHandshakeTimer=setTimeout(function(){ asrFail('语音通道连接超时，请重试'); },6000);
+      asrWs.onopen=function(){
+        if(asrHandshakeTimer){ clearTimeout(asrHandshakeTimer); asrHandshakeTimer=null; }
+        asrRecording=true; asrBusy=false; fxSetState('listening'); setStatus('聆听中…','listening'); asrSendParams();
+      };
       asrWs.onmessage=onAsrMessage;
       asrWs.onerror=function(){ asrFail('语音通道连接失败'); };
-      asrWs.onclose=function(){ if(asrRecording) asrFail('语音通道已断开'); };
-    }catch(e){ asrBusy=false; asrFail('无法访问麦克风：'+((e&&e.name)||'权限被拒')); }
+      asrWs.onclose=function(){ if(asrRecording || asrBusy) asrFail('语音通道已断开'); };
+    }catch(e){
+      asrBusy=false;
+      var nm=(e&&e.name)||'';
+      var tip = nm==='NotAllowedError' ? '麦克风权限被拒绝，请在浏览器地址栏授权后重试'
+              : nm==='NotFoundError' ? '未检测到麦克风设备'
+              : nm==='NotReadableError' ? '麦克风被其他应用占用，请关闭后重试'
+              : '无法访问麦克风：'+(nm||'权限被拒');
+      asrFail(tip);
+    }
   }
 
   function asrStop(){
@@ -21756,12 +21768,8 @@ requestAnimationFrame(frame);
   /* 3D 外圈模型卡点击 → 反向切换对话模型（与下拉框同步） */
   if(hostEl) hostEl.__chatPick=function(key){ if(key!=null) selectModel(key); };
 
-  /* 隐藏兜底文字输入（ASR 未通期间备用；主界面默认不显示打字框） */
-  keyBtn.addEventListener('click',function(){
-    fallbackRow.classList.toggle('open');
-    if(fallbackRow.classList.contains('open')) input.focus();
-  });
-  function submitFallback(){ var v=input.value; input.value=''; fallbackRow.classList.remove('open'); handleText(v); }
+  /* 文字输入常驻第一行，回车/发送走同一处理链路 */
+  function submitFallback(){ var v=input.value; input.value=''; handleText(v); }
   send.addEventListener('click',submitFallback);
   input.addEventListener('keydown',function(e){ if(e.key==='Enter') submitFallback(); });
 
