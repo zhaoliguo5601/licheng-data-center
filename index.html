@@ -5753,6 +5753,16 @@ const chanN = CH.map(() => 0), chanFlash = CH.map(() => 0);
 let boost = 0, lastHand = null, bunHot = new Float32Array(48);
 /* 对话互动状态：idle 待命 / thinking 模型思考中，由外部对话面板经 host.__chatFx 驱动 */
 let chatMode = 'idle', chatBoost = 0, chatPulseAcc = 0;
+/* 当前模型主题色：核心辉光 / 扫描环 / 思考脉冲随所选模型固定配色，切换时平滑过渡。
+   themeHex 为目标 hex；themeCur/themeTarget 为 THREE.Color（glOK 后惰性建）。 */
+let themeHex = '#45e6f5', themeCur = null, themeTarget = null;
+function setThemeHex(hex){
+  if (!hex || typeof hex !== 'string') return;
+  let h = hex.trim();
+  if (!/^#?[0-9a-fA-F]{6}$/.test(h)) return;
+  themeHex = h[0] === '#' ? h : '#' + h;
+  if (themeTarget) themeTarget.set(themeHex);
+}
 
 function newTask(wi){
   const w = WF[wi];
@@ -6191,12 +6201,12 @@ function buildHud(){
     s.position.copy(p); s.scale.setScalar(.1); spin.add(s); chanSpr.push(s);
   });
   // 中心核：CHIEF 越忙越亮
-  coreSpr = new THREE.Sprite(new THREE.SpriteMaterial({map: SPRITE, color: 0xcfe0ff, transparent: true, opacity: .16, blending: THREE.AdditiveBlending, depthWrite: false}));
+  coreSpr = new THREE.Sprite(new THREE.SpriteMaterial({map: SPRITE, color: new THREE.Color(themeHex), transparent: true, opacity: .16, blending: THREE.AdditiveBlending, depthWrite: false}));
   coreSpr.scale.setScalar(2.5); world.add(coreSpr);
   // 流星命中点的闪光
   for (let k = 0; k < 16; k++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: SPRITE, color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false})); sp.visible = false; hud.add(sp); hits.push({s: sp, t: 9}); }
   // 巡检扫描圈
-  for (let k = 0; k < 4; k++) { const m = new THREE.Mesh(new THREE.RingGeometry(.93, 1, 64), new THREE.MeshBasicMaterial({color: 0x45e6f5, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide})); m.visible = false; spin.add(m); scans.push({m, t: 9}); }
+  for (let k = 0; k < 4; k++) { const m = new THREE.Mesh(new THREE.RingGeometry(.93, 1, 64), new THREE.MeshBasicMaterial({color: new THREE.Color(themeHex), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide})); m.visible = false; spin.add(m); scans.push({m, t: 9}); }
 }
 
 function buildSky(){
@@ -6610,6 +6620,11 @@ function writeSignals(){
 let sigLast = 0;
 
 function updateScene(dt){
+  // 主题色平滑过渡：切模型时核心 / 脉冲 / 扫描环缓慢过渡到新模型配色
+  if (glOK) {
+    if (!themeCur) { themeCur = new THREE.Color(themeHex); themeTarget = themeCur.clone(); }
+    themeCur.lerp(themeTarget, 1 - Math.exp(-dt * 3));
+  }
   // 对话互动：思考中提升能量系数并在神经团之间打脉冲，回复后回落
   const chatTarget = chatMode === 'thinking' ? 1 : 0;
   chatBoost += (chatTarget - chatBoost) * (1 - Math.exp(-dt * (chatTarget ? 5 : 1.4)));
@@ -6618,7 +6633,7 @@ function updateScene(dt){
     if (chatPulseAcc > .26) {
       chatPulseAcc = 0;
       const b = AG[1 + ((Math.random() * 12) | 0)];
-      sendSignal(0, b.i, CYAN, null, 'chat');
+      sendSignal(0, b.i, themeHex, null, 'chat');
     }
   }
   // 神经团活跃度：干活时按节律放电，刚收到信号时闪一下
@@ -6683,9 +6698,10 @@ function updateScene(dt){
   barcode.geometry.attributes.color.needsUpdate = true;
   for (let s = 0; s < NSEG; s++) segFlash[s] *= Math.exp(-dt * 3.2);
   hits.forEach(h => { if (!h.s.visible) return; h.t += dt; const k = h.t / .55; if (k >= 1) { h.s.visible = false; return; } h.s.scale.setScalar(.1 + .32 * k); h.s.material.opacity = 1 - k; });
+  if (themeCur) coreSpr.material.color.copy(themeCur);
   coreSpr.material.opacity = .1 + AF[0] * .14 + boost * .05 + chatBoost * .13;
   chanSpr.forEach((s, j) => { const f = chanFlash[j]; s.material.opacity = f; s.scale.setScalar(.12 + .55 * f); });
-  scans.forEach(s => { if (!s.m.visible) return; s.t += dt; const k = s.t / 1.2; if (k >= 1) { s.m.visible = false; return; } s.m.scale.setScalar(.07 + .38 * k); s.m.material.opacity = (1 - k) * .9; s.m.lookAt(camera.position); });
+  scans.forEach(s => { if (!s.m.visible) return; s.t += dt; const k = s.t / 1.2; if (k >= 1) { s.m.visible = false; return; } if (themeCur) s.m.material.color.copy(themeCur); s.m.scale.setScalar(.07 + .38 * k); s.m.material.opacity = (1 - k) * .9; s.m.lookAt(camera.position); });
   streaks.material.uniforms.uTime.value = animT; streaks.material.uniforms.uBoost.value = boost + chatBoost;
   dust.rotation.y = animT * .004; dust.rotation.x = animT * .002;
 }
@@ -6860,7 +6876,8 @@ host.__nr = {ff(sec){ for (let t = 0; t < sec; t += .05) { simStep(.05); decay(.
 /* 对话面板桥接：setState('thinking'|'idle') 驱动 3D 互动，pulse() 回复后核心脉冲一下 */
 host.__chatFx = {
   setState(s){ chatMode = s === 'thinking' ? 'thinking' : 'idle'; },
-  pulse(){ boost = Math.min(1.4, boost + .3); }
+  pulse(){ boost = Math.min(1.4, boost + .3); },
+  setTheme(hex){ setThemeHex(hex); }
 };
 requestAnimationFrame(frame);
 }
@@ -21228,6 +21245,7 @@ requestAnimationFrame(frame);
 (function(){
   /* 对话代理地址：Worker 部署后回填其 workers.dev 子域；本地联调用 wrangler dev 端口 */
   var CHAT_ENDPOINT = "https://lcdc-chat.13256665601.workers.dev/api/chat";
+  var MODELS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/models");
 
   var OPEN_WORDS = ["打开大屏","进入大屏","打开数据中心","进入数据中心","打开看板","进入看板","打开主页","进入主页","回到主页","打开首页","进入首页","跳转大屏","跳转数据中心","打开控制台","进入控制台"];
 
@@ -21239,10 +21257,48 @@ requestAnimationFrame(frame);
 
   var history=[], working=false;
   var selectedKey=modelSel.value;
-  modelSel.addEventListener('change',function(){ selectedKey=modelSel.value; });
+  var modelColor={};   // key → 主题色 hex，来自 Worker 清单/回复
 
   /* 3D 星环互动桥接：神经星环主题挂载后挂在 host-neural.__chatFx；其他主题或无 3D 时安全跳过 */
   function fx(){ var h=document.getElementById('host-neural'); return (h&&h.__chatFx)||null; }
+
+  /* 把主题色推给 3D 星环（核心辉光 / 扫描环 / 思考脉冲），无 3D 时安全跳过 */
+  function applyTheme(color){ var f=fx(); if(f&&f.setTheme) f.setTheme(color); }
+
+  /* 按 Worker 清单渲染分组下拉：国内方舟一组、海外预留一组；未配置项置灰 */
+  function renderModels(list){
+    if(!list||!list.length) return;
+    modelSel.innerHTML='';
+    var cn=document.createElement('optgroup'); cn.label='国内 · 方舟';
+    var gl=document.createElement('optgroup'); gl.label='海外 · 预留';
+    list.forEach(function(m){
+      modelColor[m.key]=m.color;
+      var o=document.createElement('option');
+      o.value=m.key; o.dataset.color=m.color; o.dataset.vendor=m.vendor;
+      o.textContent=m.available?m.name:(m.name+' · 未接入');
+      if(!m.available) o.disabled=true;
+      (m.vendor==='global'?gl:cn).appendChild(o);
+    });
+    modelSel.appendChild(cn); modelSel.appendChild(gl);
+    if(!modelSel.value) modelSel.value=selectedKey;
+  }
+
+  function selectModel(key){
+    selectedKey=key;
+    if(modelColor[key]) applyTheme(modelColor[key]);
+  }
+
+  modelSel.addEventListener('change',function(){ selectModel(modelSel.value); });
+
+  /* 拉取模型清单（含主题色与可用状态）；失败则保留 HTML 内静态兜底选项 */
+  fetch(MODELS_ENDPOINT).then(function(r){ return r.json(); }).then(function(d){
+    var list=(d&&d.models)||[];
+    renderModels(list);
+    var def=(d&&d.default)||selectedKey;
+    if(!modelColor[selectedKey]) selectedKey=def;
+    modelSel.value=selectedKey;
+    if(modelColor[selectedKey]) applyTheme(modelColor[selectedKey]);
+  }).catch(function(){ /* 清单不可达：沿用静态选项与默认青色 */ });
 
   function setStatus(text, mode){
     statusText.textContent=text;
@@ -21269,6 +21325,7 @@ requestAnimationFrame(frame);
         history.push({role:'assistant',content:reply});
         addMsg('bot',reply);
         if(data&&data.key){ selectedKey=data.key; modelSel.value=data.key; }
+        if(data&&data.color){ modelColor[selectedKey]=data.color; applyTheme(data.color); }
         if(f){ f.setState('idle'); f.pulse(); }
         setStatus('在线 · 直接输入问题即可对话','idle');
       })
