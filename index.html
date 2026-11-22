@@ -21243,7 +21243,8 @@ requestAnimationFrame(frame);
 </style>
 <div id="lcChat" role="dialog" aria-label="立橙智能助手">
   <div id="lcHead"><span id="lcTitle">立橙智能助手</span><select id="lcModel" aria-label="选择模型">
-    <option value="lite" selected>豆包 2.1 Lite</option>
+    <option value="auto" selected>自动分派（母AI调度）</option>
+    <option value="lite">豆包 2.1 Lite</option>
     <option value="turbo">豆包 2.1 Turbo</option>
     <option value="glm">GLM 5.3 Flash</option>
     <option value="kimi">Kimi K3.1 Pro</option>
@@ -21341,6 +21342,7 @@ requestAnimationFrame(frame);
     modelSel.innerHTML='';
     var cn=document.createElement('optgroup'); cn.label='国内 · 方舟 / 百炼';
     var gl=document.createElement('optgroup'); gl.label='海外 · 预留';
+    var ao=document.createElement('option'); ao.value='auto'; ao.textContent='自动分派（母AI调度）'; cn.appendChild(ao);
     list.forEach(function(m){
       modelColor[m.key]=m.color;
       var o=document.createElement('option');
@@ -21350,7 +21352,7 @@ requestAnimationFrame(frame);
       (m.vendor==='global'?gl:cn).appendChild(o);
     });
     modelSel.appendChild(cn); modelSel.appendChild(gl);
-    if(!modelSel.value) modelSel.value=selectedKey;
+    modelSel.value=selectedKey;
   }
 
   function selectModel(key){
@@ -21365,7 +21367,7 @@ requestAnimationFrame(frame);
     var list=(d&&d.models)||[];
     renderModels(list);
     var def=(d&&d.default)||selectedKey;
-    if(!modelColor[selectedKey]) selectedKey=def;
+    if(selectedKey!=='auto' && !modelColor[selectedKey]) selectedKey=def;
     modelSel.value=selectedKey;
     if(modelColor[selectedKey]) applyTheme(modelColor[selectedKey]);
   }).catch(function(){ /* 清单不可达：沿用静态选项与默认青色 */ });
@@ -21408,16 +21410,19 @@ requestAnimationFrame(frame);
     working=true; send.disabled=true;
     setStatus('思考中…','thinking');
     var f=fx(); if(f) f.setState('thinking');
-    applyNode(selectedKey, modelColor[selectedKey]);
+    var autoMode = selectedKey==='auto';
+    if(!autoMode) applyNode(selectedKey, modelColor[selectedKey]);
     history.push({role:'user',content:text});
     fetch(CHAT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:selectedKey,messages:history.slice(-10)})})
       .then(function(r){ return r.json(); })
       .then(function(data){
         var reply=(data&&data.reply)||'我这边暂时没回答上来，换个问题试试。';
         history.push({role:'assistant',content:reply});
-        if(data&&data.key){ selectedKey=data.key; modelSel.value=data.key; }
-        if(data&&data.color){ modelColor[selectedKey]=data.color; applyTheme(data.color); }
-        applyNode(selectedKey, modelColor[selectedKey]);
+        var dispatched=(data&&data.key)||selectedKey;
+        if(data&&data.color) modelColor[dispatched]=data.color;
+        if(!autoMode){ selectedKey=dispatched; modelSel.value=dispatched; }
+        if(data&&data.color) applyTheme(data.color);
+        applyNode(dispatched, modelColor[dispatched]);
         if(f){ f.setState('idle'); f.pulse(); }
         speak(reply);
       })
