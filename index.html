@@ -5,7 +5,7 @@
   Required Notice: Copyright (c) 2026 赛博老爸
   非商业用途可免费使用；商业使用需另行获得授权，联系 cyberdaddyleo@outlook.com。许可证全文见仓库 LICENSE 文件或 https://polyformproject.org/licenses/noncommercial/1.0.0
 -->
-<html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>立橙·数据中心</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Archivo:wght@800;900&family=Big+Shoulders+Stencil+Display:wght@900&family=JetBrains+Mono:wght@400;500;700;800&family=Michroma&family=Noto+Sans+SC:wght@400;500;700;900&family=Syncopate:wght@400;700&display=swap">
@@ -6806,10 +6806,33 @@ function showTip(i){
   if (x + tw > W - 12) x = sx - tw - 18;
   tip.style.left = clamp(x, 8, W - tw - 8) + 'px'; tip.style.top = clamp(y, 8, H - th - 8) + 'px';
 }
-let drag = null;
-cv.addEventListener('pointerdown', e => { drag = {x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false}; try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
+let drag = null, pinch = null;
+const pointers = new Map();
+const ptDist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+cv.addEventListener('pointerdown', e => {
+  pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+  if (pointers.size === 1) {
+    drag = {x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false};
+    pinch = null;
+  } else if (pointers.size === 2) {
+    // 进入双指捏合：取消单指拖拽，记录初始间距与初始缩放
+    const [p1, p2] = [...pointers.values()];
+    pinch = {d0: ptDist(p1, p2) || 1, z0: cam ? cam.zoom : 1};
+    drag = null;
+    cv.classList.add('drag');
+  }
+});
 cv.addEventListener('pointermove', e => {
   const r = host.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  if (pointers.has(e.pointerId)) pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  if (pinch && pointers.size >= 2) {
+    const [p1, p2] = [...pointers.values()];
+    const d = ptDist(p1, p2) || 1;
+    if (glOK && cam) { cam.zoom = clamp(pinch.z0 * (d / pinch.d0), .55, 1.6); needsT = .8; }
+    tip.hidden = true; hover = -1;
+    return;
+  }
   if (drag) {
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
     if (Math.abs(e.clientX - drag.sx) + Math.abs(e.clientY - drag.sy) > 5) { drag.moved = true; cv.classList.add('drag'); }
@@ -6820,17 +6843,29 @@ cv.addEventListener('pointermove', e => {
   hover = i; cv.classList.toggle('hov', i >= 0);
   if (i >= 0) showTip(i); else tip.hidden = true;
 });
-cv.addEventListener('pointerup', e => {
-  const wasDrag = drag && drag.moved; drag = null; cv.classList.remove('drag');
-  if (wasDrag) return;
-  // 星环作为语音入口：非拖拽的点按/触摸即派发语音切换（开始/结束聆听）
-  host.dispatchEvent(new CustomEvent('lc-voice-toggle'));
-  const r = host.getBoundingClientRect(), i = pickAt(e.clientX - r.left, e.clientY - r.top);
-  focus = (i >= 0 && i < NCL && focus !== i) ? i : -1;
-  needsT = 1.5;
-  if (i >= 0) showTip(i);
-});
-cv.addEventListener('pointerleave', () => { if (!drag) { tip.hidden = true; hover = -1; } });
+function endPointer(e) {
+  const wasPinch = !!pinch;
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinch = null;
+  if (pointers.size === 0) {
+    const wasDrag = drag && drag.moved;
+    drag = null; cv.classList.remove('drag');
+    if (wasDrag || wasPinch) return; // 拖拽或捏合抬手，不触发点按
+    // 星环作为语音入口：非拖拽的点按/触摸即派发语音切换（开始/结束聆听）
+    host.dispatchEvent(new CustomEvent('lc-voice-toggle'));
+    const r = host.getBoundingClientRect(), i = pickAt(e.clientX - r.left, e.clientY - r.top);
+    focus = (i >= 0 && i < NCL && focus !== i) ? i : -1;
+    needsT = 1.5;
+    if (i >= 0) showTip(i);
+  } else {
+    // 双指回落为单指：以残留指重建拖拽基线，避免连续误触
+    const rem = [...pointers.values()][0];
+    drag = {x: rem.x, y: rem.y, sx: rem.x, sy: rem.y, moved: true};
+  }
+}
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+cv.addEventListener('pointerleave', () => { if (!drag && !pinch) { tip.hidden = true; hover = -1; } });
 cv.addEventListener('wheel', e => { if (!glOK) return; e.preventDefault(); cam.zoom = clamp(cam.zoom * Math.exp(e.deltaY * .0012), .55, 1.6); needsT = .8; }, {passive: false});
 
 function syncButtons(){
