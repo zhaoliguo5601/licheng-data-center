@@ -1,380 +1,380 @@
 {
-  "aliyun": {
-    "updated": "2026-11-24 00:20",
-    "instanceId": "i-2ze9gch4l1m9vyi7nryc",
-    "instanceName": "iZl1m9vyi7nrycZ",
-    "status": "Running",
-    "region": "华北2（北京）",
-    "spec": "ecs.e-c1m1.large · 2核2G",
-    "os": "Windows Server  2022 数据中心版 64位中文版",
-    "publicIp": "8.152.6.148",
-    "privateIp": "172.25.96.69",
-    "cpu": 33.2,
-    "mem": 88.2,
-    "disk": 69.0,
-    "rules": [
-      {
-        "name": "CPU 高负载",
-        "threshold": ">85%",
-        "period": "连续15分钟"
-      },
-      {
-        "name": "内存占用过高",
-        "threshold": ">97%",
-        "period": "连续15分钟"
-      },
-      {
-        "name": "磁盘占用过高",
-        "threshold": ">85%",
-        "period": "连续15分钟"
-      }
-    ]
+ "aliyun": {
+  "updated": "2026-11-24 00:20",
+  "instanceId": "i-2ze9gch4l1m9vyi7nryc",
+  "instanceName": "iZl1m9vyi7nrycZ",
+  "status": "Running",
+  "region": "华北2（北京）",
+  "spec": "ecs.e-c1m1.large · 2核2G",
+  "os": "Windows Server  2022 数据中心版 64位中文版",
+  "publicIp": "8.152.6.148",
+  "privateIp": "172.25.96.69",
+  "cpu": 33.2,
+  "mem": 88.2,
+  "disk": 69.0,
+  "rules": [
+   {
+    "name": "CPU 高负载",
+    "threshold": ">85%",
+    "period": "连续15分钟"
+   },
+   {
+    "name": "内存占用过高",
+    "threshold": ">97%",
+    "period": "连续15分钟"
+   },
+   {
+    "name": "磁盘占用过高",
+    "threshold": ">85%",
+    "period": "连续15分钟"
+   }
+  ]
+ },
+ "updated": "2026-11-24",
+ "genAt": "11-24 00:20",
+ "meters": [
+  {
+   "name": "*凌志",
+   "no": "3700272293458",
+   "balance": -248.36,
+   "day": 52.53,
+   "avg6": 39.47,
+   "yearKwh": 3738,
+   "yearFee": 2089.72,
+   "status": "neg",
+   "sum6": 236.83
   },
-  "updated": "2026-11-24",
-  "genAt": "11-24 00:20",
-  "meters": [
-    {
-      "name": "*凌志",
-      "no": "3700272293458",
-      "balance": -248.36,
-      "day": 52.53,
-      "avg6": 39.47,
-      "yearKwh": 3738,
-      "yearFee": 2089.72,
-      "status": "neg",
-      "sum6": 236.83
-    },
-    {
-      "name": "*立国",
-      "no": "3750037351078",
-      "balance": 47.25,
-      "day": 0.24,
-      "avg6": 0.4,
-      "yearKwh": 167,
-      "yearFee": 91.34,
-      "status": "ok",
-      "sum6": 2.42
-    }
-  ],
-  "drives": [
-    {
-      "name": "百度网盘",
-      "key": "baidu",
-      "color": "#3b82f6",
-      "ico": "百",
-      "files": 51995,
-      "bytes": 237105508160,
-      "gb": 220.82,
-      "pct": 37.4
-    },
-    {
-      "name": "阿里云盘",
-      "key": "ali",
-      "color": "#ffb347",
-      "ico": "阿",
-      "files": 4371,
-      "bytes": 375033007625,
-      "gb": 349.28,
-      "pct": 59.2
-    },
-    {
-      "name": "123云盘",
-      "key": "pan123",
-      "color": "#f5567b",
-      "ico": "1",
-      "files": 704,
-      "bytes": 1681839537,
-      "gb": 1.57,
-      "pct": 0.3
-    },
-    {
-      "name": "联通云盘",
-      "key": "wopan",
-      "color": "#22ff9c",
-      "ico": "联",
-      "files": 2939,
-      "bytes": 19976040448,
-      "gb": 18.6,
-      "pct": 3.2
-    }
-  ],
-  "tasks": [
-    {
-      "name": "国网两户台账·日采集",
-      "status": "ok",
-      "pct": 100
-    },
-    {
-      "name": "云盘清单扫描核对",
-      "status": "ok",
-      "pct": 100
-    },
-    {
-      "name": "驾驶舱数据重算",
-      "status": "ok",
-      "pct": 100
-    },
-    {
-      "name": "京东每日签到",
-      "status": "ok",
-      "pct": 100
-    },
-    {
-      "name": "淘粉吧好评任务",
-      "status": "none",
-      "pct": 0
-    },
-    {
-      "name": "红手指云机待开通",
-      "status": "wait",
-      "pct": 0
-    },
-    {
-      "name": "大华摄像头待接入",
-      "status": "wait",
-      "pct": 0
-    }
-  ],
-  "signs": [
-    {
-      "t": "京东",
-      "r": "已签到 +2 京豆（京豆 76）"
-    },
-    {
-      "t": "淘粉吧",
-      "r": "已签到 +1 积分（余额 21）"
-    }
-  ],
-  "heat": [
-    {
-      "d": "11-19",
-      "v": 20.4
-    },
-    {
-      "d": "11-22",
-      "v": 72.6
-    },
-    {
-      "d": "11-24",
-      "v": 52.77
-    }
-  ],
-  "unicom": {
-    "updated": "2026-11-23 18:11:23",
-    "items": [
-      {
-        "no": "132****5601",
-        "plan": "",
-        "flowTotal": "",
-        "flowUsed": "",
-        "flowRemain": "",
-        "smsUsed": 0,
-        "smsRemain": 0,
-        "status": "wait",
-        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试”，本次未取到套餐/流量/短信数",
-        "updated": "2026-11-23 18:11:23"
-      },
-      {
-        "no": "132****5602",
-        "plan": "",
-        "flowTotal": "",
-        "flowUsed": "",
-        "flowRemain": "",
-        "smsUsed": 0,
-        "smsRemain": 0,
-        "status": "wait",
-        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试”，本次未取到套餐/流量/短信数",
-        "updated": "2026-11-23 18:11:23"
-      },
-      {
-        "no": "132****5605",
-        "plan": "",
-        "flowTotal": "",
-        "flowUsed": "",
-        "flowRemain": "",
-        "smsUsed": 0,
-        "smsRemain": 0,
-        "status": "wait",
-        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试”，本次未取到套餐/流量/短信数",
-        "updated": "2026-11-23 18:11:23"
-      }
-    ]
-  },
-  "github": {
-    "repo": "licheng-data-center",
-    "owner": "zhaoliguo5601",
-    "private": true,
-    "branch": "main",
-    "language": "Python",
-    "files": 7,
-    "commits": 99,
-    "branches": 3,
-    "stars": 0,
-    "forks": 0,
-    "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-24 00:20",
-    "types": [
-      {
-        "name": "Python",
-        "count": 13,
-        "color": "#3b82f6"
-      },
-      {
-        "name": "Shell",
-        "count": 3,
-        "color": "#22ff9c"
-      },
-      {
-        "name": "HTML",
-        "count": 2,
-        "color": "#ffb347"
-      },
-      {
-        "name": "文档/配置",
-        "count": 5,
-        "color": "#a855f7"
-      }
-    ],
-    "recent": [
-      {
-        "sha": "35d3d55",
-        "msg": "刷新全站真实数据快照 2026-11-24：四盘全扫（含联通云盘恢复18.6G）、京东签到+2、淘粉吧连签7天+1、ECS实时",
-        "time": "11-24 00:07"
-      },
-      {
-        "sha": "c5e8ed4",
-        "msg": "指令总线轮询 5s 改 30s 并在页面后台时暂停、回前台补一次，减少 FC 计费小时",
-        "time": "11-23 23:15"
-      },
-      {
-        "sha": "1604d32",
-        "msg": "移除按量付费的阿里百炼通义模型：后端路由/前端下拉/看板卡同步清理，auto 改派方舟模型",
-        "time": "11-23 22:22"
-      },
-      {
-        "sha": "e84fd28",
-        "msg": "前端首页恢复聊天面板：版本标记 r2，data.json 同步 FC 后端",
-        "time": "11-23 21:49"
-      },
-      {
-        "sha": "9510aa5",
-        "msg": "ASR 前端注释同步：后端改走标准版 seedasr submit/query 异步链路",
-        "time": "11-23 21:08"
-      },
-      {
-        "sha": "b9e2863",
-        "msg": "前端接口切到阿里云 FC 函数；语音识别改异步录音转写",
-        "time": "11-23 15:55"
-      }
-    ]
-  },
-  "capturedAt": "2026-11-24 00:20:35",
-  "jd": {
-    "source": "browser_session",
-    "updated": "2026-11-24 00:05",
-    "walletBalance": 0.0,
-    "giftCard": 0.0,
-    "beans": 76,
-    "coupon": 3,
-    "orders": {
-      "waitPay": 0,
-      "waitReceive": 0,
-      "waitComment": 0,
-      "afterSale": 0
-    },
-    "checkin": {
-      "done": true,
-      "state": "已签到",
-      "tasks": [],
-      "date": "2026-11-23",
-      "gain": 2,
-      "streak": 1,
-      "note": "23:59:23 网页端签到 +2 京豆（活动奖励京豆），京豆 74→76，连签1天"
-    },
-    "account": "zg9885c7jril30",
-    "loginState": "ok"
-  },
-  "drivesUpdated": "2026-11-23 23:58:37",
-  "driveFiles": 60009,
-  "driveBytes": 633796395770.0,
-  "tfb": {
-    "source": "browser_session",
-    "account": "乐邦cheng",
-    "updated": "2026-11-24 00:06",
-    "rebate": {
-      "total": 63.9,
-      "tracking": 0,
-      "pending": 0,
-      "paid": 1,
-      "last": {
-        "name": "60D高密度沙发海绵垫定做加厚加硬实木红木椅子垫卡座屁股垫定制",
-        "amount": 5,
-        "arrive": "2026-10-31"
-      }
-    },
-    "points": {
-      "available": 21,
-      "expire": {
-        "points": 5,
-        "date": "2027-01-01"
-      }
-    },
-    "sign": {
-      "date": "2026-11-23",
-      "done": true,
-      "gain": 1,
-      "streak": 7,
-      "from": 20,
-      "to": 21
-    },
-    "loginState": "ok"
-  },
-  "kuaidi": {
-    "updated": "2026-11-24 00:04",
-    "source": "jd_order_detail",
-    "numbers": [
-      {
-        "who": "赵立国",
-        "no": "132****5601"
-      },
-      {
-        "who": "赵立国",
-        "no": "132****5602"
-      },
-      {
-        "who": "赵立国",
-        "no": "132****5605"
-      },
-      {
-        "who": "赵凌志",
-        "no": "139****8534"
-      },
-      {
-        "who": "孙甲花",
-        "no": "135****7470"
-      }
-    ],
-    "parcels": [
-      {
-        "no": "JDVB71711044988",
-        "who": "赵立国",
-        "carrier": "京东快递",
-        "status": "已签收",
-        "orderNo": "3665410005722334",
-        "shop": "京喜自营官方店",
-        "amount": 1.0,
-        "lastTime": "2026-10-31 15:57:12",
-        "lastDesc": "本人签收（济南仲宫站派送，快递员李峰）"
-      }
-    ],
-    "stats": {
-      "numbers": 5,
-      "parcels": 1,
-      "transit": 0,
-      "signed": 1,
-      "people": 3
-    },
-    "failedWaybills": [],
-    "note": "京东订单列表核对：近3个月3笔（1已完成/2已取消），唯一已完成单物流仍为已签收，无新增运单"
+  {
+   "name": "*立国",
+   "no": "3750037351078",
+   "balance": 47.25,
+   "day": 0.24,
+   "avg6": 0.4,
+   "yearKwh": 167,
+   "yearFee": 91.34,
+   "status": "ok",
+   "sum6": 2.42
   }
+ ],
+ "drives": [
+  {
+   "name": "百度网盘",
+   "key": "baidu",
+   "color": "#3b82f6",
+   "ico": "百",
+   "files": 51995,
+   "bytes": 237105508160,
+   "gb": 220.82,
+   "pct": 37.4
+  },
+  {
+   "name": "阿里云盘",
+   "key": "ali",
+   "color": "#ffb347",
+   "ico": "阿",
+   "files": 4371,
+   "bytes": 375033007625,
+   "gb": 349.28,
+   "pct": 59.2
+  },
+  {
+   "name": "123云盘",
+   "key": "pan123",
+   "color": "#f5567b",
+   "ico": "1",
+   "files": 704,
+   "bytes": 1681839537,
+   "gb": 1.57,
+   "pct": 0.3
+  },
+  {
+   "name": "联通云盘",
+   "key": "wopan",
+   "color": "#22ff9c",
+   "ico": "联",
+   "files": 2939,
+   "bytes": 19976040448,
+   "gb": 18.6,
+   "pct": 3.2
+  }
+ ],
+ "tasks": [
+  {
+   "name": "国网两户台账·日采集",
+   "status": "ok",
+   "pct": 100
+  },
+  {
+   "name": "云盘清单扫描核对",
+   "status": "ok",
+   "pct": 100
+  },
+  {
+   "name": "驾驶舱数据重算",
+   "status": "ok",
+   "pct": 100
+  },
+  {
+   "name": "京东每日签到",
+   "status": "ok",
+   "pct": 100
+  },
+  {
+   "name": "淘粉吧好评任务",
+   "status": "none",
+   "pct": 0
+  },
+  {
+   "name": "红手指云机待开通",
+   "status": "wait",
+   "pct": 0
+  },
+  {
+   "name": "大华摄像头待接入",
+   "status": "wait",
+   "pct": 0
+  }
+ ],
+ "signs": [
+  {
+   "t": "京东",
+   "r": "已签到 +2 京豆（京豆 76）"
+  },
+  {
+   "t": "淘粉吧",
+   "r": "已签到 +1 积分（余额 21）"
+  }
+ ],
+ "heat": [
+  {
+   "d": "11-19",
+   "v": 20.4
+  },
+  {
+   "d": "11-22",
+   "v": 72.6
+  },
+  {
+   "d": "11-24",
+   "v": 52.77
+  }
+ ],
+ "unicom": {
+  "updated": "2026-11-24 01:24:39",
+  "items": [
+   {
+    "no": "132****5601",
+    "plan": "4G全国流量王8元套餐",
+    "flowTotal": "400MB",
+    "flowUsed": "0MB",
+    "flowRemain": "400MB",
+    "smsUsed": 0,
+    "smsRemain": 0,
+    "status": "ok",
+    "note": "网页登录实测：流量剩400MB(已用0MB/共400MB)；语音剩0分钟(已用36)；短信0条；余额38.65元、实时话费16.9元、积分30",
+    "updated": "2026-11-24 00:35:12"
+   },
+   {
+    "no": "132****5602",
+    "plan": "4G全国流量王8元套餐",
+    "flowTotal": "400MB",
+    "flowUsed": "0MB",
+    "flowRemain": "400MB",
+    "smsUsed": 0,
+    "smsRemain": 0,
+    "status": "ok",
+    "note": "网页登录实测：流量剩400MB(已用0MB/共400MB)；语音剩11分钟(已用19/共30)；短信0条；余额38.65元、实时话费16.9元、积分126",
+    "updated": "2026-11-24 01:20:32"
+   },
+   {
+    "no": "132****5605",
+    "plan": "联通智家全屋光宽带99元-套内5G主卡",
+    "flowTotal": "96.32GB",
+    "flowUsed": "31.24GB",
+    "flowRemain": "65.08GB",
+    "smsUsed": 0,
+    "smsRemain": 0,
+    "status": "ok",
+    "note": "网页登录实测：流量剩65.08GB(已用31.24/共96.32GB，共享+结转)；语音剩308分钟(已用692/共1000)；短信0条；公免流量已用35.35MB；余额269.67元、实时话费99.1元、积分431",
+    "updated": "2026-11-24 01:24:39"
+   }
+  ]
+ },
+ "github": {
+  "repo": "licheng-data-center",
+  "owner": "zhaoliguo5601",
+  "private": true,
+  "branch": "main",
+  "language": "Python",
+  "files": 7,
+  "commits": 99,
+  "branches": 1,
+  "stars": 0,
+  "forks": 0,
+  "url": "https://github.com/zhaoliguo5601/licheng-data-center",
+  "updated": "11-24 00:20",
+  "types": [
+   {
+    "name": "Python",
+    "count": 13,
+    "color": "#3b82f6"
+   },
+   {
+    "name": "Shell",
+    "count": 3,
+    "color": "#22ff9c"
+   },
+   {
+    "name": "HTML",
+    "count": 2,
+    "color": "#ffb347"
+   },
+   {
+    "name": "文档/配置",
+    "count": 5,
+    "color": "#a855f7"
+   }
+  ],
+  "recent": [
+   {
+    "sha": "35d3d55",
+    "msg": "刷新全站真实数据快照 2026-11-24：四盘全扫（含联通云盘恢复18.6G）、京东签到+2、淘粉吧连签7天+1、ECS实时",
+    "time": "11-24 00:07"
+   },
+   {
+    "sha": "c5e8ed4",
+    "msg": "指令总线轮询 5s 改 30s 并在页面后台时暂停、回前台补一次，减少 FC 计费小时",
+    "time": "11-23 23:15"
+   },
+   {
+    "sha": "1604d32",
+    "msg": "移除按量付费的阿里百炼通义模型：后端路由/前端下拉/看板卡同步清理，auto 改派方舟模型",
+    "time": "11-23 22:22"
+   },
+   {
+    "sha": "e84fd28",
+    "msg": "前端首页恢复聊天面板：版本标记 r2，data.json 同步 FC 后端",
+    "time": "11-23 21:49"
+   },
+   {
+    "sha": "9510aa5",
+    "msg": "ASR 前端注释同步：后端改走标准版 seedasr submit/query 异步链路",
+    "time": "11-23 21:08"
+   },
+   {
+    "sha": "b9e2863",
+    "msg": "前端接口切到阿里云 FC 函数；语音识别改异步录音转写",
+    "time": "11-23 15:55"
+   }
+  ]
+ },
+ "capturedAt": "2026-11-24 00:20:35",
+ "jd": {
+  "source": "browser_session",
+  "updated": "2026-11-24 00:05",
+  "walletBalance": 0.0,
+  "giftCard": 0.0,
+  "beans": 76,
+  "coupon": 3,
+  "orders": {
+   "waitPay": 0,
+   "waitReceive": 0,
+   "waitComment": 0,
+   "afterSale": 0
+  },
+  "checkin": {
+   "done": true,
+   "state": "已签到",
+   "tasks": [],
+   "date": "2026-11-23",
+   "gain": 2,
+   "streak": 1,
+   "note": "23:59:23 网页端签到 +2 京豆（活动奖励京豆），京豆 74→76，连签1天"
+  },
+  "account": "zg9885c7jril30",
+  "loginState": "ok"
+ },
+ "drivesUpdated": "2026-11-23 23:58:37",
+ "driveFiles": 60009,
+ "driveBytes": 633796395770.0,
+ "tfb": {
+  "source": "browser_session",
+  "account": "乐邦cheng",
+  "updated": "2026-11-24 00:06",
+  "rebate": {
+   "total": 63.9,
+   "tracking": 0,
+   "pending": 0,
+   "paid": 1,
+   "last": {
+    "name": "60D高密度沙发海绵垫定做加厚加硬实木红木椅子垫卡座屁股垫定制",
+    "amount": 5,
+    "arrive": "2026-10-31"
+   }
+  },
+  "points": {
+   "available": 21,
+   "expire": {
+    "points": 5,
+    "date": "2027-01-01"
+   }
+  },
+  "sign": {
+   "date": "2026-11-23",
+   "done": true,
+   "gain": 1,
+   "streak": 7,
+   "from": 20,
+   "to": 21
+  },
+  "loginState": "ok"
+ },
+ "kuaidi": {
+  "updated": "2026-11-24 00:04",
+  "source": "jd_order_detail",
+  "numbers": [
+   {
+    "who": "赵立国",
+    "no": "132****5601"
+   },
+   {
+    "who": "赵立国",
+    "no": "132****5602"
+   },
+   {
+    "who": "赵立国",
+    "no": "132****5605"
+   },
+   {
+    "who": "赵凌志",
+    "no": "139****8534"
+   },
+   {
+    "who": "孙甲花",
+    "no": "135****7470"
+   }
+  ],
+  "parcels": [
+   {
+    "no": "JDVB71711044988",
+    "who": "赵立国",
+    "carrier": "京东快递",
+    "status": "已签收",
+    "orderNo": "3665410005722334",
+    "shop": "京喜自营官方店",
+    "amount": 1.0,
+    "lastTime": "2026-10-31 15:57:12",
+    "lastDesc": "本人签收（济南仲宫站派送，快递员李峰）"
+   }
+  ],
+  "stats": {
+   "numbers": 5,
+   "parcels": 1,
+   "transit": 0,
+   "signed": 1,
+   "people": 3
+  },
+  "failedWaybills": [],
+  "note": "京东订单列表核对：近3个月3笔（1已完成/2已取消），唯一已完成单物流仍为已签收，无新增运单"
+ }
 }
