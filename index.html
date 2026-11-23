@@ -21579,7 +21579,7 @@ requestAnimationFrame(frame);
     callModel(text);
   }
 
-  /* —— 异步录音识别：点按开始录音，再点停止，整段编码为 WAV base64 提交极速版识别 —— */
+  /* —— 异步录音识别：点按开始录音，再点停止，整段编码为 WAV base64 提交标准版识别（后端内部走 submit/query 异步轮询） —— */
   function resampleLinear(f32, from, to){
     if(!from||from===to) return f32;
     var ratio=to/from, n=Math.max(1,Math.floor(f32.length*ratio)), out=new Float32Array(n);
