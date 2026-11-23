@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-<!-- lcdc-chat-root 20261123-r3 -->
+<!-- lcdc-chat-root 20261123-r4 -->
   Agent 战术大屏 v10.0 · DEVELOPED BY @赛博老爸
   SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   Required Notice: Copyright (c) 2026 赛博老爸
@@ -21699,8 +21699,16 @@ requestAnimationFrame(frame);
   send.addEventListener('click',submitFallback);
   input.addEventListener('keydown',function(e){ if(e.key==='Enter') submitFallback(); });
 
-  /* 二期跨端指令总线：轮询 App/母系统下发的新指令，收到后按文本走同一处理链路 */
+  /* 二期跨端指令总线：轮询 App/母系统下发的新指令，收到后按文本走同一处理链路。
+     间隔 30 秒；页面切到后台时暂停轮询，回到前台立即补一次，减少无意义的后端调用。 */
+  var POLL_MS = 30000;
+  var pollTimer = null;
+  function schedulePoll(delay){
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(pollCommands, delay);
+  }
   function pollCommands(){
+    if (document.hidden) { pollTimer = null; return; }
     fetch(CMDS_ENDPOINT+'?since='+cmdSeq)
       .then(function(r){ return r.json(); })
       .then(function(d){
@@ -21709,8 +21717,12 @@ requestAnimationFrame(frame);
         list.forEach(function(c){ if(c&&c.command) handleText(c.command); });
       })
       .catch(function(){ /* 总线暂不可达，下一轮再试 */ })
-      .then(function(){ setTimeout(pollCommands, 5000); });
+      .then(function(){ if(!document.hidden) schedulePoll(POLL_MS); else pollTimer = null; });
   }
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) { clearTimeout(pollTimer); pollTimer = null; }
+    else { pollCommands(); }
+  });
   pollCommands();
 })();
 </script>
