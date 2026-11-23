@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-24 00:04",
+    "updated": "2026-11-24 00:20",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "iZl1m9vyi7nrycZ",
     "status": "Running",
@@ -9,8 +9,8 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 49.7,
-    "mem": 79.8,
+    "cpu": 33.2,
+    "mem": 88.2,
     "disk": 69.0,
     "rules": [
       {
@@ -30,30 +30,30 @@
       }
     ]
   },
-  "updated": "2026-11-22",
-  "genAt": "11-24 00:04",
+  "updated": "2026-11-24",
+  "genAt": "11-24 00:20",
   "meters": [
     {
       "name": "*凌志",
       "no": "3700272293458",
-      "balance": -219.38,
-      "day": 72.36,
-      "avg6": 25.55,
+      "balance": -248.36,
+      "day": 52.53,
+      "avg6": 39.47,
       "yearKwh": 3738,
       "yearFee": 2089.72,
       "status": "neg",
-      "sum6": 153.29
+      "sum6": 236.83
     },
     {
       "name": "*立国",
       "no": "3750037351078",
       "balance": 47.25,
       "day": 0.24,
-      "avg6": 0.24,
+      "avg6": 0.4,
       "yearKwh": 167,
       "yearFee": 91.34,
       "status": "ok",
-      "sum6": 1.46
+      "sum6": 2.42
     }
   ],
   "drives": [
@@ -153,6 +153,10 @@
     {
       "d": "11-22",
       "v": 72.6
+    },
+    {
+      "d": "11-24",
+      "v": 52.77
     }
   ],
   "unicom": {
@@ -203,12 +207,12 @@
     "branch": "main",
     "language": "Python",
     "files": 7,
-    "commits": 98,
+    "commits": 99,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-24 00:04",
+    "updated": "11-24 00:20",
     "types": [
       {
         "name": "Python",
@@ -233,6 +237,11 @@
     ],
     "recent": [
       {
+        "sha": "35d3d55",
+        "msg": "刷新全站真实数据快照 2026-11-24：四盘全扫（含联通云盘恢复18.6G）、京东签到+2、淘粉吧连签7天+1、ECS实时",
+        "time": "11-24 00:07"
+      },
+      {
         "sha": "c5e8ed4",
         "msg": "指令总线轮询 5s 改 30s 并在页面后台时暂停、回前台补一次，减少 FC 计费小时",
         "time": "11-23 23:15"
@@ -256,15 +265,10 @@
         "sha": "b9e2863",
         "msg": "前端接口切到阿里云 FC 函数；语音识别改异步录音转写",
         "time": "11-23 15:55"
-      },
-      {
-        "sha": "b8961c6",
-        "msg": "面板去外层大框：模型胶囊+输入框+发送融合为一条胶囊；移除冗余圆形麦克风钮；语音WS失败探测HTTP清单区分服务不可达/仅语音被拦",
-        "time": "11-23 05:14"
       }
     ]
   },
-  "capturedAt": "2026-11-24 00:04:36",
+  "capturedAt": "2026-11-24 00:20:35",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-24 00:05",
