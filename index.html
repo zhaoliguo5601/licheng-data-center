@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-<!-- lcdc-chat-root 20261123-r2 -->
+<!-- lcdc-chat-root 20261123-r3 -->
   Agent 战术大屏 v10.0 · DEVELOPED BY @赛博老爸
   SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   Required Notice: Copyright (c) 2026 赛博老爸
@@ -21382,11 +21382,6 @@ requestAnimationFrame(frame);
     {key:"ds-econ",name:"DeepSeek V4.1 经济版",color:"#6aa8ff",vendor:"cn",available:true},
     {key:"ds-flash",name:"DeepSeek V4 Flash GA",color:"#2f6bff",vendor:"cn",available:true},
     {key:"ds-pro",name:"DeepSeek V4 Pro",color:"#1f4fff",vendor:"cn",available:true},
-    {key:"qwen-max",name:"通义千问 Max",color:"#ff8a3d",vendor:"bailian",available:false},
-    {key:"qwen-plus",name:"通义千问 Plus",color:"#ffb020",vendor:"bailian",available:false},
-    {key:"qwen-turbo",name:"通义千问 Flash",color:"#ffd66b",vendor:"bailian",available:false},
-    {key:"qwen37-flash",name:"通义千问 3.7 Flash",color:"#ffa940",vendor:"bailian",available:false},
-    {key:"qwen38-flash",name:"通义千问 3.8 Flash",color:"#ff7a1a",vendor:"bailian",available:false},
     {key:"gpt",name:"GPT（预留）",color:"#10a37f",vendor:"global",available:false},
     {key:"claude",name:"Claude（预留）",color:"#d97757",vendor:"global",available:false},
     {key:"gemini",name:"Gemini（预留）",color:"#4687ff",vendor:"global",available:false}
@@ -21437,7 +21432,6 @@ requestAnimationFrame(frame);
     "lite":0,"turbo":0,"pro":0,"d2-lite":0,"d2-mini":0,"char":0,
     "glm":1,"glm-2":1,"kimi":2,
     "ds":5,"ds-econ":5,"ds-flash":5,"ds-pro":5,
-    "qwen-max":11,"qwen-plus":11,"qwen-turbo":11,"qwen37-flash":11,"qwen38-flash":11,
     "gpt":12,"claude":12,"gemini":12
   };
   function nodeOf(key){ return NODE_MAP[key]!=null?NODE_MAP[key]:0; }
@@ -21450,7 +21444,7 @@ requestAnimationFrame(frame);
     modelListCache=list;
     try{ window.__modelList=list; }catch(e){}
     modelSel.innerHTML='';
-    var cn=document.createElement('optgroup'); cn.label='国内 · 方舟 / 百炼';
+    var cn=document.createElement('optgroup'); cn.label='国内 · 方舟';
     var gl=document.createElement('optgroup'); gl.label='海外 · 预留';
     var ao=document.createElement('option'); ao.value='auto'; ao.textContent='自动分派（母AI调度）'; cn.appendChild(ao);
     list.forEach(function(m){
