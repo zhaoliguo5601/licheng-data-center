@@ -21341,12 +21341,13 @@ requestAnimationFrame(frame);
 </div>
 <script>
 (function(){
-  /* 对话代理地址：Worker 部署后回填其 workers.dev 子域；本地联调用 wrangler dev 端口 */
-  var CHAT_ENDPOINT = "https://lcdc-chat.13256665601.workers.dev/api/chat";
+  /* 接口地址：优先取 window.LCDC_API_BASE；未注入时回退阿里云 FC 函数域名 */
+  var LCDC_API_BASE = window.LCDC_API_BASE || "https://lcdc-chat-idbhhjiiar.cn-beijing.fcapp.run";
+  var CHAT_ENDPOINT = LCDC_API_BASE + "/api/chat";
   var MODELS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/models");
   var TTS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/tts");
   var ASR_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/asr");
-  var STREAM_ENDPOINT = CHAT_ENDPOINT.replace(/^http/, "ws").replace(/\/chat$/, "/asr/stream");
+  var ASR_RECOGNIZE_ENDPOINT = ASR_ENDPOINT + "/recognize";
   var CMDS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/commands");
   var USAGE_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/usage");
 
@@ -21392,14 +21393,11 @@ requestAnimationFrame(frame);
   var audioEl=null;    // 当前播报音频实例
   var cmdSeq=0;        // 跨端总线已消费到的最大序号
 
-  /* —— 流式语音识别（WebSocket 中继）采集状态 —— */
-  var asrWs=null, asrStream=null, asrCtx=null, asrProcessor=null, asrSource=null, asrSink=null;
-  var asrRecording=false, asrBusy=false, asrHandshakeTimer=null;
-  var asrPcm=[];              // 待发的 Float32 样本缓冲
-  var asrInterim="";          // 最新临时识别文本（上屏）
-  var ASR_RATE=16000, ASR_FRAME=3200; // 16kHz，200ms/包
-  var asrNativeRate=ASR_RATE; // 音频上下文实际采样率（浏览器回落时需重采样到 16k）
-  var vadSpoke=false, vadSilentMs=0;  // VAD：是否已检出语音 / 累计静音毫秒
+  /* —— 异步录音识别采集状态（整段录完再 HTTP 提交，无 WebSocket 长连接） —— */
+  var asrRecording=false, asrBusy=false;
+  var asrStream=null, asrCtx=null, asrSource=null, asrProcessor=null;
+  var asrChunks=[];             // 待编码的 Float32 片段
+  var ASR_RATE=16000, asrNativeRate=ASR_RATE;
 
   /* 3D 状态桥接：idle 待命 / listening 聆听 / thinking 思考；无 3D 时安全跳过 */
   function fxSetState(s){ var f=fx(); if(f&&f.setState) f.setState(s); }
@@ -21581,38 +21579,7 @@ requestAnimationFrame(frame);
     callModel(text);
   }
 
-  /* —— 流式语音识别：浏览器采集 16kHz PCM，经 Worker WS 中继送上游大模型流式 ASR —— */
-  function gzipBytes(input){
-    var s=new Blob([input]).stream().pipeThrough(new CompressionStream('gzip'));
-    return new Response(s).arrayBuffer();
-  }
-  function gunzipBytes(input){
-    var s=new Blob([input]).stream().pipeThrough(new DecompressionStream('gzip'));
-    return new Response(s).arrayBuffer();
-  }
-  function asrFrame(type,flags,serial,comp,payload){
-    var h=new Uint8Array(4);
-    h[0]=0x11; h[1]=(type<<4)|flags; h[2]=(serial<<4)|comp; h[3]=0;
-    var size=new Uint8Array(4); new DataView(size.buffer).setUint32(0,payload.length,false);
-    return new Blob([h,size,payload],{type:'application/octet-stream'});
-  }
-  function read32(b,o){ return new DataView(b.buffer,b.byteOffset,b.byteLength).getUint32(o,false); }
-
-  async function asrSendParams(){
-    var params={user:{uid:'lcdc-web'},audio:{format:'pcm',rate:ASR_RATE,bits:16,channel:1},
-      request:{model_name:'bigmodel',enable_itn:true,enable_punc:true}};
-    var json=new TextEncoder().encode(JSON.stringify(params));
-    var gz=new Uint8Array(await gzipBytes(json));
-    asrWs.send(asrFrame(1,0,1,1,gz));
-  }
-
-  function asrPcmToS16(f32){
-    var buf=new ArrayBuffer(f32.length*2), v=new DataView(buf);
-    for(var i=0;i<f32.length;i++){ var s=Math.max(-1,Math.min(1,f32[i])); v.setInt16(i*2, s<0?s*0x8000:s*0x7FFF, true); }
-    return buf;
-  }
-
-  /* 线性重采样：浏览器录音回落 44.1/48k 时，降采样到 16k，避免出字错乱 */
+  /* —— 异步录音识别：点按开始录音，再点停止，整段编码为 WAV base64 提交极速版识别 —— */
   function resampleLinear(f32, from, to){
     if(!from||from===to) return f32;
     var ratio=to/from, n=Math.max(1,Math.floor(f32.length*ratio)), out=new Float32Array(n);
@@ -21623,56 +21590,34 @@ requestAnimationFrame(frame);
     return out;
   }
 
-  async function asrSendAudio(f32,isLast){
-    var pcm=asrPcmToS16(f32);
-    var gz=new Uint8Array(await gzipBytes(pcm));
-    asrWs.send(asrFrame(2,isLast?0x2:0x0,0,1,gz));
+  function pcmToWav(f32, rate){
+    var n=f32.length, dataLen=n*2, buf=new ArrayBuffer(44+dataLen), v=new DataView(buf);
+    function ws(o,s){ for(var i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); }
+    ws(0,'RIFF'); v.setUint32(4,36+dataLen,true); ws(8,'WAVE'); ws(12,'fmt ');
+    v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+    v.setUint32(24,rate,true); v.setUint32(28,rate*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+    ws(36,'data'); v.setUint32(40,dataLen,true);
+    var o=44;
+    for(var i=0;i<n;i++){ var s=Math.max(-1,Math.min(1,f32[i])); v.setInt16(o, s<0?s*0x8000:s*0x7FFF, true); o+=2; }
+    return new Blob([buf],{type:'audio/wav'});
   }
 
-  function asrPushPcm(f32){
-    asrPcm=asrPcm.concat(Array.from(f32));
-    while(asrPcm.length>=ASR_FRAME){
-      var chunk=asrPcm.splice(0,ASR_FRAME);
-      asrSendAudio(chunk,false);
-    }
-  }
-
-  async function onAsrMessage(ev){
-    var buf=new Uint8Array(ev.data);
-    if(buf.length<4) return;
-    var type=(buf[1]>>4)&0x0f, flags=buf[1]&0x0f, comp=buf[2]&0x0f;
-    if(type===15){ asrFail('识别服务返回错误'); return; }
-    if(type!==9) return;
-    var off=4;
-    if(flags===1||flags===3){ off+=4; } // 带 sequence
-    var psize=read32(buf,off); off+=4;
-    var payload=buf.slice(off,off+psize);
-    if(comp===1){ payload=new Uint8Array(await gunzipBytes(payload)); }
-    var j; try{ j=JSON.parse(new TextDecoder().decode(payload)); }catch{ return; }
-    var result=j.result||{};
-    var text=result.text||'';
-    var utts=result.utterances||[];
-    var definite=utts.filter(function(u){return u.definite;});
-    if(text) asrInterim=text;
-    if(asrRecording) setStatus('聆听中 · '+(asrInterim||'…'),'listening');
-    if(definite.length){
-      var sent=definite.map(function(u){return u.text||'';}).join('').trim();
-      asrInterim='';
-      if(sent){ asrStop(); handleText(sent); }
-    }
+  function blobToBase64(blob){
+    return new Promise(function(resolve,reject){
+      var r=new FileReader();
+      r.onload=function(){ var s=String(r.result||''); resolve(s.indexOf(',')>=0?s.slice(s.indexOf(',')+1):s); };
+      r.onerror=function(){ reject(new Error('read_audio_failed')); };
+      r.readAsDataURL(blob);
+    });
   }
 
   function asrCleanup(){
     asrRecording=false; asrBusy=false;
-    if(asrHandshakeTimer){ clearTimeout(asrHandshakeTimer); asrHandshakeTimer=null; }
     if(asrProcessor){ try{asrProcessor.disconnect();}catch(e){} asrProcessor=null; }
     if(asrSource){ try{asrSource.disconnect();}catch(e){} asrSource=null; }
-    if(asrSink){ try{asrSink.disconnect();}catch(e){} asrSink=null; }
     if(asrCtx){ try{asrCtx.close();}catch(e){} asrCtx=null; }
     if(asrStream){ try{asrStream.getTracks().forEach(function(t){t.stop();});}catch(e){} asrStream=null; }
-    if(asrWs){ try{asrWs.close();}catch(e){} asrWs=null; }
-    asrPcm=[]; asrInterim='';
-    vadSpoke=false; vadSilentMs=0;
+    asrChunks=[];
     fxSetState('idle');
   }
 
@@ -21684,56 +21629,26 @@ requestAnimationFrame(frame);
 
   async function asrStart(){
     asrBusy=true; setStatus('正在申请麦克风…','listening');
-    /* 非安全上下文（http/文件）下 navigator.mediaDevices 可能缺失，先给明确提示 */
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
       asrBusy=false; asrFail('麦克风不可用：请在 HTTPS 页面打开并授权'); return;
     }
     try{
-      /* 手势上下文内解锁 WebAudio，确保开场提示音不被自动播放策略拦截 */
       try{ if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)(); if(chimeCtx.state==='suspended') chimeCtx.resume(); }catch(e){}
       playChime();
       asrStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
-      asrCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:ASR_RATE});
+      asrCtx=new (window.AudioContext||window.webkitAudioContext)();
       asrNativeRate=asrCtx.sampleRate||ASR_RATE;
-      vadSpoke=false; vadSilentMs=0;
+      asrChunks=[];
       asrSource=asrCtx.createMediaStreamSource(asrStream);
       asrProcessor=asrCtx.createScriptProcessor(4096,1,1);
-      asrSink=asrCtx.createGain(); asrSink.gain.value=0;
-      asrSource.connect(asrProcessor); asrProcessor.connect(asrSink); asrSink.connect(asrCtx.destination);
+      var sink=asrCtx.createGain(); sink.gain.value=0;
+      asrSource.connect(asrProcessor); asrProcessor.connect(sink); sink.connect(asrCtx.destination);
       asrProcessor.onaudioprocess=function(e){
         if(!asrRecording) return;
-        var raw=e.inputBuffer.getChannelData(0);
-        var f32=resampleLinear(raw, asrNativeRate, ASR_RATE);
-        /* VAD：检出语音后累计静音，超过 1.2s 自动判停，无需手动再点 */
-        var rms=0; for(var i=0;i<f32.length;i++) rms+=f32[i]*f32[i]; rms=Math.sqrt(rms/f32.length);
-        var frameMs=f32.length/ASR_RATE*1000;
-        if(rms>0.02){ vadSpoke=true; vadSilentMs=0; }
-        else if(vadSpoke){
-          vadSilentMs+=frameMs;
-          if(vadSilentMs>=1200){ var fallback=asrInterim; asrStop(); if(fallback) handleText(fallback); return; }
-        }
-        asrPushPcm(f32);
+        asrChunks.push(e.inputBuffer.getChannelData(0).slice(0));
       };
-
-      asrWs=new WebSocket(STREAM_ENDPOINT);
-      asrWs.binaryType='arraybuffer';
-      /* 握手超时：6s 内未 onopen 视为通道失败，复位 busy 避免界面卡死在“正在申请麦克风…” */
-      asrHandshakeTimer=setTimeout(function(){ asrFail('语音通道连接超时，请重试'); },6000);
-      asrWs.onopen=function(){
-        if(asrHandshakeTimer){ clearTimeout(asrHandshakeTimer); asrHandshakeTimer=null; }
-        asrRecording=true; asrBusy=false; fxSetState('listening'); setStatus('聆听中…','listening'); asrSendParams();
-      };
-      asrWs.onmessage=onAsrMessage;
-      /* 失败时探测一次 HTTP 模型清单：区分是对话服务整体不可达，还是仅语音 WS 被拦 */
-      var asrErr=false;
-      function probeThenFail(){
-        if(asrErr) return; asrErr=true;
-        fetch(MODELS_ENDPOINT).then(function(r){ return r.ok; }).catch(function(){ return false; }).then(function(ok){
-          asrFail(ok ? '语音通道被网络拦截，可先用下方打字框输入' : '对话服务连不上，请检查网络后重试');
-        });
-      }
-      asrWs.onerror=probeThenFail;
-      asrWs.onclose=function(){ if(asrRecording || asrBusy) probeThenFail(); };
+      asrRecording=true; asrBusy=false;
+      fxSetState('listening'); setStatus('聆听中 · 再点一次结束录音','listening');
     }catch(e){
       asrBusy=false;
       var nm=(e&&e.name)||'';
@@ -21745,14 +21660,30 @@ requestAnimationFrame(frame);
     }
   }
 
-  function asrStop(){
-    asrRecording=false;
-    if(asrWs && asrWs.readyState===1){
-      asrSendAudio(asrPcm.splice(0,asrPcm.length),true);
+  async function asrStop(){
+    asrRecording=false; fxSetState('thinking'); setStatus('识别中…','thinking');
+    var chunks=asrChunks, rate=asrNativeRate; asrChunks=[];
+    asrCleanup();
+    if(!chunks.length){ setStatus('没录到声音，再试一次','idle'); return; }
+    var total=0; chunks.forEach(function(c){ total+=c.length; });
+    var merged=new Float32Array(total); var off=0;
+    chunks.forEach(function(c){ merged.set(c,off); off+=c.length; });
+    var pcm=resampleLinear(merged, rate, ASR_RATE);
+    try{
+      var wav=pcmToWav(pcm, ASR_RATE);
+      var b64=await blobToBase64(wav);
+      var resp=await fetch(ASR_RECOGNIZE_ENDPOINT,{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({format:'wav', data:b64})
+      });
+      var data=await resp.json().catch(function(){ return {}; });
+      if(!resp.ok || data.error){ asrFail((data&&data.reply)||'识别服务暂时不可用'); return; }
+      var text=(data&&data.text)||'';
+      if(!text.trim()){ asrFail('没有听清，换个说法试试'); return; }
+      handleText(text.trim());
+    }catch(e){
+      asrFail('语音识别连不上，请稍后再试');
     }
-    fxSetState('thinking');
-    setStatus('识别中…','thinking');
-    setTimeout(function(){ if(asrRecording===false && !working) asrCleanup(); }, 8000);
   }
 
   function toggleVoice(){
