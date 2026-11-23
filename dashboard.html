@@ -227,9 +227,10 @@ main{display:contents}
 .lc-card .st{margin-left:auto;font-size:10px;padding:2px 9px;border-radius:20px;flex:none;white-space:nowrap}
 .lc-card .st.ok{color:#8ef7c4;background:rgba(34,255,156,.12);border:1px solid rgba(34,255,156,.3)}
 .lc-card .plan{font-size:10.5px;color:var(--dim2);line-height:1.5}
+.lc-card .use{font-size:9.5px;color:var(--dim2);line-height:1.5;letter-spacing:.02em}
 .lc-card .bar{height:5px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden}
 .lc-card .bar i{display:block;height:100%;width:0;border-radius:4px;animation:grow 1.4s cubic-bezier(.2,.8,.3,1) .35s both}
-.lc-card .rows{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center}
+.lc-card .rows{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 8px;text-align:center}
 .lc-card .rows div{font-size:10px;color:var(--dim2)}
 .lc-card .rows b{display:block;font-size:12.5px;color:var(--text);font-variant-numeric:tabular-nums;margin-top:2px}
 .lc-summary{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--dim2);margin-bottom:10px;flex:none}
@@ -251,8 +252,8 @@ main{display:contents}
 .sign .item .t{font-size:11px;color:var(--dim)}
 .sign .item .r{font-size:16px;font-weight:800;margin-top:5px}
 .sign .r.dim{color:var(--dim2);font-size:15px;font-weight:600;letter-spacing:.08em}
-.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin-top:8px}
-.heat i{aspect-ratio:1;border-radius:3px;background:rgba(255,255,255,.06);animation:heatIn .5s backwards}
+.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;margin-top:6px}
+.heat i{height:15px;border-radius:3px;background:rgba(255,255,255,.06);animation:heatIn .5s backwards}
 @keyframes heatIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
 .heat-note{font-size:10.5px;color:var(--dim2);margin-bottom:4px;flex:none}
 
@@ -265,7 +266,11 @@ main{display:contents}
 .ali .bar{height:6px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:9px}
 .ali .bar i{display:block;height:100%;border-radius:4px}
 .ali .rows{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;font-size:11px;color:var(--dim2)}
-.ali .rows b{display:block;color:var(--text);font-size:12.5px;margin-top:3px;font-weight:600;letter-spacing:.02em;word-break:break-all}
+.ali .rows b{display:block;color:var(--text);font-size:12.5px;margin-top:3px;font-weight:600;letter-spacing:.02em;word-break:normal;overflow-wrap:anywhere}
+.ali .rows div:nth-child(2){grid-column:1/-1}
+#tfbDetail{grid-template-columns:repeat(2,1fr)}
+#tfbDetail .v{white-space:normal;font-size:18px;line-height:1.3;word-break:normal}
+#tfbDetail .cell{min-width:0}
 .runled{width:11px;height:11px;border-radius:50%;flex:0 0 auto;display:inline-block;
   background:radial-gradient(circle at 35% 30%,#d9ffe9,#22ff9c 55%,#0aa35e);
   box-shadow:0 0 8px rgba(34,255,156,.95),0 0 18px rgba(34,255,156,.55),inset 0 0 4px rgba(255,255,255,.5);
@@ -280,6 +285,14 @@ main{display:contents}
 .kd-table{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums;display:block;overflow-x:auto;max-width:100%}
 .kd-table th{font-size:10px;letter-spacing:.12em;color:var(--dim2);font-weight:600;text-align:left;padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.09);white-space:nowrap}
 .kd-table td{padding:8px 9px;border-bottom:1px solid rgba(255,255,255,.05);white-space:nowrap;color:var(--text)}
+.kd-table{font-size:10.5px}
+.kd-table th{padding:6px 6px;letter-spacing:.06em}
+.kd-table td{padding:6px 6px}
+.kd-table td:nth-child(3),.kd-table td:nth-child(5){white-space:normal;line-height:1.35;min-width:110px}
+.kd-table::-webkit-scrollbar,.tm-table::-webkit-scrollbar{height:4px}
+.kd-table::-webkit-scrollbar-track,.tm-table::-webkit-scrollbar-track{background:transparent}
+.kd-table::-webkit-scrollbar-thumb,.tm-table::-webkit-scrollbar-thumb{background:rgba(0,229,255,.28);border-radius:3px}
+.kd-table,.tm-table{scrollbar-width:thin;scrollbar-color:rgba(0,229,255,.28) transparent}
 .kd-nums{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin-bottom:10px;flex:none}
 .kd-card{border:1px solid rgba(255,255,255,.07);border-left:2px solid var(--c);border-radius:10px;padding:8px 10px;background:rgba(255,255,255,.018)}
 .kd-card .who{font-size:10px;color:var(--dim2)}
@@ -302,7 +315,9 @@ main{display:contents}
 .nav a b{font-size:10px;color:var(--dim2);font-weight:500}
 .tm-table{width:100%;border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums;display:block;overflow-x:auto;max-width:100%}
 .tm-table th{font-size:9.5px;letter-spacing:.08em;color:var(--dim2);font-weight:600;text-align:left;padding:5px 7px;border-bottom:1px solid rgba(255,255,255,.09);white-space:nowrap}
-.tm-table td{padding:5px 7px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text);vertical-align:top;white-space:nowrap}
+.tm-table td{padding:4px 5px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text);vertical-align:middle;white-space:nowrap;font-size:9.5px}
+.tm-table th{padding:4px 5px;letter-spacing:.04em}
+.tm-table td:nth-child(5),.tm-table td:nth-child(6){white-space:normal;line-height:1.25;min-width:74px}
 .tm-name{font-weight:700;letter-spacing:.04em}
 .tm-ok{color:var(--green)} .tm-wait{color:var(--orange)} .tm-dead{color:var(--red)}
 
@@ -477,7 +492,7 @@ main{display:contents}
       <div class="kd-nums" id="kdNums"></div>
       <div class="scroll">
         <table class="kd-table">
-          <thead><tr><th>包裹</th><th>运单号</th><th>归属 / 店铺</th><th>状态</th><th>最新节点</th><th>时间</th></tr></thead>
+          <thead><tr><th>包裹</th><th>运单号</th><th>归属 / 店铺</th><th>状态</th><th>最新节点 / 时间</th></tr></thead>
           <tbody id="kdBody"></tbody>
         </table>
       </div>
@@ -712,7 +727,9 @@ const __FALLBACK =   {
           "smsRemain": 0,
           "status": "ok",
           "note": "网页登录实测：流量剩400MB(已用0MB/共400MB)；语音剩0分钟(已用36)；短信0条；余额38.65元、实时话费16.9元、积分30",
-          "updated": "2026-11-24 00:35:12"
+          "updated": "2026-11-24 00:35:12",
+          "voiceRemain": "0分钟",
+          "voiceUsed": "36分钟"
         },
         {
           "no": "132****5602",
@@ -724,7 +741,9 @@ const __FALLBACK =   {
           "smsRemain": 0,
           "status": "ok",
           "note": "网页登录实测：流量剩400MB(已用0MB/共400MB)；语音剩11分钟(已用19/共30)；短信0条；余额38.65元、实时话费16.9元、积分126",
-          "updated": "2026-11-24 01:20:32"
+          "updated": "2026-11-24 01:20:32",
+          "voiceRemain": "11分钟",
+          "voiceUsed": "19分钟"
         },
         {
           "no": "132****5605",
@@ -736,7 +755,9 @@ const __FALLBACK =   {
           "smsRemain": 0,
           "status": "ok",
           "note": "网页登录实测：流量剩65.08GB(已用31.24/共96.32GB，共享+结转)；语音剩308分钟(已用692/共1000)；短信0条；公免流量已用35.35MB；余额269.67元、实时话费99.1元、积分431",
-          "updated": "2026-11-24 01:24:39"
+          "updated": "2026-11-24 01:24:39",
+          "voiceRemain": "308分钟",
+          "voiceUsed": "692分钟"
         }
       ]
     },
@@ -991,7 +1012,7 @@ const MODELS = [
 const PAIRS = KPI.map((k,i)=>({ kpi:k, model:MODELS[i] }));
 const board = document.getElementById("kpiBoard");
 PAIRS.forEach((pair,i)=>{
-  const k=pair.kpi, m=pair.model;
+  const k=pair.kpi, m=pair.model||{accent:"#4da3ff",name:"待配对",en:"Port",ico:"+",sub:"模型端口待配对 · 待配置",status:"待配置",statusDot:"idle"};
   const card = document.createElement("div");
   card.className = "flip-card";
   card.style.animationDelay = (i*.05)+"s";
@@ -1076,7 +1097,7 @@ DATA.meters.forEach((m,i)=>{
   const el=document.createElement("div"); el.className="meter";
   el.innerHTML=`
     <div class="top">
-      <div><div class="name">${m.name}</div><div class="no">${m.no}</div></div>
+      <div><div class="name">${m.name}</div><div class="no">${String(m.no||"").replace(/^(\d{4})\d+(\d{4})$/,"$1****$2")}</div></div>
       <div class="bal ${neg?"neg":"ok"}">${neg?"":"¥"}${m.balance.toFixed(2)}</div>
     </div>
     <div class="bar"><i style="background:linear-gradient(90deg,${neg?"#ff4d6d,#ff8fa3":"#22ff9c,#00e5ff"});transition-delay:${.2+i*.15}s" data-w="${pct}"></i></div>
@@ -1153,13 +1174,13 @@ document.getElementById("driveTag").textContent="扫描于 "+(DATA.genAt||"—")
     el.innerHTML=`
       <div class="top"><div class="no">${u.no}</div><div class="st ${ok?"ok":"wait"}">${ok?"正常在网":"待核实"}</div></div>
       <div class="plan">${u.plan}</div>
+      <div class="use">已用 · 流量 ${u.flowUsed||"—"} · 语音 ${u.voiceUsed||"—"}</div>
       <div class="bar"><i style="background:linear-gradient(90deg,${col},#00e5ff);animation-delay:${.2+i*.15}s" data-w="${u.usedPct||0}"></i></div>
       <div class="rows">
-        <div>流量已用<b>${u.flowUsed||"—"}</b></div>
         <div>流量剩余<b>${u.flowRemain||"—"}</b></div>
-        <div>话费已用<b>${u.feeUsed||"—"}</b></div>
-        <div>话费剩余<b>${u.feeRemain||"—"}</b></div>
-        <div>短信<b>${(u.smsUsed!=null?u.smsUsed:"—")+"/"+(u.smsRemain!=null?u.smsRemain:"—")}</b></div>
+        <div>语音剩余<b>${u.voiceRemain||"—"}</b></div>
+        <div>短信 用/剩<b>${(u.smsUsed!=null?u.smsUsed:"—")+"/"+(u.smsRemain!=null?u.smsRemain:"—")}</b></div>
+        ${(u.feeUsed||u.feeRemain)?`<div>话费已用<b>${u.feeUsed||"—"}</b></div><div>话费剩余<b>${u.feeRemain||"—"}</b></div>`:""}
       </div>`;
     box.appendChild(el);
   });
@@ -1244,7 +1265,7 @@ const hv=(DATA.heat||[]).map(h=>h.v), hmax=Math.max(0.1,...hv);
     .map(([a,b])=>`<div>${a} <b>${b}</b></div>`).join("");
   nums.innerHTML=(k.numbers||[]).map(n=>`<div class="kd-card" style="--c:var(--cyan)"><div class="who">${n.who}</div><div class="no">${n.no}</div></div>`).join("");
   body.innerHTML=(k.parcels||[]).map(x=>`<tr><td>${x.carrier||'—'}</td><td>${x.no}</td><td>${x.who||''}${x.shop?' · '+x.shop:''}</td>
-    <td style="color:${x.status==='已签收'?'var(--green)':'var(--orange)'}">${x.status||'—'}</td><td>${x.lastDesc||''}</td><td>${(x.lastTime||'').slice(0,16)}</td></tr>`).join("");
+    <td style="color:${x.status==='已签收'?'var(--green)':'var(--orange)'}">${x.status||'—'}</td><td style="white-space:normal;line-height:1.35">${x.lastDesc||''}<div style="font-size:9px;color:var(--dim2);margin-top:3px">${(x.lastTime||'').slice(0,16)}</div></td></tr>`).join("");
   if(tag)tag.textContent='扫描于 '+(k.updated||'—').slice(5);
 })();
 
