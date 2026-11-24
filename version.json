@@ -1,7 +1,7 @@
 {
-  "versionCode": 2,
-  "versionName": "1.1",
-  "changelog": "支持双指捏合手势放大/缩小首页与看板页；优化在线升级体验。",
+  "versionCode": 3,
+  "versionName": "1.2",
+  "changelog": "修复在线升级：新增下载进度显示；首次安装更新前引导开启「安装未知应用」权限，授权后自动继续安装。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 下载地址；APP 启动时比对本机 versionCode，有新版弹出更新提示。"
