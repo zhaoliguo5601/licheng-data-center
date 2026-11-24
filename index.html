@@ -5752,8 +5752,11 @@ let slotHead = 0, slotAcc = 0, slotTok = 0;
 const crawl = {patrols: 6, read: 1836, bugs: 3, target: 3};
 const chanN = CH.map(() => 0), chanFlash = CH.map(() => 0);
 let boost = 0, lastHand = null, bunHot = new Float32Array(48);
-/* 对话互动状态：idle 待命 / thinking 模型思考中，由外部对话面板经 host.__chatFx 驱动 */
+/* 对话互动状态：idle 待命 / thinking 模型思考中 / listening 聆听 / speaking 播报；由外部对话面板经 host.__chatFx 驱动 */
 let chatMode = 'idle', chatBoost = 0, chatPulseAcc = 0;
+/* 播报环形律动：speakTarget 为外部每帧推入的 72 段目标电平(0..1)，speakLevels 平滑跟随，speakGain 为整体播报强度 */
+const speakLevels = new Float32Array(NSEG), speakTarget = new Float32Array(NSEG);
+let speakGain = 0;
 /* 当前模型主题色：核心辉光 / 扫描环 / 思考脉冲随所选模型固定配色，切换时平滑过渡。
    themeHex 为目标 hex；themeCur/themeTarget 为 THREE.Color（glOK 后惰性建）。 */
 let themeHex = '#45e6f5', themeCur = null, themeTarget = null;
@@ -6654,8 +6657,15 @@ function updateScene(dt){
     themeCur.lerp(themeTarget, 1 - Math.exp(-dt * 3));
   }
   // 对话互动：思考中提升能量系数并在神经团之间打脉冲，回复后回落
-  const chatTarget = (chatMode === 'thinking' || chatMode === 'listening') ? 1 : 0;
+  const chatTarget = (chatMode === 'thinking' || chatMode === 'listening' || chatMode === 'speaking') ? 1 : 0;
   chatBoost += (chatTarget - chatBoost) * (1 - Math.exp(-dt * (chatTarget ? 5 : 1.4)));
+  // 播报强度：speaking 快速拉起，结束后缓慢回落；72 段电平平滑跟随目标值，非播报态目标值衰减到 0
+  const spkTarget = chatMode === 'speaking' ? 1 : 0;
+  speakGain += (spkTarget - speakGain) * (1 - Math.exp(-dt * (spkTarget ? 8 : 2.2)));
+  for (let s = 0; s < NSEG; s++) {
+    if (chatMode !== 'speaking') speakTarget[s] *= Math.exp(-dt * 3);
+    speakLevels[s] += (speakTarget[s] - speakLevels[s]) * (1 - Math.exp(-dt * (speakTarget[s] > speakLevels[s] ? 14 : 6)));
+  }
   // 聆听态：整环随呼吸正弦起伏（Siri/豆包待命聆听感）
   const breathe = chatMode === 'listening' ? (0.5 + 0.5 * Math.sin(animT * 4.2)) : 0;
   if (chatMode === 'thinking') {
@@ -6711,7 +6721,8 @@ function updateScene(dt){
     const jit = load * (.55 + .45 * Math.sin(animT * (1.1 + ((s * 7) % 6) * .22) + s * 2.3)) * 1.8;
     // 两道充能波沿环反向扫过
     const w = Math.exp(-(wrapPI(th - animT * .42) ** 2) / .045) + Math.exp(-(wrapPI(th + animT * .27 + 2.1) ** 2) / .03);
-    const lit = Math.min(6, v * 4.8 + jit + w * 2.2);
+    const lv = speakLevels[s] * speakGain;   // 播报电平：叠加到该段点亮道数上，形成环形均衡器律动
+    const lit = Math.min(6, v * 4.8 + jit + w * 2.2 + lv * 3.4);
     const tint = (A.cur || ag === 0) ? .35 * load : 0;
     for (let k = 0; k < 6; k++) {
       // 外圈那道常亮当底座，往圆心方向充能（k=0 是最里面那道）
@@ -6954,7 +6965,8 @@ host.__nr = {ff(sec){ for (let t = 0; t < sec; t += .05) { simStep(.05); decay(.
 /* 对话面板桥接：setState('thinking'|'idle') 驱动 3D 互动，pulse() 回复后核心脉冲一下；
    node(ai, colHex) 点亮指定星环节点（flash + 高亮计时），并由 CHIEF 发一条该颜色信号过去。 */
 host.__chatFx = {
-  setState(s){ chatMode = (s === 'thinking' || s === 'listening') ? s : 'idle'; },
+  setState(s){ chatMode = (s === 'thinking' || s === 'listening' || s === 'speaking') ? s : 'idle'; },
+  setLevels(arr){ if(!arr) return; for(let s=0;s<NSEG;s++) speakTarget[s]=clamp(Number(arr[s])||0,0,1); },
   pulse(){ boost = Math.min(1.4, boost + .3); },
   setTheme(hex){ setThemeHex(hex); },
   setModels(list){ slotModels = (list || []).slice(0, NCL - 1); },
@@ -21428,6 +21440,9 @@ requestAnimationFrame(frame);
     {key:"gemini",name:"Gemini（预留）",color:"#4687ff",vendor:"global",available:false}
   ];
   var audioEl=null;    // 当前播报音频实例
+  /* 播报环形律动：TTS 音频接 AnalyserNode 取实时频谱，分 72 路推给星环条码环；音频不可用时用模拟起伏兜底 */
+  var RING_SEGS=72;
+  var speakCtx=null, speakAnalyser=null, speakSource=null, speakFreq=null, speakRaf=0, speakOn=false;
   var cmdSeq=0;        // 跨端总线已消费到的最大序号
 
   /* —— 异步录音识别采集状态（整段录完再 HTTP 提交，无 WebSocket 长连接） —— */
@@ -21438,6 +21453,50 @@ requestAnimationFrame(frame);
 
   /* 3D 状态桥接：idle 待命 / listening 聆听 / thinking 思考；无 3D 时安全跳过 */
   function fxSetState(s){ var f=fx(); if(f&&f.setState) f.setState(s); }
+
+  /* —— 播报环形律动：分析 TTS 音频频谱分 72 路推给星环；音频不可用/静音时用模拟起伏兜底 —— */
+  function simSpeakLevels(sec){
+    var arr=new Array(RING_SEGS);
+    for(var s=0;s<RING_SEGS;s++){
+      var v=.34+.24*Math.sin(sec*3.1+s*.35)+.16*Math.sin(sec*7.3+s*.9);
+      arr[s]=v<.04?0:(v>.95?.95:v);
+    }
+    return arr;
+  }
+  function pumpSpeakLevels(){
+    if(!speakOn) return;
+    var f=fx(), arr=null, s, b, i0, i1, m, mean=0;
+    if(speakAnalyser && speakFreq){
+      speakAnalyser.getByteFrequencyData(speakFreq);
+      var bins=speakFreq.length, real=new Array(RING_SEGS);
+      for(s=0;s<RING_SEGS;s++){
+        i0=Math.floor(s/RING_SEGS*bins*.72); i1=Math.max(i0+1,Math.floor((s+1)/RING_SEGS*bins*.72));
+        m=0; for(b=i0;b<i1;b++) m=Math.max(m,speakFreq[b]);
+        real[s]=m/255; mean+=real[s];
+      }
+      if(mean/RING_SEGS<.05){ var sim=simSpeakLevels(performance.now()/1000); for(s=0;s<RING_SEGS;s++) real[s]=Math.max(real[s],sim[s]*.55); }
+      arr=real;
+    } else {
+      arr=simSpeakLevels(performance.now()/1000);
+    }
+    if(f&&f.setLevels) f.setLevels(arr);
+    speakRaf=requestAnimationFrame(pumpSpeakLevels);
+  }
+  function startSpeakLevels(){ stopSpeakLevels(); speakOn=true; speakRaf=requestAnimationFrame(pumpSpeakLevels); }
+  function stopSpeakLevels(){
+    speakOn=false;
+    if(speakRaf){ cancelAnimationFrame(speakRaf); speakRaf=0; }
+    var f=fx(); if(f&&f.setLevels){ var z=new Array(RING_SEGS).fill(0); f.setLevels(z); }
+  }
+  function hookSpeakAnalyser(el){
+    try{
+      if(!speakCtx) speakCtx=chimeCtx||new (window.AudioContext||window.webkitAudioContext)();
+      if(speakCtx.state==='suspended') speakCtx.resume();
+      if(!speakAnalyser){ speakAnalyser=speakCtx.createAnalyser(); speakAnalyser.fftSize=256; speakAnalyser.smoothingTimeConstant=.72; speakAnalyser.connect(speakCtx.destination); }
+      speakSource=speakCtx.createMediaElementSource(el); speakSource.connect(speakAnalyser);
+      speakFreq=new Uint8Array(speakAnalyser.frequencyBinCount);
+    }catch(e){ speakAnalyser=null; speakSource=null; speakFreq=null; }
+  }
 
   /* Siri 式柔和双音开场提示音：WebAudio 合成，免外部音频文件；两声正弦上扬、指数衰减 */
   var chimeCtx=null;
@@ -21554,6 +21613,7 @@ requestAnimationFrame(frame);
     var t=(text||'').trim().slice(0,500);
     if(!t) return;
     if(audioEl){ try{ audioEl.pause(); }catch(e){} audioEl=null; }
+    stopSpeakLevels();
     fetch(TTS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})})
       .then(function(r){ return r.json(); })
       .then(function(d){
@@ -21563,10 +21623,14 @@ requestAnimationFrame(frame);
         var blob=new Blob([u8],{type:'audio/mpeg'});
         var url=URL.createObjectURL(blob);
         audioEl=new Audio(url);
+        hookSpeakAnalyser(audioEl);
         setStatus('播报中…','speaking');
-        audioEl.onended=function(){ URL.revokeObjectURL(url); audioEl=null; if(!working) setStatus('待命 · 点按星环说话','idle'); };
-        audioEl.onerror=function(){ URL.revokeObjectURL(url); audioEl=null; if(!working) setStatus('待命 · 点按星环说话','idle'); };
-        audioEl.play().catch(function(){ URL.revokeObjectURL(url); audioEl=null; if(!working) setStatus('待命 · 点按星环说话','idle'); });
+        fxSetState('speaking');
+        startSpeakLevels();
+        var cleanup=function(){ URL.revokeObjectURL(url); stopSpeakLevels(); fxSetState('idle'); audioEl=null; };
+        audioEl.onended=function(){ cleanup(); if(!working) setStatus('待命 · 点按星环说话','idle'); };
+        audioEl.onerror=function(){ cleanup(); if(!working) setStatus('待命 · 点按星环说话','idle'); };
+        audioEl.play().catch(function(){ cleanup(); if(!working) setStatus('待命 · 点按星环说话','idle'); });
       })
       .catch(function(){ if(!working) setStatus('待命 · 点按星环说话','idle'); });
   }
