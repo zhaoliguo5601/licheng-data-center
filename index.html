@@ -566,7 +566,7 @@ body{background:var(--page);overflow:hidden}
 .cap-line{margin:9px auto 0;width:420px;height:1px;background:linear-gradient(90deg,transparent,var(--hair2),transparent)}
 
 /* ---------- 工具条 ---------- */
-.tools{position:absolute;right:24px;top:22px;display:flex;gap:6px}
+.tools{position:absolute;right:max(24px,env(safe-area-inset-right,0px));top:max(32px,calc(env(safe-area-inset-top,0px) + 14px));display:flex;gap:6px}
 .tb{font:500 11px/1 var(--mono);letter-spacing:.1em;color:var(--ink2);background:rgba(4,7,13,.55);border:1px solid var(--hair2);padding:8px 11px;cursor:pointer;white-space:nowrap}
 .tb b{color:var(--ink);font-weight:700;font-family:var(--cjk);margin-left:6px;letter-spacing:.04em}
 .tb:hover{border-color:var(--ice);color:var(--ink)}
@@ -652,7 +652,7 @@ body{background:var(--page);overflow:hidden}
 .tip .h{color:var(--mute);font-size:10px;margin-top:3px}
 
 /* ---------- 窄屏 / 竖屏 ---------- */
-.mini{display:none;position:absolute;inset:0;flex-direction:column;justify-content:space-between;pointer-events:none}
+.mini{display:none;position:absolute;inset:0;flex-direction:column;justify-content:space-between;pointer-events:none;padding-top:max(32px,calc(env(safe-area-inset-top,0px) + 14px));box-sizing:border-box}
 .narrow .board{display:none}
 .narrow .mini{display:flex}
 .m-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
@@ -668,7 +668,7 @@ body{background:var(--page);overflow:hidden}
 .m-stats b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .m-wm{margin-top:6px;font-family:var(--display);font-size:8px;letter-spacing:.3em;color:var(--dim);text-align:center}
 .glfail{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:340px;text-align:center;font-family:var(--cjk);font-size:13px;line-height:1.7;color:var(--ink2);border:1px solid var(--hair2);padding:14px 18px;background:rgba(4,7,13,.85)}
-.lc-brand{position:absolute;top:max(18px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));pointer-events:auto;cursor:default;z-index:6;line-height:1.25;user-select:none;-webkit-tap-highlight-color:transparent}
+.lc-brand{position:absolute;top:max(32px,calc(env(safe-area-inset-top,0px) + 14px));left:max(18px,env(safe-area-inset-left,0px));pointer-events:auto;cursor:default;z-index:6;line-height:1.25;user-select:none;-webkit-tap-highlight-color:transparent}
 .lc-brand-main{font-family:var(--cjk);font-weight:900;color:#fff;font-size:20px;letter-spacing:.08em;text-shadow:0 0 18px rgba(166,241,255,.35);transition:all .2s}
 .lc-brand-pre{cursor:default}
 .lc-brand-link{cursor:pointer}
