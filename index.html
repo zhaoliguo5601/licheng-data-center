@@ -6884,7 +6884,7 @@ cv.addEventListener('pointermove', e => {
   if (pinch && pointers.size >= 2) {
     const [p1, p2] = [...pointers.values()];
     const d = ptDist(p1, p2) || 1;
-    if (glOK && cam) { cam.zoom = clamp(pinch.z0 * (d / pinch.d0), .55, 1.6); needsT = .8; }
+    if (glOK && cam) { cam.zoom = clamp(pinch.z0 * (pinch.d0 / d), .55, 1.6); needsT = .8; }
     tip.hidden = true; hover = -1;
     return;
   }
