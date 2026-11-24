@@ -1,8 +1,9 @@
 {
-  "versionCode": 5,
-  "versionName": "1.4",
-  "changelog": "加固在线升级下载：拉长网络超时、失败自动重试 3 次、支持断点续传，下载失败可复制链接到浏览器手动安装；保留上一版沉浸式全屏效果。",
+  "versionCode": 6,
+  "versionName": "1.5",
+  "changelog": "升级下载为双线路自动切换：主线路不通时自动切备用线路；重试间隔阶梯拉长（2/4/6 秒），弱网/移动网络下更稳；保留断点续传与失败复制链接兜底。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://260f95ec.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
-  "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 下载地址；APP 启动时比对本机 versionCode，有新版弹出更新提示。"
+  "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。"
 }
