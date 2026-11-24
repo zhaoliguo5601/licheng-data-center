@@ -21321,10 +21321,10 @@ requestAnimationFrame(frame);
 /* 收起态：右下角悬浮触发钮 */
 #lcFab{position:fixed;right:20px;bottom:24px;z-index:9997;width:52px;height:52px;border-radius:50%;border:1px solid rgba(0,229,255,.35);background:rgba(4,10,16,.82);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 22px rgba(0,229,255,.25)}
 #lcFab svg{width:24px;height:24px;fill:#45e6f5}
-.lc-panel{display:flex;flex-direction:column;gap:8px;background:rgba(4,10,16,.82);border:1px solid rgba(0,229,255,.25);border-radius:16px;backdrop-filter:blur(14px);overflow:hidden}
-.lc-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(0,229,255,.15)}
-.lc-head-title{font-size:13px;font-weight:700;color:#eafcff;letter-spacing:.06em;flex:1 1 auto}
-#lcModel{font:500 11px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);border-radius:9px;padding:6px 8px;outline:none;cursor:pointer;max-width:130px}
+.lc-panel{display:flex;flex-direction:column;gap:8px;background:transparent;border:1px solid rgba(0,229,255,.18);border-radius:16px;overflow:hidden}
+.lc-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:transparent}
+.lc-head-title{display:none}
+#lcModel{margin-right:auto;font:500 11px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);border-radius:9px;padding:6px 8px;outline:none;cursor:pointer;max-width:130px}
 #lcModel option{background:#0a141c;color:#eafcff}
 #lcCollapse{border:none;background:transparent;color:#7fd9e8;font-size:15px;cursor:pointer;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center}
 #lcCollapse:hover{background:rgba(0,229,255,.12)}
@@ -21343,7 +21343,7 @@ requestAnimationFrame(frame);
 #lcStatus.listening #lcDot{background:#45e6f5;box-shadow:0 0 8px #45e6f5}
 @keyframes lcPulse{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
 /* 底部输入条：麦克风 + 输入框 + 发送 */
-.lc-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid rgba(0,229,255,.15)}
+.lc-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:transparent}
 #lcMicBtn{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.08);color:#45e6f5;display:flex;align-items:center;justify-content:center;cursor:pointer}
 #lcMicBtn svg{width:18px;height:18px;fill:currentColor}
 #lcMicBtn.listening{background:rgba(255,92,92,.18);border-color:rgba(255,92,92,.5);color:#ff7b7b}
@@ -21356,7 +21356,6 @@ requestAnimationFrame(frame);
 <div id="lcChat" role="dialog" aria-label="立橙智能助手">
   <div class="lc-panel">
     <div class="lc-head">
-      <span class="lc-head-title">立橙智能助手</span>
       <select id="lcModel" aria-label="选择模型">
         <option value="auto" selected>自动分派（母AI调度）</option>
         <option value="lite">豆包 2.1 Lite</option>
