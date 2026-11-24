@@ -24,6 +24,9 @@ body{
   color:var(--text);
   font-family:"Noto Sans SC","HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
 }
 #bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.85}
 .grid{position:fixed;inset:0;z-index:1;pointer-events:none;
@@ -39,6 +42,7 @@ body{
 /* ============ 固定大屏舞台：一套设计稿，整体等比缩放，一屏不滚动 ============ */
 .stage{position:absolute;z-index:4;left:50%;top:50%;width:1600px;height:900px;
   transform:translate(-50%,-50%);transform-origin:center center;touch-action:none;
+  will-change:transform;backface-visibility:hidden;
   display:flex;flex-direction:column;padding:18px 22px 16px;gap:14px}
 
 /* ============ 中部枢纽：左槽 | 地球固定 | 右槽 ============ */
@@ -1328,32 +1332,39 @@ tick(); setInterval(tick,1000);
 /* ============ 粒子背景 ============ */
 const cv=document.getElementById("bg"),ctx=cv.getContext("2d");
 let W,H,dots=[];
+const BG_DPR=Math.min(2,window.devicePixelRatio||1);
 const COLORS=["0,229,255","34,255,156","168,85,247","255,179,71"];
 function resize(){
-  W=cv.width=window.innerWidth*devicePixelRatio;
-  H=cv.height=window.innerHeight*devicePixelRatio;
+  W=cv.width=Math.round(window.innerWidth*BG_DPR);
+  H=cv.height=Math.round(window.innerHeight*BG_DPR);
   cv.style.width=window.innerWidth+"px"; cv.style.height=window.innerHeight+"px";
   const n=Math.min(90,Math.floor(window.innerWidth/16));
   dots=Array.from({length:n},()=>({
     x:Math.random()*W,y:Math.random()*H,
-    vx:(Math.random()-.5)*.45*devicePixelRatio,vy:(Math.random()-.5)*.45*devicePixelRatio,
-    r:(Math.random()*1.6+.7)*devicePixelRatio,
+    vx:(Math.random()-.5)*.45*BG_DPR,vy:(Math.random()-.5)*.45*BG_DPR,
+    r:(Math.random()*1.6+.7)*BG_DPR,
     c:COLORS[Math.floor(Math.random()*COLORS.length)]
   }));
 }
 addEventListener("resize",resize); resize();
-const LINK=150*devicePixelRatio;
+const LINK=150*BG_DPR;
+let bgFrame=0;
 (function loop(){
+  bgFrame++;
+  /* 缩放活跃时背景粒子降帧，把主线程让给舞台合成，保证跟手丝滑 */
+  const busy=!!window.__zoomActive;
+  if(!busy||bgFrame%2===0){
   ctx.clearRect(0,0,W,H);
   for(let i=0;i<dots.length;i++){
     const a=dots[i]; a.x+=a.vx; a.y+=a.vy;
     if(a.x<0||a.x>W)a.vx*=-1; if(a.y<0||a.y>H)a.vy*=-1;
     for(let j=i+1;j<dots.length;j++){
       const b=dots[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
-      if(d<LINK){ctx.strokeStyle=`rgba(0,229,255,${(1-d/LINK)*.18})`;ctx.lineWidth=.7*devicePixelRatio;
+      if(d<LINK){ctx.strokeStyle=`rgba(0,229,255,${(1-d/LINK)*.18})`;ctx.lineWidth=.7*BG_DPR;
         ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
     }
     ctx.fillStyle=`rgba(${a.c},.75)`; ctx.beginPath(); ctx.arc(a.x,a.y,a.r,0,6.283); ctx.fill();
+  }
   }
   requestAnimationFrame(loop);
 })();
@@ -1544,7 +1555,7 @@ const LINK=150*devicePixelRatio;
       const box=cv3.parentElement;
       const renderer=new THREE.WebGLRenderer({canvas:cv3,antialias:true,alpha:true,powerPreference:'high-performance'});
       renderer.setClearColor(0x000000,0);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 
       const scene=new THREE.Scene();
       const camera=new THREE.PerspectiveCamera(38,1,0.05,100);
@@ -1729,9 +1740,9 @@ const LINK=150*devicePixelRatio;
 /* ============ 固定大屏：一套设计稿整体等比缩放 ============ */
 const stage=document.querySelector(".stage");
 const DW=1600,DH=900;
-let baseS=1, userZoom=1;
+let baseS=1, userZoom=1, targetZoom=1;
 const ZMIN=.6, ZMAX=2.2;
-function applyStage(){ stage.style.transform=`translate(-50%,-50%) scale(${baseS*userZoom})`; }
+function applyStage(){ stage.style.transform=`translate(-50%,-50%) translateZ(0) scale(${baseS*userZoom})`; }
 function fitStage(){
   const vw=document.documentElement.clientWidth||window.innerWidth;
   const vh=document.documentElement.clientHeight||window.innerHeight;
@@ -1744,6 +1755,19 @@ addEventListener("orientationchange",fitStage);
 if(window.ResizeObserver){ new ResizeObserver(fitStage).observe(document.documentElement); }
 setTimeout(fitStage,300); setTimeout(fitStage,900);
 
+/* 阻尼跟随：手势只更新目标倍率，rAF 平滑收敛到目标，跟手且收尾丝滑；只在倍率变化时写样式 */
+function zoomLoop(){
+  const diff=targetZoom-userZoom;
+  window.__zoomActive=Math.abs(diff)>0.001||!!pinch;
+  if(Math.abs(diff)>0.0006){
+    userZoom += diff*.22;
+    if(Math.abs(targetZoom-userZoom)<0.0006) userZoom=targetZoom;
+    applyStage();
+  }
+  requestAnimationFrame(zoomLoop);
+}
+requestAnimationFrame(zoomLoop);
+
 /* 双指捏合：在自适应基准上叠加用户倍率，只改 transform 走 GPU 合成，避免原生整页缩放重排重绘卡顿 */
 const pointers=new Map();
 let pinch=null;
@@ -1753,7 +1777,7 @@ stage.addEventListener("pointerdown",e=>{
   try{stage.setPointerCapture(e.pointerId);}catch(_){}
   if(pointers.size===2){
     const [p1,p2]=[...pointers.values()];
-    pinch={d0:ptDist(p1,p2)||1,z0:userZoom};
+    pinch={d0:ptDist(p1,p2)||1,z0:targetZoom};
     window.__pinching=true;
   }
 });
@@ -1765,8 +1789,7 @@ stage.addEventListener("pointermove",e=>{
     const [p1,p2]=[...pointers.values()];
     const d=ptDist(p1,p2)||1;
     const nz=pinch.z0*(d/pinch.d0);
-    userZoom=Math.min(ZMAX,Math.max(ZMIN,nz));
-    applyStage();
+    targetZoom=Math.min(ZMAX,Math.max(ZMIN,nz));
   }
 });
 function endPt(e){
@@ -1778,9 +1801,8 @@ stage.addEventListener("pointerup",endPt);
 stage.addEventListener("pointercancel",endPt);
 stage.addEventListener("wheel",e=>{
   e.preventDefault();
-  const nz=userZoom*Math.exp(-e.deltaY*.0012);
-  userZoom=Math.min(ZMAX,Math.max(ZMIN,nz));
-  applyStage();
+  const nz=targetZoom*Math.exp(-e.deltaY*.0012);
+  targetZoom=Math.min(ZMAX,Math.max(ZMIN,nz));
 },{passive:false});
 
 /* ============ 左右槽轮播：数据流板块轮番切换，地球固定居中 ============ */
