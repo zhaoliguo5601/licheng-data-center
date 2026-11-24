@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-<!-- lcdc-chat-root 20261123-r4 -->
+  lcdc-chat-root 20261123-r4
   Agent 战术大屏 v10.0 · DEVELOPED BY @赛博老爸
   SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   Required Notice: Copyright (c) 2026 赛博老爸
@@ -5948,7 +5948,7 @@ let mono = 0, bloomOn = true, pr = 1;          // 全程彩色 + 辉光
 function spriteTexture(){
   const c = document.createElement('canvas'); c.width = c.height = 64;
   const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.18, 'rgba(255,255,255,.85)'); g.addColorStop(.42, 'rgba(255,255,255,.22)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.14, 'rgba(255,255,255,.9)'); g.addColorStop(.34, 'rgba(255,255,255,.35)'); g.addColorStop(.6, 'rgba(255,255,255,.08)'); g.addColorStop(1, 'rgba(255,255,255,0)');
   x.fillStyle = g; x.fillRect(0, 0, 64, 64);
   const t = new THREE.CanvasTexture(c);
   return t;
@@ -5965,10 +5965,10 @@ void main(){
   float a = clamp(q.x, 0.0, 1.5);
   vec3 silver = vec3(0.74, 0.81, 0.92);
   vec3 base = mix(col, silver, uMono);
-  vec3 lit = mix(col * 1.3 + 0.06, vec3(1.0), 0.2);
+  vec3 lit = mix(col * 1.35 + 0.05, vec3(1.0), 0.2);
   vCol = mix(base, lit, clamp(a, 0.0, 1.0) * (0.35 + 0.65 * uMono));
   float depth = clamp((-mv.z - uFade) / 5.0, 0.0, 1.0);
-  vA = shade * (0.55 + a * 1.3) * (1.0 - depth * 0.5) * q.y * uGain;
+  vA = shade * (0.6 + a * 1.35) * (1.0 - depth * 0.5) * q.y * uGain;
   gl_Position = projectionMatrix * mv;
 }`;
 const BRAIN_FS_L = `
@@ -5984,9 +5984,9 @@ void main(){
   float a = clamp(q.x, 0.0, 1.5);
   float tw = 0.62 + 0.38 * sin(uTime * (0.9 + ph * 2.2) + ph * 40.0);
   vec3 silver = vec3(0.86, 0.9, 0.98);
-  vCol = mix(mix(col, silver, uMono), col * 1.25 + 0.22, clamp(a, 0.0, 1.0) * (0.3 + 0.7 * uMono));
+  vCol = mix(mix(col, silver, uMono), col * 1.32 + 0.18, clamp(a, 0.0, 1.0) * (0.3 + 0.7 * uMono));
   float depth = clamp((-mv.z - uFade) / 5.0, 0.0, 1.0);
-  vA = (0.42 + a * 1.1) * tw * (1.0 - depth * 0.55) * q.y * (0.4 + 0.6 * uGain);
+  vA = (0.46 + a * 1.15) * tw * (1.0 - depth * 0.55) * q.y * (0.4 + 0.6 * uGain);
   gl_PointSize = max(1.0, sz * uPx * (1.0 + a * 0.55) / -mv.z);
   gl_Position = projectionMatrix * mv;
 }`;
@@ -6035,7 +6035,7 @@ function buildBrain(){
   }
   for (let c = 0; c < NCL; c++) {
     const C = CL[c], chief = c === 0;
-    const n = chief ? 620 : 380, sig = chief ? .2 : .14;
+    const n = chief ? 760 : 480, sig = chief ? .2 : .14;
     for (let k = 0; k < (chief ? 5 : 3); k++) addN(C.x + rg() * .025, C.y + rg() * .025, C.z + rg() * .025, c, c, chief ? .09 : .068);
     const core = Math.round(n * .4);
     for (let k = 0; k < core; k++) addN(C.x + rg() * sig, C.y + rg() * sig, C.z + rg() * sig * .9, c, c, .016 + R() * .016);
@@ -6050,7 +6050,7 @@ function buildBrain(){
     }
   }
   // 背景灰质：中心更密，铺满整个球，让星云连成一片
-  for (let k = 0; k < 4200; k++) {
+  for (let k = 0; k < 5400; k++) {
     let x, y, z; do { x = R() * 2 - 1; y = R() * 2 - 1; z = R() * 2 - 1; } while (x * x + y * y + z * z > 1);
     const dd = Math.hypot(x, y, z) || 1, rr = Math.pow(dd, 1.35) / dd;
     x *= 1.78 * rr; y *= 1.78 * rr; z *= 1.45 * rr;
@@ -6060,7 +6060,7 @@ function buildBrain(){
   }
   const N = px.length; NEU = N;
   NX = Float32Array.from(px); NY = Float32Array.from(py); NZ = Float32Array.from(pz); MEM = members;
-  const ncol = i => { const c = AGC[nc[i]], k = ng[i] === 13 ? .72 : 1; return [c[0] * k, c[1] * k, c[2] * k]; };
+  const ncol = i => { const c = AGC[nc[i]], k = ng[i] === 13 ? .8 : 1.06; return [Math.min(1, c[0] * k), Math.min(1, c[1] * k), Math.min(1, c[2] * k)]; };
 
   // 局部连接：空间网格找最近邻
   const CELL = .16, grid = new Map(), key = (a, b, c) => a + ',' + b + ',' + c;
@@ -6085,7 +6085,7 @@ function buildBrain(){
     }
   }
   // 远程细丝：让网更密、更乱一点
-  for (let k = 0; k < 12000; k++) {
+  for (let k = 0; k < 15000; k++) {
     const i = (R() * N) | 0, j = (R() * N) | 0;
     const d = Math.hypot(px[i] - px[j], py[i] - py[j], pz[i] - pz[j]);
     if (d < .22 || d > .6) continue;
@@ -6096,7 +6096,7 @@ function buildBrain(){
   WF.forEach(w => { addPair(0, w.path[0]); for (let k = 0; k < w.path.length - 1; k++) addPair(w.path[k], w.path[k + 1]); });
   [...pairs.values()].forEach((p, bi) => {
     const g = 14 + bi; if (g >= 48) return;
-    const strands = [], ns2 = p.a === 0 ? 10 : 14;
+    const strands = [], ns2 = p.a === 0 ? 12 : 16;
     for (let s = 0; s < ns2; s++) {
       const i0 = members[p.a][(R() * members[p.a].length) | 0], i1 = members[p.b][(R() * members[p.b].length) | 0];
       const p0 = new V(px[i0], py[i0], pz[i0]), p1 = new V(px[i1], py[i1], pz[i1]);
@@ -6105,7 +6105,7 @@ function buildBrain(){
       if (p.a === 0) c = mid.clone().add(randUnit().multiplyScalar(.14));
       else { const m = Math.hypot(mid.x, mid.y) || .01, push = .17 + R() * .24 + (1 - Math.min(1, m / 1.2)) * .26; c = new V(mid.x + mid.x / m * push, mid.y + mid.y / m * push, mid.z + (R() - .5) * .5); }
       strands.push({p0, c, p1, len: p0.distanceTo(c) + c.distanceTo(p1)});
-      const ca = AGC[p.a], cb = AGC[p.b], SEG = 12;
+      const ca = AGC[p.a], cb = AGC[p.b], SEG = 14;
       let lx = p0.x, ly = p0.y, lz = p0.z;
       for (let k = 1; k <= SEG; k++) {
         const u = k / SEG, v = 1 - u;
@@ -6257,7 +6257,7 @@ try {
   if (!THREE) throw new Error('three.js 没加载');
   renderer = new THREE.WebGLRenderer({canvas: cv, antialias: true, powerPreference: 'high-performance'});
   renderer.setClearColor(0x03050a, 1);
-  pr = Math.min(window.devicePixelRatio || 1, 1.75);
+  pr = Math.min(window.devicePixelRatio || 1, 2.0);
   renderer.setPixelRatio(pr);
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(38, 16 / 9, .05, 200);
@@ -6270,7 +6270,7 @@ try {
   if (THREE.EffectComposer && THREE.UnrealBloomPass && THREE.RenderPass) {
     composer = new THREE.EffectComposer(renderer);
     composer.addPass(new THREE.RenderPass(scene, camera));
-    bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(512, 512), .62, .42, .3);
+    bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(512, 512), .7, .36, .38);
     composer.addPass(bloomPass);
   } else bloomOn = false;
   glOK = true;
