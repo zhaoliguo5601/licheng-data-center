@@ -21306,40 +21306,72 @@ requestAnimationFrame(frame);
 </script>
 
 <style>
-#lcChat{position:fixed;right:24px;bottom:96px;z-index:9997;width:min(300px,calc(100vw-48px));display:flex;flex-direction:column;align-items:stretch;gap:8px}
-#lcHead{display:flex;align-items:stretch;font-size:13px;color:#eafcff;letter-spacing:.06em;background:rgba(4,10,16,.78);border:1px solid rgba(0,229,255,.25);border-radius:14px;overflow:hidden;backdrop-filter:blur(12px)}
-#lcModel{flex:0 1 auto;font:500 10px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:transparent;border:none;border-right:1px solid rgba(0,229,255,.25);border-radius:13px 0 0 13px;padding:9px 11px;outline:none;cursor:pointer;max-width:120px}
+#lcChat{position:fixed;right:20px;bottom:24px;z-index:9997;width:min(330px,calc(100vw-32px));display:flex;flex-direction:column;gap:8px}
+#lcChat.collapsed{display:none}
+/* 收起态：右下角悬浮触发钮 */
+#lcFab{position:fixed;right:20px;bottom:24px;z-index:9997;width:52px;height:52px;border-radius:50%;border:1px solid rgba(0,229,255,.35);background:rgba(4,10,16,.82);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 22px rgba(0,229,255,.25)}
+#lcFab svg{width:24px;height:24px;fill:#45e6f5}
+.lc-panel{display:flex;flex-direction:column;gap:8px;background:rgba(4,10,16,.82);border:1px solid rgba(0,229,255,.25);border-radius:16px;backdrop-filter:blur(14px);overflow:hidden}
+.lc-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(0,229,255,.15)}
+.lc-head-title{font-size:13px;font-weight:700;color:#eafcff;letter-spacing:.06em;flex:1 1 auto}
+#lcModel{font:500 11px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);border-radius:9px;padding:6px 8px;outline:none;cursor:pointer;max-width:130px}
 #lcModel option{background:#0a141c;color:#eafcff}
-#lcMicBtn{display:none}
-#lcStatus{width:100%;display:flex;align-items:center;gap:6px;font-size:11px;color:#7fd9e8;letter-spacing:.08em;min-height:15px;text-align:left;justify-content:flex-start}
-#lcDot{width:7px;height:7px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a}
+#lcCollapse{border:none;background:transparent;color:#7fd9e8;font-size:15px;cursor:pointer;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+#lcCollapse:hover{background:rgba(0,229,255,.12)}
+/* 对话气泡区 */
+#lcLog{display:flex;flex-direction:column;gap:8px;padding:10px 12px;max-height:190px;overflow-y:auto;scrollbar-width:thin}
+.lc-bubble{max-width:82%;padding:8px 11px;border-radius:12px;font-size:13px;line-height:1.5;color:#eafcff;white-space:pre-wrap;word-break:break-word}
+.lc-bubble.user{align-self:flex-end;background:rgba(0,229,255,.16);border:1px solid rgba(0,229,255,.28);border-bottom-right-radius:4px}
+.lc-bubble.assistant{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-bottom-left-radius:4px}
+.lc-bubble.sys{align-self:center;color:#7fd9e8;font-size:11px;background:transparent;border:none}
+/* 状态行 */
+#lcStatus{width:100%;display:flex;align-items:center;gap:6px;font-size:11px;color:#7fd9e8;letter-spacing:.08em;min-height:15px;text-align:left;justify-content:flex-start;padding:0 12px}
+#lcDot{width:7px;height:7px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a;flex:0 0 auto}
 #lcStatus.thinking,#lcStatus.speaking{color:#ffd23f}
 #lcStatus.thinking #lcDot,#lcStatus.speaking #lcDot{background:#ffd23f;box-shadow:0 0 8px #ffd23f;animation:lcPulse 1.1s infinite}
 #lcStatus.listening{color:#45e6f5}
 #lcStatus.listening #lcDot{background:#45e6f5;box-shadow:0 0 8px #45e6f5}
 @keyframes lcPulse{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
-#lcInput{flex:1;min-width:0;background:transparent;border:none;border-radius:0;padding:9px 11px;color:#eafcff;font-size:13px;outline:none}
+/* 底部输入条：麦克风 + 输入框 + 发送 */
+.lc-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid rgba(0,229,255,.15)}
+#lcMicBtn{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.08);color:#45e6f5;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#lcMicBtn svg{width:18px;height:18px;fill:currentColor}
+#lcMicBtn.listening{background:rgba(255,92,92,.18);border-color:rgba(255,92,92,.5);color:#ff7b7b}
+#lcInput{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(0,229,255,.18);border-radius:10px;padding:9px 11px;color:#eafcff;font-size:13px;outline:none}
 #lcInput::placeholder{color:#6f9aa6}
-#lcSend{border:none;border-left:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.12);color:#eafcff;border-radius:0 13px 13px 0;padding:9px 14px;font-size:13px;cursor:pointer}
+#lcSend{flex:0 0 auto;border:none;background:rgba(0,229,255,.16);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
 #lcSend:disabled{opacity:.45;cursor:default}
-@media(max-width:640px){#lcChat{right:16px;bottom:80px}}
+@media(max-width:640px){#lcChat{right:12px;bottom:16px;width:min(320px,calc(100vw-24px))}#lcFab{right:12px;bottom:16px}}
 </style>
 <div id="lcChat" role="dialog" aria-label="立橙智能助手">
-  <div id="lcHead">
-    <select id="lcModel" aria-label="选择模型">
-    <option value="auto" selected>自动分派（母AI调度）</option>
-    <option value="lite">豆包 2.1 Lite</option>
-    <option value="turbo">豆包 2.1 Turbo</option>
-    <option value="glm">GLM 5.3 Flash</option>
-    <option value="kimi">Kimi K3.1 Pro</option>
-    <option value="ds">DeepSeek V4.1 Flash</option>
-    <option value="ds-econ">DeepSeek V4.1 经济版</option>
-  </select>
-    <input id="lcInput" type="text" placeholder="问点什么…" autocomplete="off">
-    <button id="lcSend" type="button">发送</button>
+  <div class="lc-panel">
+    <div class="lc-head">
+      <span class="lc-head-title">立橙智能助手</span>
+      <select id="lcModel" aria-label="选择模型">
+        <option value="auto" selected>自动分派（母AI调度）</option>
+        <option value="lite">豆包 2.1 Lite</option>
+        <option value="turbo">豆包 2.1 Turbo</option>
+        <option value="glm">GLM 5.3 Flash</option>
+        <option value="kimi">Kimi K3.1 Pro</option>
+        <option value="ds">DeepSeek V4.1 Flash</option>
+        <option value="ds-econ">DeepSeek V4.1 经济版</option>
+      </select>
+      <button id="lcCollapse" type="button" aria-label="收起面板" title="收起面板">▾</button>
+    </div>
+    <div id="lcLog" aria-live="polite"></div>
+    <div id="lcStatus" class="status"><span id="lcDot"></span><span id="lcStatusText">待命 · 点麦克风说话或输入问题</span></div>
+    <div class="lc-bar">
+      <button id="lcMicBtn" type="button" aria-label="语音输入" title="按住说话">
+        <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2z"/></svg>
+      </button>
+      <input id="lcInput" type="text" placeholder="问点什么…" autocomplete="off">
+      <button id="lcSend" type="button">发送</button>
+    </div>
   </div>
-  <div id="lcStatus" class="status"><span id="lcStatusText">待命 · 点按星环说话</span></div>
 </div>
+<button id="lcFab" type="button" aria-label="打开助手" title="打开助手">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM7 9h10v2H7V9zm0 4h7v2H7v-2z"/></svg>
+</button>
 <script>
 (function(){
   /* 接口地址：优先取 window.LCDC_API_BASE；未注入时回退阿里云 FC 函数域名 */
@@ -21359,9 +21391,30 @@ requestAnimationFrame(frame);
       statusText=document.getElementById('lcStatusText'),
       micBtn=document.getElementById('lcMicBtn'),
       input=document.getElementById('lcInput'), send=document.getElementById('lcSend'),
-      modelSel=document.getElementById('lcModel');
+      modelSel=document.getElementById('lcModel'),
+      log=document.getElementById('lcLog'),
+      fab=document.getElementById('lcFab'),
+      collapseBtn=document.getElementById('lcCollapse');
 
   var history=[], working=false;
+
+  /* 对话气泡：user 右对齐 / assistant 左对齐 / sys 居中提示 */
+  function addBubble(role, text){
+    if(!log) return;
+    var el=document.createElement('div');
+    el.className='lc-bubble '+role;
+    el.textContent=(text==null?'':String(text));
+    log.appendChild(el);
+    log.scrollTop=log.scrollHeight;
+  }
+  /* 收起 / 展开悬浮面板 */
+  function setPanel(open){
+    if(!chat) return;
+    chat.classList.toggle('collapsed', !open);
+    if(fab) fab.style.display=open?'none':'flex';
+  }
+  if(collapseBtn) collapseBtn.addEventListener('click', function(){ setPanel(false); });
+  if(fab) fab.addEventListener('click', function(){ setPanel(true); try{ input.focus(); }catch(e){} });
   var selectedKey=modelSel.value;
   var modelColor={};   // key → 主题色 hex，来自 Worker 清单/回复
   var modelListCache=[]; //  Worker 下发的模型清单（含 key/name/color/available/vendor）
@@ -21547,6 +21600,7 @@ requestAnimationFrame(frame);
       .then(function(data){
         var reply=(data&&data.reply)||'我这边暂时没回答上来，换个问题试试。';
         history.push({role:'assistant',content:reply});
+        addBubble('assistant', reply);
         var dispatched=(data&&data.key)||selectedKey;
         if(data&&data.color) modelColor[dispatched]=data.color;
         if(!autoMode){ selectedKey=dispatched; modelSel.value=dispatched; }
@@ -21560,12 +21614,14 @@ requestAnimationFrame(frame);
       .catch(function(){
         if(f) f.setState('idle');
         setStatus('网络或对话服务暂时不可用','idle');
+        addBubble('assistant','网络或对话服务暂时不可用，请稍后再试。');
       })
       .finally(function(){ working=false; send.disabled=false; });
   }
 
   function handleText(text){
     text=(text||'').trim(); if(!text||working) return;
+    addBubble('user', text);
     if(isOpenCommand(text)){
       setStatus('正在进入数据中心…','idle');
       if(window.enterDashboard) window.enterDashboard(); else location.href='dashboard.html';
@@ -21643,7 +21699,7 @@ requestAnimationFrame(frame);
         asrChunks.push(e.inputBuffer.getChannelData(0).slice(0));
       };
       asrRecording=true; asrBusy=false;
-      fxSetState('listening'); setStatus('聆听中 · 再点一次结束录音','listening');
+      fxSetState('listening'); setStatus('聆听中 · 松开结束录音','listening');
     }catch(e){
       asrBusy=false;
       var nm=(e&&e.name)||'';
@@ -21685,7 +21741,24 @@ requestAnimationFrame(frame);
     if(working||asrBusy) return;
     if(asrRecording){ asrStop(); } else { asrStart(); }
   }
-  if(micBtn) micBtn.addEventListener('click', toggleVoice);
+  /* 输入条麦克风：按住说话，松开结束（兼容首次授权异步返回） */
+  var armReleased=false;
+  async function pressStart(){
+    if(working||asrBusy) return;
+    armReleased=false;
+    await asrStart();
+    if(armReleased && asrRecording){ asrStop(); }
+  }
+  function pressEnd(){
+    armReleased=true;
+    if(asrRecording) asrStop();
+  }
+  if(micBtn){
+    micBtn.addEventListener('pointerdown', function(e){ e.preventDefault(); pressStart(); });
+    micBtn.addEventListener('pointerup', pressEnd);
+    micBtn.addEventListener('pointerleave', pressEnd);
+    micBtn.addEventListener('pointercancel', pressEnd);
+  }
   /* 语音入口仅标题中间状态灯；3D 星环空白点击不再唤起语音 */
   var hostEl=document.getElementById('host-neural');
   /* 标题中间状态灯点击 = 唤起/挂断语音 */
