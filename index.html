@@ -6550,6 +6550,14 @@ function drawRing(){
     });
   });
   // 外圈模型卡：槽 0=自动分派，槽 1..12=在线模型；竖条=运行/连通，横条=累计用量，选中铺主题色浅底
+  // 文本按可用宽度截断，超长以省略号收尾，避免弧形窄卡上左右两段文字对撞
+  function fitText(q, text, maxW){
+    text = String(text == null ? '' : text);
+    if (q.measureText(text).width <= maxW) return text;
+    let t = text;
+    while (t.length > 1 && q.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+    return t + '…';
+  }
   const sw = RW / NCL;
   let maxCalls = 1;
   for (let k = 0; k < NCL; k++) { const u = slotUsageOf(k); if (u && u.calls > maxCalls) maxCalls = u.calls; }
@@ -6578,17 +6586,19 @@ function drawRing(){
       q.textBaseline = 'middle'; q.textAlign = 'left';
       const en = m ? (m.key === 'auto' ? 'AUTO' : m.key.toUpperCase()) : a.k;
       const zh = m ? m.name : a.zh;
+      const maxW = w - 28;
       // 上行：英文 key（大字）
-      q.font = `800 24px ${MONO}`; q.fillStyle = active ? '#ffffff' : 'rgba(225,236,250,.85)';
-      q.fillText(en, -w / 2 + 14, -10);
-      // 下行：模型中文名（原 STANDBY 位置，小字）；状态/用量右对齐
-      q.font = `500 15px ${CJK}`; q.fillStyle = active ? 'rgba(225,236,250,.9)' : 'rgba(225,236,250,.68)';
-      q.fillText(zh, -w / 2 + 14, 13);
-      q.font = `500 13px ${MONO}`; q.fillStyle = 'rgba(200,220,240,.62)';
-      const st = m ? (calls > 0 ? `CALLS ${calls} · ${sec}s` : 'STANDBY')
+      q.font = `800 22px ${MONO}`; q.fillStyle = active ? '#ffffff' : 'rgba(225,236,250,.85)';
+      q.fillText(fitText(q, en, maxW), -w / 2 + 14, -17);
+      // 中行：模型中文名（小字，左对齐，超长截断）
+      q.font = `500 12px ${CJK}`; q.fillStyle = active ? 'rgba(225,236,250,.9)' : 'rgba(225,236,250,.68)';
+      q.fillText(fitText(q, zh, maxW), -w / 2 + 14, 0);
+      // 下行：用量/状态（更小字，左对齐独占一行；秒数取整，不再与中文名左右对撞）
+      q.font = `500 10px ${MONO}`; q.fillStyle = 'rgba(200,220,240,.62)';
+      const secR = Math.round(sec);
+      const st = m ? (calls > 0 ? `Q${calls} · ${secR}s` : 'STANDBY')
                    : (k === 0 ? `DISPATCH ${lastDispatch}` : a.cur ? `${a.cur.id} · ${Math.round(a.prog * 100)}%` : a.inbox.length ? `QUEUE ${a.inbox.length}` : 'IDLE');
-      q.textAlign = 'right';
-      q.fillText(st, w / 2 - 14, 13);
+      q.fillText(fitText(q, st, maxW), -w / 2 + 14, 15);
     });
   }
   ringTex.needsUpdate = true;
@@ -6833,7 +6843,7 @@ function showTip(i){
   if (m) {
     const u = slotUsage[m.key];
     const en = m.key === 'auto' ? 'AUTO' : m.key.toUpperCase();
-    const usage = u ? `调用 ${u.calls} 次 · ${u.sec}s · 入 ${fmtTok(u.inTok)} / 出 ${fmtTok(u.outTok)}` : '暂无用量记录';
+    const usage = u ? `调用 ${u.calls} 次 · ${Math.round(u.sec)}s · 入 ${fmtTok(u.inTok)} / 出 ${fmtTok(u.outTok)}` : '暂无用量记录';
     tip.style.setProperty('--c', m.color);
     tip.innerHTML = `<span><b>${en}</b><strong>${m.name}</strong></span><span>${usage}</span><span class="h">${selKey === m.key ? '当前调用中' : '点击切换到该模型'}</span>`;
   } else {
