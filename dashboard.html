@@ -1523,7 +1523,7 @@ let bgFrame=0;
   cv._raf2d=requestAnimationFrame(draw);
 })();
 
-/* ============ 数据中枢 · 3D 神经星环（NEURAL 风格 · three.js · 失败自动回退 2D） ============ */
+/* 数据中枢 · 3D 神经星环（高保真复刻首页 NEURAL：稠密神经丝网 + 模型卡弧带 + 条码环） */
 (function(){
   const cv3=document.getElementById('ring3d');
   const cv2=document.getElementById('ring');
@@ -1534,193 +1534,501 @@ let bgFrame=0;
     'examples/js/postprocessing/EffectComposer.js','examples/js/postprocessing/RenderPass.js',
     'examples/js/postprocessing/ShaderPass.js','examples/js/postprocessing/UnrealBloomPass.js'].map(p=>CDN+p);
 
-  function waitThree(res, tries){
-    if(window.THREE) return res();
-    if(tries>40) return res();
-    setTimeout(()=>waitThree(res,tries+1),50);
-  }
-  function loadScripts(list){
-    return list.reduce((p,src)=>p.then(()=>new Promise(res=>{
-      const s=document.createElement('script'); s.src=src;
-      s.onload=()=>{ if(/three\.min\.js$/.test(src)) waitThree(res,0); else res(); };
-      s.onerror=res; document.head.appendChild(s);
-    })),Promise.resolve());
-  }
+  function waitThree(res,tries){ if(window.THREE)return res(); if(tries>40)return res(); setTimeout(()=>waitThree(res,tries+1),50); }
+  function loadScripts(list){ return list.reduce((p,src)=>p.then(()=>new Promise(res=>{
+    const s=document.createElement('script'); s.src=src;
+    s.onload=()=>{ if(/three\.min\.js$/.test(src)) waitThree(res,0); else res(); };
+    s.onerror=res; document.head.appendChild(s);
+  })),Promise.resolve()); }
 
-  const COLS=['#00e5ff','#22ff9c','#a855f7','#ffb347','#4da3ff','#ff5cae','#ff4458','#62e6c7','#ffd23f','#9aa6ff','#ff7b54','#b5ef3a'];
   const TAU=Math.PI*2;
-  const reduce=window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+  const wrapPI=a=>((a+Math.PI)%TAU+TAU)%TAU-Math.PI;
+  function mulberry32(a){ return function(){ a|=0;a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+  const R=mulberry32(20261020);
+  const rg=()=>{ let u=0,v=0; while(!u)u=R(); while(!v)v=R(); return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v); };
+  const hex3=h=>{ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
+  const rgba=(h,a)=>{ const n=parseInt(h.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; };
 
-  const boot=()=>{ loadScripts(DEPS).then(()=>{
-    try{
-      if(!window.THREE) throw new Error('three.js 未就绪');
-      const THREE=window.THREE;
-      const test=document.createElement('canvas');
-      const gl=test.getContext('webgl2')||test.getContext('webgl');
-      if(!gl) throw new Error('WebGL 不可用');
+  /* 13 团：槽0=总调度，槽1..12=外围智能体；配色照搬首页神经星环 */
+  const AG=[
+    {k:'CHIEF', zh:'总调度', col:'#f3f4f8'},
+    {k:'SCOUT', zh:'检索',   col:'#2fd27a'},
+    {k:'SPLIT', zh:'拆解',   col:'#a774ff'},
+    {k:'COPY',  zh:'文案',   col:'#ff4458'},
+    {k:'DESIGN',zh:'设计',   col:'#ff5cae'},
+    {k:'CODE',  zh:'代码',   col:'#3b7cff'},
+    {k:'TEST',  zh:'测试',   col:'#25d6f0'},
+    {k:'PROOF', zh:'审校',   col:'#ff9a1f'},
+    {k:'DATA',  zh:'数据',   col:'#ffd23f'},
+    {k:'CUT',   zh:'剪辑',   col:'#ff7b54'},
+    {k:'ADS',   zh:'投放',   col:'#b5ef3a'},
+    {k:'CARE',  zh:'客服',   col:'#62e6c7'},
+    {k:'VAULT', zh:'归档',   col:'#9aa6ff'}
+  ];
+  const AGC=AG.map(a=>hex3(a.col));
+  const NCL=13;
 
-      const box=cv3.parentElement;
-      const renderer=new THREE.WebGLRenderer({canvas:cv3,antialias:true,alpha:true,powerPreference:'high-performance'});
-      renderer.setClearColor(0x000000,0);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  /* ---------- 着色器（移植首页 NEURAL） ---------- */
+  const BRAIN_VS_L=`
+attribute vec3 col; attribute float grp; attribute float shade;
+uniform vec2 af[48]; uniform float uMono; uniform float uFade; uniform float uGain;
+varying vec3 vCol; varying float vA;
+void main(){
+  vec4 mv=modelViewMatrix*vec4(position,1.0);
+  vec2 q=af[int(grp+0.5)];
+  float a=clamp(q.x,0.0,1.5);
+  vec3 silver=vec3(0.74,0.81,0.92);
+  vec3 base=mix(col,silver,uMono);
+  vec3 lit=mix(col*1.3+0.06,vec3(1.0),0.2);
+  vCol=mix(base,lit,clamp(a,0.0,1.0)*(0.35+0.65*uMono));
+  float depth=clamp((-mv.z-uFade)/5.0,0.0,1.0);
+  vA=shade*(0.55+a*1.3)*(1.0-depth*0.5)*q.y*uGain;
+  gl_Position=projectionMatrix*mv;
+}`;
+  const BRAIN_FS_L=`
+varying vec3 vCol; varying float vA;
+void main(){ gl_FragColor=vec4(vCol,vA); }`;
+  const BRAIN_VS_P=`
+attribute vec3 col; attribute float grp; attribute float sz; attribute float ph;
+uniform vec2 af[48]; uniform float uMono; uniform float uTime; uniform float uPx; uniform float uFade; uniform float uGain;
+varying vec3 vCol; varying float vA;
+void main(){
+  vec4 mv=modelViewMatrix*vec4(position,1.0);
+  vec2 q=af[int(grp+0.5)];
+  float a=clamp(q.x,0.0,1.5);
+  float tw=0.62+0.38*sin(uTime*(0.9+ph*2.2)+ph*40.0);
+  vec3 silver=vec3(0.86,0.9,0.98);
+  vCol=mix(mix(col,silver,uMono),col*1.25+0.22,clamp(a,0.0,1.0)*(0.3+0.7*uMono));
+  float depth=clamp((-mv.z-uFade)/5.0,0.0,1.0);
+  vA=(0.42+a*1.1)*tw*(1.0-depth*0.55)*q.y*(0.4+0.6*uGain);
+  gl_PointSize=max(1.0,sz*uPx*(1.0+a*0.55)/-mv.z);
+  gl_Position=projectionMatrix*mv;
+}`;
+  const PT_FS=`
+uniform sampler2D map; varying vec3 vCol; varying float vA;
+void main(){ vec4 t=texture2D(map,gl_PointCoord); gl_FragColor=vec4(vCol,t.a*vA); }`;
+  const SIG_VS=`
+attribute vec3 col; attribute float sz; attribute float al;
+uniform float uPx;
+varying vec3 vCol; varying float vA;
+void main(){
+  vec4 mv=modelViewMatrix*vec4(position,1.0);
+  vCol=col; vA=al;
+  gl_PointSize=sz<=0.0?0.0:max(1.5,sz*uPx/-mv.z);
+  gl_Position=projectionMatrix*mv;
+}`;
+  const STREAK_VS=`
+attribute vec3 dir; attribute float r0; attribute float len; attribute float spd; attribute float endp;
+uniform float uTime; uniform float uBoost;
+varying float vA;
+void main(){
+  float span=15.0;
+  float r=3.1+mod(r0+uTime*spd*(1.0+uBoost*2.5),span);
+  float rr=r+endp*len*(1.0+uBoost*1.6);
+  vA=smoothstep(3.1,4.6,r)*(1.0-smoothstep(11.0,18.1,r))*(0.25+0.75*endp);
+  gl_Position=projectionMatrix*modelViewMatrix*vec4(dir*rr,1.0);
+}`;
+  const STREAK_FS=`
+varying float vA;
+void main(){ gl_FragColor=vec4(0.72,0.84,1.0,vA*0.42); }`;
 
-      const scene=new THREE.Scene();
-      const camera=new THREE.PerspectiveCamera(38,1,0.05,100);
-      camera.position.set(0,0,6.2);
-      const spin=new THREE.Group(); scene.add(spin);
+  /* ---------- 场景对象占位 ---------- */
+  let renderer=null, scene, camera, composer=null, world, hud, spin;
+  let brainLines, brainPts, sigGeo, sigMat, trGeo, streaks, dust;
+  let coreSpr, barcode, sweep, ringRing, ringTex, ringCtx, dashRing, tickA, tickB, arcsA, arcsB;
+  let ringTex2=null;
+  const AF=new Float32Array(96);
+  for(let i=0;i<48;i++){ AF[i*2]=.1; AF[i*2+1]=1; }
+  const CL=[], BUN=[], MEM=[], NX=[], NY=[], NZ=[];
+  let NEU=0, SYN=0, glOK=false;
+  let animT=0, lastNow=performance.now();
 
-      function spriteTex(){
-        const c=document.createElement('canvas'); c.width=c.height=64;
-        const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
-        g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.18,'rgba(255,255,255,.85)');
-        g.addColorStop(.42,'rgba(255,255,255,.22)');g.addColorStop(1,'rgba(255,255,255,0)');
-        x.fillStyle=g;x.fillRect(0,0,64,64);
-        return new THREE.CanvasTexture(c);
-      }
-      const SPR=spriteTex();
-      const colHex=h=>{const n=parseInt(h.slice(1),16);return new THREE.Color(n>>16&255,n>>8&255,n&255);};
+  function spriteTexture(){
+    const c=document.createElement('canvas'); c.width=c.height=64;
+    const x=c.getContext('2d'), g=x.createRadialGradient(32,32,0,32,32,32);
+    g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.18,'rgba(255,255,255,.85)');
+    g.addColorStop(.42,'rgba(255,255,255,.22)'); g.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=g; x.fillRect(0,0,64,64);
+    return new THREE.CanvasTexture(c);
+  }
+  let SPRITE=null;
 
-      function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-      const R=mulberry32(20261121);
-      const rg=()=>{let u=0,v=0;while(!u)u=R();while(!v)v=R();return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v);};
+  function randUnit(){ let x,y,z,d; do{ x=R()*2-1;y=R()*2-1;z=R()*2-1; d=x*x+y*y+z*z; }while(d>1||d<.01); d=Math.sqrt(d); return new THREE.Vector3(x/d,y/d,z/d); }
 
-      const CL=[new THREE.Vector3(0,0,0)];
-      const NCL=12;
-      for(let i=1;i<=NCL;i++){
-        const a=-Math.PI/2+(i-1)/NCL*TAU, r=1.12+(R()-.5)*.12;
-        CL.push(new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,(i%2?1:-1)*(.12+R()*.22)));
-      }
-
-      function randDir(){ let x,y,z,d; do{x=R()*2-1;y=R()*2-1;z=R()*2-1;d=x*x+y*y+z*z;}while(d>1||d<.01);d=Math.sqrt(d);return{x:x/d,y:y/d,z:z/d}; }
-
-      const cluster=[];
-      CL.forEach((C,idx)=>{
-        const chief=idx===0;
-        const col=chief?new THREE.Color(0xeafcff):colHex(COLS[(idx-1+NCL)%NCL]);
-        const n=chief?300:64, sig=chief?.2:.13;
-        const pos=new Float32Array(n*3);
-        for(let k=0;k<n;k++){
-          let dx,dy,dz;
-          if(k<n*.4){ /* 紧核：高斯聚拢 */
-            dx=rg()*sig; dy=rg()*sig; dz=rg()*sig*.9;
-          }else{ /* 放射臂：沿随机方向散开，带轻微弯曲抖动 */
-            const a=randDir(), u=Math.pow(R(),.8);
-            const len=chief?.55+R()*.5:.3+R()*.36, bend=(R()-.5)*.12, j=randDir();
-            dx=a.x*len*u+j.x*bend+rg()*.018;
-            dy=a.y*len*u+j.y*bend+rg()*.018;
-            dz=a.z*len*u*.9+j.z*bend+rg()*.018;
-          }
-          pos[k*3]=C.x+dx; pos[k*3+1]=C.y+dy; pos[k*3+2]=C.z+dz;
+  function buildBrain(){
+    SPRITE=spriteTexture();
+    const V=THREE.Vector3;
+    CL.push(new V(0,0,0));
+    for(let i=1;i<=12;i++){ const a=Math.PI/2-(i-1)/12*TAU, r=1.1+(R()-.5)*.12; CL.push(new V(Math.cos(a)*r,Math.sin(a)*r,(i%2?1:-1)*(.14+R()*.26))); }
+    const px=[],py=[],pz=[],ng=[],nc=[],ns=[];
+    const members=Array.from({length:NCL},()=>[]);
+    function addN(x,y,z,g,c,s){ const r=Math.hypot(x,y,z),lim=1.8;
+      if(r>lim){ const k=(lim-R()*.12)/r; x*=k;y*=k;z*=k; }
+      const i=px.length; px.push(x);py.push(y);pz.push(z);ng.push(g);nc.push(c);ns.push(s);
+      if(g<NCL)members[g].push(i); return i; }
+    for(let c=0;c<NCL;c++){
+      const C=CL[c], chief=c===0;
+      const n=chief?620:380, sig=chief?.2:.14;
+      for(let k=0;k<(chief?5:3);k++) addN(C.x+rg()*.025,C.y+rg()*.025,C.z+rg()*.025,c,c,chief?.09:.068);
+      const core=Math.round(n*.4);
+      for(let k=0;k<core;k++) addN(C.x+rg()*sig,C.y+rg()*sig,C.z+rg()*sig*.9,c,c,.016+R()*.016);
+      const nd=chief?18:11, per=Math.round((n-core)/nd);
+      for(let d=0;d<nd;d++){
+        const dir=randUnit(), len=chief?.68+R()*.6:.32+R()*.42;
+        const perp=randUnit().cross(dir).normalize(), bend=(R()-.5)*.3;
+        for(let k=0;k<per;k++){
+          const u=Math.pow(R(),.8), off=Math.sin(u*Math.PI)*bend, j=.018+.035*u;
+          addN(C.x+dir.x*len*u+perp.x*off+rg()*j, C.y+dir.y*len*u+perp.y*off+rg()*j, C.z+dir.z*len*u+perp.z*off+rg()*j, c,c,.012+R()*.012);
         }
-        const g=new THREE.BufferGeometry();
-        g.setAttribute('position',new THREE.BufferAttribute(pos,3));
-        spin.add(new THREE.Points(g,new THREE.PointsMaterial({size:chief?.07:.05,map:SPR,color:col,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true})));
-        const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:SPR,color:col,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));
-        spr.position.copy(C); spr.scale.setScalar(chief?.5:.22); spin.add(spr);
-        cluster.push({spr,ph:R()*TAU,chief});
-      });
-
-      function lineMat(op,col){return new THREE.LineBasicMaterial({color:col||0xd4e8ff,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false});}
-      const linkPos=[];
-      /* 中心核 → 各团：二次贝塞尔曲线束，轻微向外鼓 */
-      function pushCurve(A,B,seg){
-        const mx=(A.x+B.x)/2,my=(A.y+B.y)/2,mz=(A.z+B.z)/2;
-        const m=Math.hypot(mx,my)||.01, push=.12+R()*.18;
-        const C=new THREE.Vector3(mx+mx/m*push,my+my/m*push,mz+(R()-.5)*.2);
-        let px=A.x,py=A.y,pz=A.z;
-        for(let k=1;k<=seg;k++){
-          const u=k/seg,v=1-u;
-          const x=v*v*A.x+2*v*u*C.x+u*u*B.x, y=v*v*A.y+2*v*u*C.y+u*u*B.y, z=v*v*A.z+2*v*u*C.z+u*u*B.z;
-          linkPos.push(px,py,pz,x,y,z); px=x;py=y;pz=z;
-        }
       }
-      for(let i=1;i<=NCL;i++)pushCurve(CL[0],CL[i],10);
-      for(let i=1;i<=NCL;i++){const A=CL[i],B=CL[i%NCL+1];linkPos.push(A.x,A.y,A.z,B.x,B.y,B.z);}
-      const lg=new THREE.BufferGeometry();
-      lg.setAttribute('position',new THREE.Float32BufferAttribute(linkPos,3));
-      spin.add(new THREE.LineSegments(lg,lineMat(.18)));
-
-      function circle(r,z,op,seg){const a=new Float32Array(seg*3);for(let i=0;i<seg;i++){const t=i/seg*TAU;a[i*3]=Math.cos(t)*r;a[i*3+1]=Math.sin(t)*r;a[i*3+2]=z;}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(a,3));return new THREE.LineLoop(g,lineMat(op));}
-      spin.add(circle(1.55,0,.3,320));
-      spin.add(circle(1.72,0,.18,320));
-      {const a=[];for(let i=0;i<72;i++){const t=i/72*TAU,long=i%6===0,l=long?.05:.022;a.push(Math.cos(t)*1.72,Math.sin(t)*1.72,0,Math.cos(t)*(1.72+l),Math.sin(t)*(1.72+l),0);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(a,3));spin.add(new THREE.LineSegments(g,lineMat(.4)));}
-      {const a=[];[[.1,.9],[1.3,1.5],[2.2,3.4],[3.9,4.2],[4.6,5.8]].forEach(([t0,t1])=>{const n=20;for(let i=0;i<n;i++){const u0=t0+(t1-t0)*i/n,u1=t0+(t1-t0)*(i+1)/n;a.push(Math.cos(u0)*1.8,Math.sin(u0)*1.8,0,Math.cos(u1)*1.8,Math.sin(u1)*1.8,0);}});const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(a,3));spin.add(new THREE.LineSegments(g,lineMat(.35)));}
-
-      {const n=850,p=new Float32Array(n*3);for(let k=0;k<n;k++){const u=R()*2-1,v=R()*2-1,w=R()*2-1,d=Math.hypot(u,v,w)||1,r=6+R()*18;p[k*3]=u/d*r;p[k*3+1]=v/d*r;p[k*3+2]=w/d*r;}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({size:.05,map:SPR,color:0x7f93b0,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false})));}
-
-      const links=[];
-      for(let i=1;i<=NCL;i++)links.push([CL[0],CL[i]]);
-      for(let i=1;i<=NCL;i++)links.push([CL[i],CL[i%NCL+1]]);
-      const pulses=[];
-      for(let k=0;k<14;k++){
-        const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:SPR,color:0xffffff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
-        spr.scale.setScalar(.12); spin.add(spr);
-        pulses.push({spr,lk:(R()*links.length)|0,t:R(),speed:.18+R()*.22,col:COLS[k%COLS.length]});
-      }
-
-      const sweep=new THREE.Mesh(new THREE.RingGeometry(1.2,1.68,48,1,-Math.PI/2,.55),
-        new THREE.MeshBasicMaterial({color:0x00e5ff,transparent:true,opacity:.12,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
-      spin.add(sweep);
-
-      let composer=null;
-      if(THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.RenderPass){
-        composer=new THREE.EffectComposer(renderer);
-        composer.addPass(new THREE.RenderPass(scene,camera));
-        composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(512,512),.62,.42,.3));
-      }
-
-      function resize(){
-        const w=box.clientWidth||1,h=box.clientHeight||1;
-        renderer.setSize(w,h,false);
-        camera.aspect=w/h; camera.updateProjectionMatrix();
-        if(composer)composer.setSize(w,h);
-      }
-      if('ResizeObserver' in window)new ResizeObserver(resize).observe(box);
-      window.addEventListener('resize',resize);
-      resize();
-
-      let last=performance.now(),raf;
-      function frame(now){
-        const dt=Math.min(.05,(now-last)/1000); last=now;
-        const t=now/1000;
-        if(!reduce)spin.rotation.z+=dt*.05;
-        const chief=cluster[0],breath=1+.12*Math.sin(t*2);
-        chief.spr.scale.setScalar(.5*breath);
-        chief.spr.material.opacity=.7+.25*Math.sin(t*2);
-        cluster.slice(1).forEach(o=>{
-          const p=.5+.5*Math.sin(t*1.6+o.ph);
-          o.spr.scale.setScalar(.18+.06*p);
-          o.spr.material.opacity=.55+.35*p;
-        });
-        pulses.forEach(po=>{
-          po.t+=po.speed*dt;
-          if(po.t>=1){po.t=0;po.lk=(R()*links.length)|0;po.speed=.18+R()*.22;}
-          const A=links[po.lk][0],B=links[po.lk][1],u=po.t;
-          po.spr.position.set(A.x+(B.x-A.x)*u,A.y+(B.y-A.y)*u,A.z+(B.z-A.z)*u);
-          po.spr.material.color.set(po.col);
-          po.spr.material.opacity=Math.sin(u*Math.PI)*.95;
-        });
-        sweep.rotation.z-=dt*.5;
-        if(composer)composer.render();else renderer.render(scene,camera);
-        raf=requestAnimationFrame(frame);
-      }
-
-      // 3D 就绪：停掉并隐藏 2D 兜底环
-      if(cv2){cv2._stop2d=true; if(cv2._raf2d)cancelAnimationFrame(cv2._raf2d); cv2.style.display='none';}
-      cv3.hidden=false;
-      raf=requestAnimationFrame(frame);
-
-      document.addEventListener('visibilitychange',()=>{
-        if(document.hidden){cancelAnimationFrame(raf);}else{last=performance.now();raf=requestAnimationFrame(frame);}
-      });
-    }catch(e){
-      console.error('3D 神经星环初始化失败，回退 2D：',e);
-      cv3.hidden=true;
     }
-  }); };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-})();
+    for(let k=0;k<4200;k++){ let x,y,z; do{ x=R()*2-1;y=R()*2-1;z=R()*2-1; }while(x*x+y*y+z*z>1);
+      const dd=Math.hypot(x,y,z)||1, rr=Math.pow(dd,1.35)/dd;
+      x*=1.78*rr;y*=1.78*rr;z*=1.45*rr;
+      let best=0,bd=1e9;
+      for(let c=0;c<NCL;c++){ const d=(x-CL[c].x)**2+(y-CL[c].y)**2+(z-CL[c].z)**2; if(d<bd){bd=d;best=c;} }
+      addN(x,y,z,13,best,.009+R()*.011);
+    }
+    const N=px.length; NEU=N;
+    for(let i=0;i<N;i++){ NX.push(px[i]);NY.push(py[i]);NZ.push(pz[i]); }
+    for(let c=0;c<NCL;c++) MEM.push(members[c]);
+    const ncol=i=>{ const c=AGC[nc[i]], k=ng[i]===13?.72:1; return [c[0]*k,c[1]*k,c[2]*k]; };
 
+    const CELL=.16, grid=new Map(), key=(a,b,c)=>a+','+b+','+c;
+    for(let i=0;i<N;i++){ const k=key(Math.floor(px[i]/CELL),Math.floor(py[i]/CELL),Math.floor(pz[i]/CELL)); let arr=grid.get(k); if(!arr)grid.set(k,arr=[]); arr.push(i); }
+    const seen=new Set(), LP=[], LC=[], LG=[], LS=[];
+    function seg(x1,y1,z1,x2,y2,z2,c1,c2,g,s){ LP.push(x1,y1,z1,x2,y2,z2); LC.push(c1[0],c1[1],c1[2],c2[0],c2[1],c2[2]); LG.push(g,g); LS.push(s,s); }
+    for(let i=0;i<N;i++){
+      const gx=Math.floor(px[i]/CELL), gy=Math.floor(py[i]/CELL), gz=Math.floor(pz[i]/CELL);
+      const K=3, maxD=ng[i]===13?.28:.22, cand=[];
+      for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){
+        const arr=grid.get(key(gx+a,gy+b,gz+c)); if(!arr)continue;
+        for(const j of arr){ if(j===i)continue; const d=(px[i]-px[j])**2+(py[i]-py[j])**2+(pz[i]-pz[j])**2; if(d<maxD*maxD)cand.push([d,j]); }
+      }
+      cand.sort((p,q)=>p[0]-q[0]);
+      for(let n=0;n<Math.min(K,cand.length);n++){
+        const j=cand[n][1], lo=Math.min(i,j), hi=Math.max(i,j), id=lo*N+hi;
+        if(seen.has(id))continue; seen.add(id);
+        const same=ng[i]===ng[j]&&ng[i]<NCL;
+        seg(px[i],py[i],pz[i],px[j],py[j],pz[j],ncol(i),ncol(j),same?ng[i]:13,same?.55:.32);
+      }
+    }
+    for(let k=0;k<12000;k++){ const i=(R()*N)|0, j=(R()*N)|0;
+      const d=Math.hypot(px[i]-px[j],py[i]-py[j],pz[i]-pz[j]); if(d<.22||d>.6)continue;
+      seg(px[i],py[i],pz[i],px[j],py[j],pz[j],ncol(i),ncol(j),13,.15);
+    }
+    /* 突触束：中心→外围、外围相邻团之间的贝塞尔曲线束 */
+    const pairs=new Map(), addPair=(a,b)=>{ const lo=Math.min(a,b),hi=Math.max(a,b),k=lo+'-'+hi; if(!pairs.has(k))pairs.set(k,{a:lo,b:hi}); };
+    addPair(0,1);addPair(0,4);addPair(0,7);addPair(0,10);
+    const ring=[1,2,3,4,5,6,7,8,9,10,11,12];
+    for(let k=0;k<ring.length;k++) addPair(ring[k],ring[(k+1)%ring.length]);
+    for(let k=0;k+2<ring.length;k+=2) addPair(ring[k],ring[k+2]);
+    [...pairs.values()].forEach((p,bi)=>{
+      const g=14+bi; if(g>=48)return;
+      const strands=[], ns2=p.a===0?10:14;
+      for(let s=0;s<ns2;s++){
+        const i0=members[p.a][(R()*members[p.a].length)|0], i1=members[p.b][(R()*members[p.b].length)|0];
+        const p0=new V(px[i0],py[i0],pz[i0]), p1=new V(px[i1],py[i1],pz[i1]);
+        const mid=p0.clone().add(p1).multiplyScalar(.5);
+        let c;
+        if(p.a===0) c=mid.clone().add(randUnit().multiplyScalar(.14));
+        else{ const m=Math.hypot(mid.x,mid.y)||.01, push=.17+R()*.24+(1-Math.min(1,m/1.2))*.26; c=new V(mid.x+mid.x/m*push,mid.y+mid.y/m*push,mid.z+(R()-.5)*.5); }
+        strands.push({p0,c,p1,len:p0.distanceTo(c)+c.distanceTo(p1)});
+        const ca=AGC[p.a], cb=AGC[p.b], SEG=12;
+        let lx=p0.x,ly=p0.y,lz=p0.z;
+        for(let k=1;k<=SEG;k++){
+          const u=k/SEG,v=1-u;
+          const x=v*v*p0.x+2*v*u*c.x+u*u*p1.x, y=v*v*p0.y+2*v*u*c.y+u*u*p1.y, z=v*v*p0.z+2*v*u*c.z+u*u*p1.z;
+          const u0=(k-1)/SEG;
+          seg(lx,ly,lz,x,y,z,[ca[0]+(cb[0]-ca[0])*u0,ca[1]+(cb[1]-ca[1])*u0,ca[2]+(cb[2]-ca[2])*u0],[ca[0]+(cb[0]-ca[0])*u,ca[1]+(cb[1]-ca[1])*u,ca[2]+(cb[2]-ca[2])*u],g,.16);
+          lx=x;ly=y;lz=z;
+        }
+      }
+      BUN.push({a:p.a,b:p.b,g,strands});
+    });
+
+    const lg=new THREE.BufferGeometry();
+    lg.setAttribute('position',new THREE.Float32BufferAttribute(LP,3));
+    lg.setAttribute('col',new THREE.Float32BufferAttribute(LC,3));
+    lg.setAttribute('grp',new THREE.Float32BufferAttribute(LG,1));
+    lg.setAttribute('shade',new THREE.Float32BufferAttribute(LS,1));
+    const uni={af:{value:AF},uMono:{value:0},uFade:{value:8},uTime:{value:0},uPx:{value:800},uGain:{value:1},map:{value:SPRITE}};
+    brainLines=new THREE.LineSegments(lg,new THREE.ShaderMaterial({uniforms:uni,vertexShader:BRAIN_VS_L,fragmentShader:BRAIN_FS_L,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+    spin.add(brainLines);
+
+    const pg=new THREE.BufferGeometry(), pos=new Float32Array(N*3), col=new Float32Array(N*3), grp=new Float32Array(N), sz=new Float32Array(N), ph=new Float32Array(N);
+    for(let i=0;i<N;i++){ pos[i*3]=px[i];pos[i*3+1]=py[i];pos[i*3+2]=pz[i]; const c=ncol(i); col.set(c,i*3); grp[i]=ng[i]; sz[i]=ns[i]; ph[i]=R(); }
+    pg.setAttribute('position',new THREE.BufferAttribute(pos,3)); pg.setAttribute('col',new THREE.BufferAttribute(col,3));
+    pg.setAttribute('grp',new THREE.BufferAttribute(grp,1)); pg.setAttribute('sz',new THREE.BufferAttribute(sz,1)); pg.setAttribute('ph',new THREE.BufferAttribute(ph,1));
+    brainPts=new THREE.Points(pg,new THREE.ShaderMaterial({uniforms:uni,vertexShader:BRAIN_VS_P,fragmentShader:PT_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+    spin.add(brainPts);
+
+    const SIGN=4000;
+    sigGeo=new THREE.BufferGeometry();
+    sigGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(SIGN*3),3).setUsage(THREE.DynamicDrawUsage));
+    sigGeo.setAttribute('col',new THREE.BufferAttribute(new Float32Array(SIGN*3),3).setUsage(THREE.DynamicDrawUsage));
+    sigGeo.setAttribute('sz',new THREE.BufferAttribute(new Float32Array(SIGN),1).setUsage(THREE.DynamicDrawUsage));
+    sigGeo.setAttribute('al',new THREE.BufferAttribute(new Float32Array(SIGN),1).setUsage(THREE.DynamicDrawUsage));
+    sigMat=new THREE.ShaderMaterial({uniforms:{map:{value:SPRITE},uPx:uni.uPx},vertexShader:SIG_VS,fragmentShader:PT_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+    const sp=new THREE.Points(sigGeo,sigMat); sp.frustumCulled=false; spin.add(sp);
+
+    trGeo=new THREE.BufferGeometry();
+    trGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6000*6),3).setUsage(THREE.DynamicDrawUsage));
+    trGeo.setAttribute('color',new THREE.BufferAttribute(new Float32Array(6000*6),3).setUsage(THREE.DynamicDrawUsage));
+    trGeo.setDrawRange(0,0);
+    const tl=new THREE.LineSegments(trGeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
+    tl.frustumCulled=false; spin.add(tl);
+  }
+
+  /* ---------- HUD 外环 ---------- */
+  function lineMat(op,col){ return new THREE.LineBasicMaterial({color:col||0xd4e8ff,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false}); }
+  function circle(r,z,op,seg){ seg=seg||320; const a=new Float32Array(seg*3); for(let i=0;i<seg;i++){ const t=i/seg*TAU; a[i*3]=Math.cos(t)*r; a[i*3+1]=Math.sin(t)*r; a[i*3+2]=z; } const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(a,3)); return new THREE.LineLoop(g,lineMat(op)); }
+  function ticks(r,n,len,every,long,op){ const a=[]; for(let i=0;i<n;i++){ const t=i/n*TAU,l=i%every===0?long:len; a.push(Math.cos(t)*r,Math.sin(t)*r,0,Math.cos(t)*(r+l),Math.sin(t)*(r+l),0); } const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(a,3)); return new THREE.LineSegments(g,lineMat(op)); }
+  function arcs(r,list,op){ const a=[]; list.forEach(([t0,t1])=>{ const n=Math.max(4,Math.round((t1-t0)/.02)); for(let i=0;i<n;i++){ const u0=t0+(t1-t0)*i/n,u1=t0+(t1-t0)*(i+1)/n; a.push(Math.cos(u0)*r,Math.sin(u0)*r,0,Math.cos(u1)*r,Math.sin(u1)*r,0); } }); const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(a,3)); return new THREE.LineSegments(g,lineMat(op)); }
+  function polarRing(r0,r1,seg,tex,op){
+    const pos=[],uv=[],idx=[];
+    for(let i=0;i<=seg;i++){ const t=i/seg*TAU,u=1-i/seg; pos.push(Math.cos(t)*r0,Math.sin(t)*r0,0,Math.cos(t)*r1,Math.sin(t)*r1,0); uv.push(u,0,u,1); }
+    for(let i=0;i<seg;i++){ const a=i*2; idx.push(a,a+2,a+1,a+1,a+2,a+3); }
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); g.setIndex(idx);
+    return new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:op==null?1:op,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  }
+  const RW=4096,RH=112;
+  const uOf=th=>{ let u=1-th/TAU; return ((u%1)+1)%1; };
+
+  function drawAt(c,x,y,flip,fn){ for(const xx of [x,x-RW,x+RW]){ if(xx<-420||xx>RW+420)continue; c.save(); c.translate(xx,y); if(flip)c.rotate(Math.PI); fn(c); c.restore(); } }
+
+  function buildHud(){
+    hud=new THREE.Group(); world.add(hud);
+    hud.add(circle(1.9,0,.55)); hud.add(circle(1.885,0,.2));
+    tickA=ticks(1.915,240,.016,10,.034,.55); hud.add(tickA);
+    { const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute([0,1.962,.01,-.022,1.94,.01,.022,1.94,.01],3));
+      hud.add(new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0xa6f1ff,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}))); }
+    /* 条码块环：72 块 × 6 道 */
+    { const NST=6, NSEG=72, SEG_A=TAU/NSEG, w=SEG_A*.58, pos=[],col=[],idx=[];
+      for(let s=0;s<NSEG;s++)for(let k=0;k<NST;k++){
+        const a0=Math.PI/2+s*SEG_A-w/2, a1=a0+w, r0=1.965+k*.033, r1=r0+.02, b=pos.length/3;
+        pos.push(Math.cos(a0)*r0,Math.sin(a0)*r0,0,Math.cos(a1)*r0,Math.sin(a1)*r0,0,Math.cos(a0)*r1,Math.sin(a0)*r1,0,Math.cos(a1)*r1,Math.sin(a1)*r1,0);
+        for(let q=0;q<4;q++)col.push(.1,.1,.1);
+        idx.push(b,b+1,b+2,b+2,b+1,b+3);
+      }
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+      g.setAttribute('color',new THREE.Float32BufferAttribute(col,3).setUsage(THREE.DynamicDrawUsage)); g.setIndex(idx);
+      barcode=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+      hud.add(barcode);
+    }
+    hud.add(circle(2.165,.12,.3)); hud.add(circle(2.165,-.12,.3));
+    { const a=[]; for(let i=0;i<90;i++){ const t=i/90*TAU; a.push(Math.cos(t)*2.165,Math.sin(t)*2.165,.12,Math.cos(t)*2.165,Math.sin(t)*2.165,-.12); }
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(a,3)); hud.add(new THREE.LineSegments(g,lineMat(.14))); }
+    /* 雷达扫描弧 */
+    { const n=60,a=[],c=[]; for(let i=0;i<n;i++){ const t0=i/n*.75,t1=(i+1)/n*.75; a.push(Math.cos(t0)*1.87,Math.sin(t0)*1.87,.005,Math.cos(t1)*1.87,Math.sin(t1)*1.87,.005); const k=Math.pow(i/n,2.2); c.push(.65*k,.95*k,1*k,.65*k,.95*k,1*k); }
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(a,3)); g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));
+      sweep=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false})); hud.add(sweep); }
+    /* 模型卡弧带（外扇区环） */
+    const rc=document.createElement('canvas'); rc.width=RW; rc.height=RH; ringCtx=rc.getContext('2d');
+    ringTex=new THREE.CanvasTexture(rc); ringTex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+    ringRing=polarRing(2.31,2.69,512,ringTex,1); ringRing.position.z=-.04; spin.add(ringRing);
+    { const dc=document.createElement('canvas'); dc.width=2048; dc.height=8; const x=dc.getContext('2d'); x.fillStyle='#fff';
+      for(let px=0;px<2048;){ const w=4+R()*40,gap=3+R()*22; if(R()<.82){ x.globalAlpha=.3+R()*.6; x.fillRect(px,1,w,6); } px+=w+gap; }
+      const dt=new THREE.CanvasTexture(dc); dashRing=polarRing(2.71,2.73,360,dt,.55); dashRing.position.z=-.07; hud.add(dashRing); }
+    tickB=ticks(2.765,360,.015,10,.035,.42); tickB.position.z=-.1; hud.add(tickB);
+    hud.add(circle(2.76,-.1,.25));
+    arcsA=arcs(2.85,[[.1,.9],[1.3,1.5],[2.2,3.4],[3.9,4.2],[4.6,5.8]],.45); arcsA.position.z=-.14; hud.add(arcsA);
+    arcsB=arcs(2.91,[[.5,.62],[1.0,2.1],[2.7,2.8],[3.2,4.4],[5.1,5.3],[5.6,6.1]],.3); arcsB.position.z=-.18; hud.add(arcsB);
+    /* 中心核 */
+    coreSpr=new THREE.Sprite(new THREE.SpriteMaterial({map:SPRITE,color:new THREE.Color('#45e6f5'),transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false}));
+    coreSpr.scale.setScalar(2.5); world.add(coreSpr);
+  }
+
+  function buildSky(){
+    const n=300,dir=[],r0=[],len=[],spd=[],endp=[],pos=[];
+    for(let i=0;i<n;i++){ let d; if(R()<.78){ const t=R()*TAU,e=(R()-.5)*.9; d=[Math.cos(t)*Math.cos(e),Math.sin(t)*Math.cos(e),Math.sin(e)]; } else { const u=randUnit(); d=[u.x,u.y,u.z]; }
+      const r=R()*15,l=.2+R()*.9,s=.25+R()*.7;
+      for(let e=0;e<2;e++){ dir.push(...d); r0.push(r); len.push(l); spd.push(s); endp.push(e); pos.push(0,0,0); } }
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('dir',new THREE.Float32BufferAttribute(dir,3));
+    g.setAttribute('r0',new THREE.Float32BufferAttribute(r0,1)); g.setAttribute('len',new THREE.Float32BufferAttribute(len,1));
+    g.setAttribute('spd',new THREE.Float32BufferAttribute(spd,1)); g.setAttribute('endp',new THREE.Float32BufferAttribute(endp,1));
+    streaks=new THREE.LineSegments(g,new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uBoost:{value:0}},vertexShader:STREAK_VS,fragmentShader:STREAK_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+    streaks.frustumCulled=false; scene.add(streaks);
+    const dn=1400,dp=new Float32Array(dn*3);
+    for(let i=0;i<dn;i++){ const u=randUnit(),r=7+R()*26; dp[i*3]=u.x*r; dp[i*3+1]=u.y*r; dp[i*3+2]=u.z*r; }
+    const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
+    dust=new THREE.Points(dg,new THREE.PointsMaterial({size:.06,map:SPRITE,color:0x7f93b0,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true}));
+    scene.add(dust);
+  }
+
+  /* ---------- 模型卡弧带纹理（静态标签） ---------- */
+  const MONO='"JetBrains Mono","Noto Sans SC",ui-monospace,Menlo,monospace';
+  const CJK='"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif';
+  function fitText(q,text,maxW){ text=String(text==null?'':text); if(q.measureText(text).width<=maxW)return text; let t=text; while(t.length>1&&q.measureText(t+'…').width>maxW)t=t.slice(0,-1); return t+'…'; }
+  function drawRing(){
+    if(!glOK)return;
+    const c=ringCtx; c.clearRect(0,0,RW,RH);
+    c.fillStyle='rgba(200,225,255,.22)';
+    for(let x=0;x<RW;x+=16)c.fillRect(x,2,1.5,x%128===0?9:4);
+    c.fillRect(0,44,RW,1);
+    const sw=RW/NCL;
+    for(let k=0;k<NCL;k++){
+      const a=AG[k], th=Math.PI/2-k*(TAU/NCL), flip=Math.sin(th+spin.rotation.z)<-1e-4;
+      const col=AG[k].col;
+      drawAt(c,uOf(th)*RW,78,flip,q=>{
+        const w=sw*.93;
+        q.fillStyle=rgba(col,.28); q.fillRect(-w/2,-30,w,60);
+        q.strokeStyle=rgba(col,.55); q.lineWidth=1; q.strokeRect(-w/2,-30,w,60);
+        q.fillStyle='rgba(200,225,255,.14)'; q.fillRect(-w/2,26,w,4);
+        q.fillStyle=rgba(col,.9); q.fillRect(-w/2,26,w*.5,4);
+        q.fillStyle=rgba(col,.85); q.fillRect(-w/2,-24,4,46);
+        q.textBaseline='middle'; q.textAlign='left';
+        q.font=`800 22px ${MONO}`; q.fillStyle='rgba(225,236,250,.85)';
+        q.fillText(fitText(q,a.k,w-28),-w/2+14,-17);
+        q.font=`500 12px ${CJK}`; q.fillStyle='rgba(225,236,250,.68)';
+        q.fillText(fitText(q,a.zh,w-28),-w/2+14,0);
+        q.font=`500 10px ${MONO}`; q.fillStyle='rgba(200,220,240,.62)';
+        q.fillText(k===0?'DISPATCH':'IDLE',-w/2+14,15);
+      });
+    }
+    ringTex.needsUpdate=true;
+  }
+
+  /* ---------- 脉冲（团 / 突触束间自动游走） ---------- */
+  const PULSE_MAX=18, pulses=[];
+  let tmpV=null, tmpW=null;
+  function tmpVec(){ if(!tmpV){ tmpV=new THREE.Vector3(); tmpW=new THREE.Vector3(); } }
+  function spawnPulse(){
+    const A=(R()*NCL)|0; let B;
+    if(R()<.5) B=1+((R()*12)|0); else B=(R()*NCL)|0;
+    if(B===A)B=1;
+    const bun=BUN.find(b=>(b.a===A&&b.b===B)||(b.a===B&&b.b===A));
+    const si=bun?((R()*bun.strands.length)|0):-1;
+    const path=u=>{
+      const t=u,v=1-u;
+      if(si>=0){ const b=BUN.find(x=>(x.a===A&&x.b===B)||(x.a===B&&x.b===A));
+        if(b){ const s=b.strands[si]; tmpV.set(v*v*s.p0.x+2*v*t*s.c.x+t*t*s.p1.x, v*v*s.p0.y+2*v*t*s.c.y+t*t*s.p1.y, v*v*s.p0.z+2*v*t*s.c.z+t*t*s.p1.z); return; } }
+      tmpV.lerpVectors(CL[A],CL[B],u);
+    };
+    pulses.push({path,u:R(),dur:.9+R()*1.1,col:AGC[A],head:.085,tr:9,gap:.022});
+  }
+  for(let k=0;k<12;k++){ spawnPulse(); pulses[k].u=R(); }
+
+  function writeSignals(){
+    tmpVec();
+    const P=sigGeo.attributes.position.array, C=sigGeo.attributes.col.array, S=sigGeo.attributes.sz.array, A=sigGeo.attributes.al.array;
+    const LP=trGeo.attributes.position.array, LC=trGeo.attributes.color.array;
+    let n=0,m=0;
+    const put=(p,col,sz,al)=>{ if(n>=4000)return; P[n*3]=p.x;P[n*3+1]=p.y;P[n*3+2]=p.z; C[n*3]=col[0];C[n*3+1]=col[1];C[n*3+2]=col[2]; S[n]=sz; A[n]=al; n++; };
+    const line=(p,q,col,a0,a1)=>{ if(m>=6000)return; const o=m*6; LP[o]=p.x;LP[o+1]=p.y;LP[o+2]=p.z; LP[o+3]=q.x;LP[o+4]=q.y;LP[o+5]=q.z;
+      LC[o]=col[0]*a0;LC[o+1]=col[1]*a0;LC[o+2]=col[2]*a0; LC[o+3]=col[0]*a1;LC[o+4]=col[1]*a1;LC[o+5]=col[2]*a1; m++; };
+    for(const s of pulses){
+      const col=s.col;
+      for(let k=0;k<s.tr;k++){ const u=s.u-k*s.gap; if(u<0)break; s.path(Math.min(1,u));
+        const f=1-k/s.tr;
+        put(tmpV,col,k===0?s.head:s.head*.45*f,k===0?1.9:.9*f);
+        if(k)line(tmpW,tmpV,col,1.3*(f+1/s.tr),1.3*f);
+        tmpW.copy(tmpV);
+      }
+    }
+    sigGeo.attributes.position.needsUpdate=true; sigGeo.attributes.col.needsUpdate=true;
+    sigGeo.attributes.sz.needsUpdate=true; sigGeo.attributes.al.needsUpdate=true;
+    trGeo.setDrawRange(0,m); trGeo.attributes.position.needsUpdate=true; trGeo.attributes.color.needsUpdate=true;
+  }
+
+  /* ---------- 场景更新 ---------- */
+  function updateScene(dt){
+    for(let i=0;i<NCL;i++){
+      const t=i===0?.45+.1*Math.sin(animT*2.2):.12+.06*Math.sin(animT*7+i*1.7);
+      AF[i*2]+= (t-AF[i*2])*(1-Math.exp(-dt*6));
+    }
+    AF[26]=.16;
+    for(const b of BUN){ AF[b.g*2]=Math.max(AF[b.g*2]*Math.exp(-dt*1.6),.06); }
+    const u=brainLines.material.uniforms;
+    u.uTime.value=animT; u.uFade.value=camera.position.length()-1.7;
+    u.uGain.value+=((composer?.62:1)*1-u.uGain.value)*(1-Math.exp(-dt*4));
+
+    for(let i=pulses.length-1;i>=0;i--){ const s=pulses[i]; s.u+=dt/s.dur;
+      if(s.u>=1+ s.tr*s.gap){ pulses.splice(i,1); } }
+    while(pulses.length<PULSE_MAX) spawnPulse();
+    writeSignals();
+
+    spin.rotation.z=animT*.035;
+    tickA.rotation.z=animT*.02; tickB.rotation.z=-animT*.008;
+    dashRing.rotation.z=animT*.05;
+    arcsA.rotation.z=animT*.09; arcsB.rotation.z=-animT*.06;
+    sweep.rotation.z=-animT*.85;
+    /* 条码均衡器跳动 */
+    { const bc=barcode.geometry.attributes.color.array, NSEG=72, SA=TAU/NSEG;
+      for(let s=0;s<NSEG;s++){ const load=.3+.25*Math.sin(animT*(1.1+(s*7)%6*.22)+s*2.3);
+        const v=.5+.3*Math.sin(animT*.9+s*.7), lit=Math.min(6,v*4.8+load*1.8);
+        for(let k=0;k<6;k++){ const on=clamp(lit-(5-k),0,1); const br=.07+on*.85;
+          for(let q=0;q<4;q++){ const o=((s*6+k)*4+q)*3; bc[o]=.78*br;bc[o+1]=.9*br;bc[o+2]=1*br; } } }
+      barcode.geometry.attributes.color.needsUpdate=true; }
+    coreSpr.material.opacity=.1+AF[0]*.14;
+    streaks.material.uniforms.uTime.value=animT; streaks.material.uniforms.uBoost.value=0;
+    dust.rotation.y=animT*.004; dust.rotation.x=animT*.002;
+  }
+
+  let rendererW=1, rendererH=1, raf=null, fpsN=0, fpsT=0;
+  function resize(){
+    const box=cv3.parentElement; if(!box)return;
+    rendererW=Math.max(1,box.clientWidth); rendererH=Math.max(1,box.clientHeight);
+    renderer.setSize(rendererW,rendererH,false);
+    camera.aspect=rendererW/rendererH; camera.updateProjectionMatrix();
+    if(composer)composer.setSize(rendererW,rendererH);
+    const t=Math.tan(camera.fov*Math.PI/360);
+    brainLines.material.uniforms.uPx.value=rendererH*renderer.getPixelRatio()/(2*t);
+    brainPts.material.uniforms.uPx.value=brainLines.material.uniforms.uPx.value;
+  }
+
+  function frame(now){
+    raf=requestAnimationFrame(frame);
+    if(document.hidden){ lastNow=now; return; }
+    const real=(now-lastNow)/1000, dt=Math.min(.1,real); lastNow=now;
+    animT+=dt;
+    updateScene(dt);
+    if(composer)composer.render(); else renderer.render(scene,camera);
+    fpsN++; fpsT+=Math.min(real,2);
+  }
+
+  function boot(){
+    loadScripts(DEPS).then(()=>{
+      try{
+        if(!window.THREE)throw new Error('three.js 未就绪');
+        const THREE=window.THREE;
+        const test=document.createElement('canvas');
+        const gl=test.getContext('webgl2')||test.getContext('webgl');
+        if(!gl)throw new Error('WebGL 不可用');
+        const box=cv3.parentElement;
+        renderer=new THREE.WebGLRenderer({canvas:cv3,antialias:true,alpha:true,powerPreference:'high-performance'});
+        renderer.setClearColor(0x03050a,1);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
+        scene=new THREE.Scene();
+        camera=new THREE.PerspectiveCamera(38,1,.05,200);
+        camera.position.set(0,0,10);
+        world=new THREE.Group(); scene.add(world);
+        spin=new THREE.Group(); world.add(spin);
+        buildBrain(); buildHud(); buildSky();
+        if(THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.RenderPass){
+          composer=new THREE.EffectComposer(renderer);
+          composer.addPass(new THREE.RenderPass(scene,camera));
+          composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(512,512),.62,.42,.3));
+        }
+        glOK=true;
+        resize(); drawRing();
+        if('ResizeObserver' in window)new ResizeObserver(resize).observe(box);
+        window.addEventListener('resize',resize);
+        document.addEventListener('visibilitychange',()=>{ if(document.hidden){cancelAnimationFrame(raf);}else{lastNow=performance.now();raf=requestAnimationFrame(frame);} });
+        if(cv2){ cv2._stop2d=true; if(cv2._raf2d)cancelAnimationFrame(cv2._raf2d); cv2.style.display='none'; }
+        cv3.hidden=false;
+        raf=requestAnimationFrame(frame);
+      }catch(e){
+        console.error('3D 神经星环初始化失败，回退 2D：',e&&e.stack||e);
+        cv3.hidden=true;
+      }
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
 /* ============ 阿里云 ECS ============ */
 (function(){
   const A=DATA.aliyun; if(!A)return;
