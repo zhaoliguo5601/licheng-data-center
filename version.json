@@ -1,0 +1,8 @@
+{
+  "versionCode": 1,
+  "versionName": "1.0",
+  "changelog": "首个版本：立橙数据中心看板壳",
+  "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "force": false,
+  "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 下载地址；APP 启动时比对本机 versionCode，有新版弹出更新提示。"
+}
