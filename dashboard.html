@@ -411,7 +411,7 @@ main{display:contents}
     <section class="panel hub-center" style="--accent:var(--purple)">
       <h2>数据中枢 <span class="tag">CENTER</span></h2>
       <div class="ring-wrap">
-        <div class="ring-box"><canvas id="ring"></canvas><canvas id="ring3d" hidden></canvas></div>
+        <div class="ring-box"><canvas id="ring" style="display:none"></canvas><canvas id="ring3d" hidden></canvas></div>
         <div class="net-strip">
           <div class="net-cell" style="--a:.32;--b:.92;--d:3.4s;--c:#00e5ff"><span class="net-name"><i class="ndot" style="background:#00e5ff"></i>美国</span><div class="net-bar"><i></i></div><span class="net-ms">142ms</span></div>
           <div class="net-cell" style="--a:.28;--b:.78;--d:4.1s;--c:#a855f7"><span class="net-name"><i class="ndot" style="background:#a855f7"></i>欧洲</span><div class="net-bar"><i></i></div><span class="net-ms">186ms</span></div>
@@ -1526,7 +1526,8 @@ let bgFrame=0;
 
     requestAnimationFrame(draw);
   }
-  cv._raf2d=requestAnimationFrame(draw);
+  /* 旧 2D 仅作 3D 失败兜底：默认不启动渲染，避免 three.js 加载期间闪现旧雷达星团 */
+  cv._start2d=()=>{ if(cv._raf2d||cv._stop2d)return; cv._stop2d=false; last=performance.now(); cv._raf2d=requestAnimationFrame(draw); };
 })();
 
 /* 数据中枢 · 3D 神经星环（高保真复刻首页 NEURAL：稠密神经丝网 + 模型卡弧带 + 条码环） */
@@ -2030,6 +2031,7 @@ void main(){ gl_FragColor=vec4(0.72,0.84,1.0,vA*0.42); }`;
       }catch(e){
         console.error('3D 神经星环初始化失败，回退 2D：',e&&e.stack||e);
         cv3.hidden=true;
+        if(cv2){ cv2.style.display=''; if(cv2._start2d)cv2._start2d(); }
       }
     });
   }
