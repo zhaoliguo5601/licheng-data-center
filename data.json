@@ -9,8 +9,8 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 8.5,
-    "mem": 94.3,
+    "cpu": 8.7,
+    "mem": 95.0,
     "disk": 72.0,
     "rules": [
       {
@@ -30,19 +30,19 @@
       }
     ]
   },
-  "updated": "2026-11-24",
-  "genAt": "11-26 06:05",
+  "updated": "2026-11-26",
+  "genAt": "11-26 06:06",
   "meters": [
     {
       "name": "*凌志",
       "no": "3700272293458",
-      "balance": -248.36,
-      "day": 52.53,
-      "avg6": 39.47,
+      "balance": -292.66,
+      "day": 49.77,
+      "avg6": 47.18,
       "yearKwh": 3738,
       "yearFee": 2089.72,
       "status": "neg",
-      "sum6": 236.83
+      "sum6": 283.08
     },
     {
       "name": "*立国",
@@ -157,6 +157,10 @@
     {
       "d": "11-24",
       "v": 52.77
+    },
+    {
+      "d": "11-26",
+      "v": 50.01
     }
   ],
   "unicom": {
@@ -207,12 +211,12 @@
     "branch": "main",
     "language": "Python",
     "files": 9,
-    "commits": 131,
+    "commits": 132,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 06:05",
+    "updated": "11-26 06:06",
     "types": [
       {
         "name": "Python",
@@ -237,6 +241,11 @@
     ],
     "recent": [
       {
+        "sha": "3d852b2",
+        "msg": "data: 2026-11-26 06:05 自动刷新快照",
+        "time": "11-26 06:05"
+      },
+      {
         "sha": "b7be553",
         "msg": "data: 2026-11-26 03:58 自动刷新快照",
         "time": "11-26 03:58"
@@ -260,15 +269,10 @@
         "sha": "8ecc43a",
         "msg": "fix(dashboard): 修复电脑浏览器鼠标拖拽左右轮播无反应（document 级 mousemove/mouseup + 阻止选择干扰）",
         "time": "11-25 18:23"
-      },
-      {
-        "sha": "1579f2d",
-        "msg": "fix(dashboard): 修复联通云盘(wopan)裂图并高清重绘百度/阿里/123/联通四家云盘图标",
-        "time": "11-25 18:10"
       }
     ]
   },
-  "capturedAt": "2026-11-26 06:05:16",
+  "capturedAt": "2026-11-26 06:06:00",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 03:57",
