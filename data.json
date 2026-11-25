@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 03:56",
+    "updated": "2026-11-26 03:58",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "iZl1m9vyi7nrycZ",
     "status": "Running",
@@ -10,7 +10,7 @@
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
     "cpu": 8.8,
-    "mem": 93.4,
+    "mem": 93.5,
     "disk": 65.0,
     "rules": [
       {
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-24",
-  "genAt": "11-26 03:56",
+  "genAt": "11-26 03:58",
   "meters": [
     {
       "name": "*凌志",
@@ -138,11 +138,11 @@
   "signs": [
     {
       "t": "京东",
-      "r": "已签到 +18 京豆（京豆 94）"
+      "r": "已签到 +15 京豆（京豆 109）"
     },
     {
       "t": "淘粉吧",
-      "r": "已签到 +2 积分（余额 23）"
+      "r": "已签到 +3 积分（余额 26）"
     }
   ],
   "heat": [
@@ -207,12 +207,12 @@
     "branch": "main",
     "language": "Python",
     "files": 9,
-    "commits": 129,
+    "commits": 130,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 03:56",
+    "updated": "11-26 03:58",
     "types": [
       {
         "name": "Python",
@@ -237,6 +237,11 @@
     ],
     "recent": [
       {
+        "sha": "13b1efd",
+        "msg": "data: 2026-11-26 03:56 自动刷新快照",
+        "time": "11-26 03:56"
+      },
+      {
         "sha": "47baea0",
         "msg": "data: 2026-11-25 快照（京东签到+京豆94/淘粉吧签到+积分23/物流复核）",
         "time": "11-25 21:51"
@@ -260,21 +265,16 @@
         "sha": "d8f42fe",
         "msg": "更新 v1.6 备用线路快照地址",
         "time": "11-25 02:54"
-      },
-      {
-        "sha": "6cece5d",
-        "msg": "发版 v1.6：更换神经星环 App 图标与启动屏；versionCode 7，备用线路指向新快照",
-        "time": "11-25 02:51"
       }
     ]
   },
-  "capturedAt": "2026-11-26 03:56:38",
+  "capturedAt": "2026-11-26 03:58:20",
   "jd": {
     "source": "browser_session",
-    "updated": "2026-11-25 21:50",
+    "updated": "2026-11-26 03:57",
     "walletBalance": 0.0,
     "giftCard": 0.0,
-    "beans": 94,
+    "beans": 109,
     "coupon": 3,
     "orders": {
       "waitPay": 0,
@@ -286,10 +286,10 @@
       "done": true,
       "state": "已签到",
       "tasks": [],
-      "date": "2026-11-25",
-      "gain": 18,
-      "streak": 1,
-      "note": "21:50 网页端签到 +18 京豆（天天签到），京豆 76→94；按京豆明细 11-24 无签到记录，连签 1 天"
+      "date": "2026-11-26",
+      "gain": 15,
+      "streak": 2,
+      "note": "03:57 网页端签到 +15 京豆（天天签到），京豆 94→109；11-25 已签 +18，连签 2 天"
     },
     "account": "zg9885c7jril30",
     "loginState": "ok"
@@ -300,7 +300,7 @@
   "tfb": {
     "source": "browser_session",
     "account": "乐邦cheng",
-    "updated": "2026-11-25 21:50",
+    "updated": "2026-11-26 03:58",
     "rebate": {
       "total": 63.9,
       "tracking": 0,
@@ -313,24 +313,24 @@
       }
     },
     "points": {
-      "available": 23,
+      "available": 26,
       "expire": {
         "points": 5,
         "date": "2027-01-01"
       }
     },
     "sign": {
-      "date": "2026-11-25",
+      "date": "2026-11-26",
       "done": true,
-      "gain": 2,
-      "streak": 2,
-      "from": 21,
-      "to": 23
+      "gain": 3,
+      "streak": 3,
+      "from": 23,
+      "to": 26
     },
     "loginState": "ok"
   },
   "kuaidi": {
-    "updated": "2026-11-25 21:50",
+    "updated": "2026-11-26 03:58",
     "source": "jd_order_detail",
     "numbers": [
       {
@@ -375,6 +375,7 @@
       "people": 3
     },
     "failedWaybills": [],
-    "note": "2026-11-25 复核：近3个月仍3笔订单（1已完成/2已取消），已完成单物流仍为已签收，无新增运单"
+    "note": "03:58 复核京东订单页：近3个月仍3笔（1已完成/2已取消），无新增运单；JDVB71711044988 保持已签收（2026-10-31 15:57 本人签收 济南仲宫站 李峰）",
+    "loginState": "ok"
   }
 }
