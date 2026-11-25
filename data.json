@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 03:58",
+    "updated": "2026-11-26 06:05",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "iZl1m9vyi7nrycZ",
     "status": "Running",
@@ -9,9 +9,9 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 8.8,
-    "mem": 93.5,
-    "disk": 65.0,
+    "cpu": 8.5,
+    "mem": 94.3,
+    "disk": 72.0,
     "rules": [
       {
         "name": "CPU 高负载",
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-24",
-  "genAt": "11-26 03:58",
+  "genAt": "11-26 06:05",
   "meters": [
     {
       "name": "*凌志",
@@ -207,12 +207,12 @@
     "branch": "main",
     "language": "Python",
     "files": 9,
-    "commits": 130,
+    "commits": 131,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 03:58",
+    "updated": "11-26 06:05",
     "types": [
       {
         "name": "Python",
@@ -237,6 +237,11 @@
     ],
     "recent": [
       {
+        "sha": "b7be553",
+        "msg": "data: 2026-11-26 03:58 自动刷新快照",
+        "time": "11-26 03:58"
+      },
+      {
         "sha": "13b1efd",
         "msg": "data: 2026-11-26 03:56 自动刷新快照",
         "time": "11-26 03:56"
@@ -260,15 +265,10 @@
         "sha": "1579f2d",
         "msg": "fix(dashboard): 修复联通云盘(wopan)裂图并高清重绘百度/阿里/123/联通四家云盘图标",
         "time": "11-25 18:10"
-      },
-      {
-        "sha": "d8f42fe",
-        "msg": "更新 v1.6 备用线路快照地址",
-        "time": "11-25 02:54"
       }
     ]
   },
-  "capturedAt": "2026-11-26 03:58:20",
+  "capturedAt": "2026-11-26 06:05:16",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 03:57",
