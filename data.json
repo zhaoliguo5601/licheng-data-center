@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 06:05",
+    "updated": "2026-11-26 06:44",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "iZl1m9vyi7nrycZ",
     "status": "Running",
@@ -9,8 +9,8 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 8.7,
-    "mem": 95.0,
+    "cpu": 8.6,
+    "mem": 93.2,
     "disk": 72.0,
     "rules": [
       {
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-26",
-  "genAt": "11-26 06:06",
+  "genAt": "11-26 06:44",
   "meters": [
     {
       "name": "*凌志",
@@ -211,12 +211,12 @@
     "branch": "main",
     "language": "Python",
     "files": 9,
-    "commits": 132,
+    "commits": 133,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 06:06",
+    "updated": "11-26 06:44",
     "types": [
       {
         "name": "Python",
@@ -241,6 +241,11 @@
     ],
     "recent": [
       {
+        "sha": "2d8ec78",
+        "msg": "data: 2026-11-26 06:06 自动刷新快照",
+        "time": "11-26 06:06"
+      },
+      {
         "sha": "3d852b2",
         "msg": "data: 2026-11-26 06:05 自动刷新快照",
         "time": "11-26 06:05"
@@ -264,15 +269,10 @@
         "sha": "a76dd6f",
         "msg": "fix(dashboard): 加载期不再闪现旧2D雷达星团，仅3D失败时兜底启用",
         "time": "11-25 18:56"
-      },
-      {
-        "sha": "8ecc43a",
-        "msg": "fix(dashboard): 修复电脑浏览器鼠标拖拽左右轮播无反应（document 级 mousemove/mouseup + 阻止选择干扰）",
-        "time": "11-25 18:23"
       }
     ]
   },
-  "capturedAt": "2026-11-26 06:06:00",
+  "capturedAt": "2026-11-26 06:44:44",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 03:57",
@@ -381,5 +381,24 @@
     "failedWaybills": [],
     "note": "03:58 复核京东订单页：近3个月仍3笔（1已完成/2已取消），无新增运单；JDVB71711044988 保持已签收（2026-10-31 15:57 本人签收 济南仲宫站 李峰）",
     "loginState": "ok"
+  },
+  "media": {
+    "updated": "",
+    "total": 0,
+    "fail": 0,
+    "today": 0,
+    "bytes": 0,
+    "gb": 0.0,
+    "byPlatform": [],
+    "byMethod": {
+      "self": 0,
+      "snapany": 0
+    },
+    "snapany": {
+      "balance": 50,
+      "note": "",
+      "updated": "2026-11-26 06:44"
+    },
+    "recent": []
   }
 }

@@ -553,6 +553,24 @@ main{display:contents}
         </div>
       </div>
     </section>
+
+    <!-- 素材归档 -->
+    <section class="panel" style="--accent:var(--cyan)">
+      <h2>素材归档 <span class="tag" id="mediaTag">—</span></h2>
+      <div class="sum-line">累计 <b id="mTotal">—</b> 条 · <b id="mGb">—</b> GB · 今日新增 <b id="mToday">—</b></div>
+      <div class="kd-summary">
+        <div>自建解析 <b id="mSelf">—</b> 条</div>
+        <div>付费兜底 <b id="mSnap">—</b> 条</div>
+        <div>兜底积分 <b id="mBalance">—</b></div>
+      </div>
+      <div class="scroll" id="mPlatforms"></div>
+      <div class="scroll">
+        <table class="kd-table">
+          <thead><tr><th>时间</th><th>平台</th><th>作者 / 标题</th><th>大小</th></tr></thead>
+          <tbody id="mBody"></tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -2085,6 +2103,49 @@ void main(){ gl_FragColor=vec4(0.72,0.84,1.0,vA*0.42); }`;
     `<div class="gh-item"><span class="gh-sha">${c.sha}</span><span class="gh-msg">${c.msg}</span><span class="gh-time">${c.time}</span></div>`).join("");
   document.getElementById("ghFoot").innerHTML=`仓库 <a href="${G.url}" target="_blank" rel="noopener">${G.url}</a> · 快照于 ${G.updated} · 凭证不入库`;
   document.getElementById("ghTag").textContent="快照 "+G.updated;
+})();
+
+/* ============ 素材归档 ============ */
+(function(){
+  const box=document.getElementById("mBody"); if(!box)return;
+  const M=DATA.media||{};
+  const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmtSize=b=>{b=Number(b||0); if(b>=1024**3)return (b/1024**3).toFixed(2)+" GB"; if(b>=1024**2)return (b/1024**2).toFixed(1)+" MB"; if(b>=1024)return (b/1024).toFixed(0)+" KB"; return b+" B";};
+  const set=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=v;};
+  const tag=document.getElementById("mediaTag");
+  if(tag)tag.textContent=M.updated?("归档于 "+M.updated):"暂无归档";
+  set("mTotal",(M.total||0).toLocaleString("en-US"));
+  set("mGb",(M.gb||0).toFixed(2));
+  set("mToday",M.today||0);
+  set("mSelf",((M.byMethod||{}).self)||0);
+  set("mSnap",((M.byMethod||{}).snapany)||0);
+  const bal=M.snapany&&M.snapany.balance;
+  set("mBalance",bal==null?"—":bal);
+
+  const pf=document.getElementById("mPlatforms");
+  const plats=M.byPlatform||[];
+  if(pf){
+    if(!plats.length){pf.innerHTML='<div style="font-size:11px;color:var(--dim2)">暂无分平台数据</div>';}
+    else{
+      const max=Math.max(...plats.map(p=>p.count),1);
+      pf.innerHTML=plats.map((p,i)=>{
+        const pct=(p.count/max*100).toFixed(1);
+        return `<div class="drive">
+          <div class="top"><span>${esc(p.name)}</span><span class="num">${p.count} 条 · ${(p.gb||0).toFixed(2)} GB</span></div>
+          <div class="bar"><i style="--w:${pct}%;background:linear-gradient(90deg,var(--cyan),#00e5ff88);animation-delay:${.3+i*.18}s"></i></div>
+        </div>`;
+      }).join("");
+    }
+  }
+  const rec=M.recent||[];
+  if(!rec.length){box.innerHTML='<tr><td colspan="4" style="color:var(--dim2)">还没有归档素材，把链接发给我即可下载归档到阿里云盘</td></tr>';return;}
+  box.innerHTML=rec.map(r=>`
+    <tr>
+      <td>${esc(r.time)}</td>
+      <td>${esc(r.platform)}</td>
+      <td style="white-space:normal;line-height:1.35">${r.author?`<b>${esc(r.author)}</b> · `:""}${esc(r.title||"")}</td>
+      <td>${fmtSize(r.size)}</td>
+    </tr>`).join("");
 })();
 
 /* ============ 固定大屏：一套设计稿整体等比缩放 ============ */
