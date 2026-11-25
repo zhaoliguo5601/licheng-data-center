@@ -1063,7 +1063,7 @@ PAIRS.forEach((pair,i)=>{
   let dragMoved=false;
   board.addEventListener("click",()=>{ if(dragMoved){dragMoved=false;return;} go(cur?0:1);reset(); });
   /* 触摸滑动（手机/平板）+ 鼠标拖拽滑动（电脑） */
-  let sx=null, dragging=false;
+  let sx=null, dragging=false, kmm=null, kmu=null;
   vp.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;},{passive:true});
   vp.addEventListener("touchend",e=>{
     if(sx===null||window.__pinching)return;
@@ -1071,15 +1071,21 @@ PAIRS.forEach((pair,i)=>{
     if(Math.abs(dx)>40){dx<0?next():prev();reset();}
     sx=null;
   },{passive:true});
-  vp.addEventListener("mousedown",e=>{sx=e.clientX;dragging=true;dragMoved=false;});
-  vp.addEventListener("mousemove",e=>{ if(dragging&&sx!==null&&Math.abs(e.clientX-sx)>6)dragMoved=true; });
-  const endDrag=e=>{
-    if(!dragging)return; dragging=false;
-    if(sx!==null){ const dx=e.clientX-sx; if(Math.abs(dx)>40){dx<0?next():prev();reset();} }
-    sx=null;
-  };
-  vp.addEventListener("mouseup",endDrag);
-  vp.addEventListener("mouseleave",endDrag);
+  vp.addEventListener("mousedown",e=>{
+    if(e.button!==0)return;
+    sx=e.clientX; dragging=true; dragMoved=false;
+    e.preventDefault();
+    kmm=ev=>{ if(dragging&&sx!==null&&Math.abs(ev.clientX-sx)>6)dragMoved=true; };
+    kmu=ev=>{
+      if(!dragging)return; dragging=false;
+      document.removeEventListener("mousemove",kmm);
+      document.removeEventListener("mouseup",kmu);
+      if(sx!==null){ const dx=ev.clientX-sx; if(Math.abs(dx)>40){dx<0?next():prev();reset();} }
+      sx=null;
+    };
+    document.addEventListener("mousemove",kmm);
+    document.addEventListener("mouseup",kmu);
+  });
   render(); reset();
 })();
 
@@ -2180,7 +2186,11 @@ stage.addEventListener("wheel",e=>{
   function prev(){go(cur-1);}
   function reset(){clearInterval(timer);timer=setInterval(next,5000);}
 
-  let sx=null, dragging=false;
+  let sx=null, dragging=false, dragMoved=false, mm=null, mu=null;
+  function detachMouse(){
+    if(mm){document.removeEventListener("mousemove",mm);mm=null;}
+    if(mu){document.removeEventListener("mouseup",mu);mu=null;}
+  }
   [slotL,slotR].forEach(sl=>{
     sl.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;},{passive:true});
     sl.addEventListener("touchend",e=>{
@@ -2189,15 +2199,21 @@ stage.addEventListener("wheel",e=>{
       if(Math.abs(dx)>40){ dx<0?next():prev(); reset(); }
       sx=null;
     },{passive:true});
-    sl.addEventListener("mousedown",e=>{sx=e.clientX;dragging=true;});
-    sl.addEventListener("mousemove",()=>{});
-    const endDrag=e=>{
-      if(!dragging)return; dragging=false;
-      if(sx!==null){ const dx=e.clientX-sx; if(Math.abs(dx)>40){ dx<0?next():prev(); reset(); } }
-      sx=null;
-    };
-    sl.addEventListener("mouseup",endDrag);
-    sl.addEventListener("mouseleave",endDrag);
+    sl.addEventListener("mousedown",e=>{
+      if(e.button!==0)return;
+      sx=e.clientX; dragging=true; dragMoved=false;
+      e.preventDefault();
+      mm=ev=>{ if(dragging&&sx!==null&&Math.abs(ev.clientX-sx)>6)dragMoved=true; };
+      mu=ev=>{
+        if(!dragging)return; dragging=false; detachMouse();
+        if(sx!==null){ const dx=ev.clientX-sx; if(Math.abs(dx)>40){ dx<0?next():prev(); reset(); } }
+        sx=null;
+      };
+      document.addEventListener("mousemove",mm);
+      document.addEventListener("mouseup",mu);
+    });
+    /* 拖拽结束后抑制一次误触点击 */
+    sl.addEventListener("click",e=>{ if(dragMoved){e.stopPropagation();e.preventDefault();dragMoved=false;} },true);
   });
 
   render(); reset();
