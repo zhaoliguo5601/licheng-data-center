@@ -454,6 +454,7 @@ main{display:contents}
         <input id="mbxInput" autocomplete="off" placeholder="说一句话交给豆包…（回车发送，首次会问口令）">
         <button id="mbxSend">发送</button>
         <button id="mbxPin" style="background:transparent;border:1px solid rgba(120,200,255,.25);color:#9fd8ff;font-weight:400" title="换口令">换口令</button>
+        <button id="mbxMode" style="background:rgba(255,255,255,.06);border:1px solid rgba(120,200,255,.25);color:#9fd8ff;font-weight:400;min-width:96px" title="切换信箱/直答">信箱·按小时</button>
       </div>
     </section>
 
@@ -2334,8 +2335,12 @@ boot();
   var inp = document.getElementById("mbxInput");
   var btn = document.getElementById("mbxSend");
   var st  = document.getElementById("mbxState");
-  var KEY = "lcdc_mbx_pin", sess = null, known = {};
+  var modeBtn = document.getElementById("mbxMode");
   if(!log || !inp || !btn) return;
+
+  var PIN_KEY = "lcdc_mbx_pin", MODE_KEY = "lcdc_mbx_mode";
+  var sess = null, local = [], history = [];
+  var mode = localStorage.getItem(MODE_KEY) || "mail";
 
   function sha24(txt){
     return crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt)).then(function(buf){
@@ -2344,85 +2349,131 @@ boot();
     });
   }
   function getPin(){
-    var p = localStorage.getItem(KEY);
-    if(!p){ p = window.prompt("设置任务信箱口令（6 位以上，本机记住，下次不再问）",""); if(p) localStorage.setItem(KEY, p.trim()); }
+    var p = localStorage.getItem(PIN_KEY);
+    if(!p){ p = window.prompt("设置任务信箱口令（本机记住，下次不再问）",""); if(p) localStorage.setItem(PIN_KEY, p.trim()); }
     return p ? p.trim() : null;
   }
   function el(tag, cls, txt){ var d=document.createElement(tag); if(cls)d.className=cls; if(txt!=null)d.textContent=txt; return d; }
   function stamp(ts){ var d=new Date(ts||Date.now()); return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2); }
 
+  function paintMode(){
+    if(!modeBtn) return;
+    modeBtn.textContent = mode === "chat" ? "直答·秒回" : "信箱·按小时";
+    modeBtn.style.color = mode === "chat" ? "#22ff9c" : "#9fd8ff";
+    inp.placeholder = mode === "chat"
+      ? "闲聊问答秒回（不走定时任务，也不留档）"
+      : "说一句话交给豆包…（按小时取件执行，结果回写在这里）";
+  }
+
+  function row(qtxt, atxt, acls, tagA, tagQ){
+    var r = el("div","mbx-row");
+    r.appendChild(el("div","mbx-t", tagQ + " · " + stamp()));
+    r.appendChild(el("div","mbx-q", qtxt));
+    if(atxt){
+      r.appendChild(el("div","mbx-t", tagA + " · " + stamp()));
+      r.appendChild(el("div",acls,atxt));
+    }
+    return r;
+  }
+
   function render(cmds){
     var tasks=[], replies={}, notes=[];
-    cmds.forEach(function(c){
+    (cmds||[]).forEach(function(c){
       var t=(c.command||"");
       if(t.indexOf("TASK|")===0){ var a=t.split("|"); if(a.length>=3) tasks.push({id:a[1], text:t.slice(5+a[1].length+1), ts:c.ts}); }
       else if(t.indexOf("REPLY|")===0){ var b=t.split("|"); if(b.length>=3) replies[b[1]]={s:b[2], text:b.slice(3).join("|")}; }
       else if(t.indexOf("INFO|")===0){ notes.push({text:t.slice(5), ts:c.ts}); }
     });
-    var sig = JSON.stringify([tasks, replies, notes]);
+    var sig = JSON.stringify([tasks, replies, notes, local]);
     if(sig === render._sig) return; render._sig = sig;
+
     log.innerHTML="";
-    if(!tasks.length && !notes.length){ log.appendChild(el("div","mbx-t","还没有任务。打一句话发出来，云端会自动取件执行。")); return; }
     tasks.forEach(function(t){
-      var row=el("div","mbx-row");
-      var q=el("div","mbx-q", t.text);
-      var head=el("div","mbx-t","我 · "+stamp(t.ts));
-      row.appendChild(head); row.appendChild(q);
       var r=replies[t.id];
-      if(r){
-        var cls = r.s==="ok"?"mbx-a":(r.s==="ask"?"mbx-a wait":"mbx-a bad");
-        row.appendChild(el("div","mbx-t","豆包 · "+stamp(t.ts)));
-        row.appendChild(el("div",cls,r.text||"已执行"));
-      } else {
-        row.appendChild(el("div","mbx-a wait","已收到，等待云端执行…"));
-      }
-      log.appendChild(row);
+      log.appendChild(row(t.text, r ? (r.text||"已执行") : "已收到，等待云端执行…",
+        r ? (r.s==="ok"?"mbx-a":(r.s==="ask"?"mbx-a wait":"mbx-a bad")) : "mbx-a wait",
+        "豆包"+(r?"":"（排队）"), "我"));
+    });
+    local.forEach(function(m){
+      log.appendChild(row(m.q, m.a, m.bad ? "mbx-a bad" : "mbx-a", "豆包·直答", "我"));
     });
     notes.forEach(function(n){ log.appendChild(el("div","mbx-a", n.text)); });
+    if(!tasks.length && !local.length && !notes.length){
+      log.appendChild(el("div","mbx-t", mode==="chat" ? "直答模式：随便问，秒回，不排队。" : "还没有任务。打一句话发出来，云端按小时取件执行。"));
+    }
     log.scrollTop = log.scrollHeight;
   }
 
   function poll(){
-    if(document.hidden) return;
-    if(!sess) return;
+    if(document.hidden || !sess) return;
     fetch(API + "/api/commands?since=0&session=" + encodeURIComponent(sess), {cache:"no-store"})
       .then(function(r){ return r.json(); })
-      .then(function(d){ render(d.commands||[]); st.textContent="已连接 · "+(d.seq||0); })
-      .catch(function(){ st.textContent="连接失败"; });
+      .then(function(d){ render(d.commands||[]); st.textContent = "信箱 · 已连接 " + (d.seq||0); })
+      .catch(function(){ st.textContent = "信箱连接失败"; });
+  }
+
+  function chat(text){
+    history.push({role:"user", content:text});
+    return fetch(API + "/api/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({model:"auto", messages: history.slice(-8)})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      var reply = d.reply || d.error || "没拿到回复";
+      history.push({role:"assistant", content:reply});
+      local.push({q:text, a:reply, bad: !!d.error});
+      return d;
+    });
   }
 
   function send(){
     var txt = inp.value.trim(); if(!txt) return;
-    var pin = getPin(); if(!pin){ st.textContent="未设口令"; return; }
     btn.disabled = true;
+
+    if(mode === "chat"){
+      st.textContent = "直答中…";
+      chat(txt).then(function(){
+        inp.value=""; st.textContent = "直答 · 秒回"; render();
+      }).catch(function(){ st.textContent="直答失败"; })
+        .then(function(){ btn.disabled=false; });
+      return;
+    }
+
+    var pin = getPin(); if(!pin){ st.textContent="未设口令"; btn.disabled=false; return; }
     sha24(pin).then(function(sd){
       sess = sd; st.textContent = "发送中…";
-      var id = Date.now().toString(36);
       return fetch(API + "/api/commands?session=" + encodeURIComponent(sd), {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({session: sd, command: ("TASK|"+id+"|"+txt).slice(0,470), source:"web"})
+        body: JSON.stringify({session: sd, command: ("TASK|"+Date.now().toString(36)+"|"+txt).slice(0,470), source:"web"})
       });
     }).then(function(r){ return r.json(); }).then(function(d){
       if(!d || !d.ok) throw new Error("send failed");
-      inp.value=""; st.textContent="已发送 · 等云端取件"; poll();
-    }).catch(function(){ st.textContent="发送失败"; })
+      inp.value=""; st.textContent = "已发送 · 等云端取件"; poll();
+    }).catch(function(){ st.textContent = "发送失败"; })
       .then(function(){ btn.disabled=false; });
   }
 
   inp.addEventListener("keydown", function(e){ if(e.key==="Enter" && !e.isComposing) send(); });
   btn.addEventListener("click", send);
-  var pinBtn = document.getElementById("mbxPin");
-  if(pinBtn) pinBtn.addEventListener("click", function(){
-    localStorage.removeItem(KEY);
-    var p = window.prompt("输入新的任务信箱口令","");
-    if(!p) { st.textContent="未设口令"; return; }
-    localStorage.setItem(KEY, p.trim());
-    sha24(p.trim()).then(function(sd){ sess = sd; known={}; render._sig=null; log.innerHTML=""; st.textContent="口令已更新"; poll(); });
+
+  if(modeBtn) modeBtn.addEventListener("click", function(){
+    mode = mode === "chat" ? "mail" : "chat";
+    localStorage.setItem(MODE_KEY, mode);
+    paintMode(); render(); st.textContent = mode === "chat" ? "直答 · 秒回" : "信箱 · 已连接";
   });
 
-  var pin = localStorage.getItem(KEY);
-  if(pin){ sha24(pin.trim()).then(function(sd){ sess=sd; poll(); setInterval(poll, 10000); }); }
-  else { st.textContent="未设口令"; }
+  var pinBtn = document.getElementById("mbxPin");
+  if(pinBtn) pinBtn.addEventListener("click", function(){
+    localStorage.removeItem(PIN_KEY);
+    var p = window.prompt("输入新的任务信箱口令","");
+    if(!p){ st.textContent="未设口令"; return; }
+    localStorage.setItem(PIN_KEY, p.trim());
+    sha24(p.trim()).then(function(sd){ sess = sd; render._sig = null; local=[]; st.textContent="口令已更新"; poll(); });
+  });
+
+  paintMode();
+  var pin = localStorage.getItem(PIN_KEY);
+  if(pin){ sha24(pin.trim()).then(function(sd){ sess = sd; poll(); setInterval(poll, 10000); }); }
+  else { st.textContent = "未设口令（首次发送时会问）"; }
 })();
 </script>
 
