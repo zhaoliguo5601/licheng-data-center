@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 09:18",
+    "updated": "2026-11-26 09:31",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "aliyunzhuji",
     "status": "Running",
@@ -9,9 +9,9 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 60.9,
-    "mem": 94.9,
-    "disk": 67.0,
+    "cpu": 78.0,
+    "mem": 95.5,
+    "disk": 69.0,
     "rules": [
       {
         "name": "CPU 高负载",
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-26",
-  "genAt": "11-26 09:18",
+  "genAt": "11-26 09:31",
   "meters": [
     {
       "name": "*凌志",
@@ -211,12 +211,12 @@
     "branch": "main",
     "language": "Python",
     "files": 9,
-    "commits": 135,
+    "commits": 136,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 09:18",
+    "updated": "11-26 09:31",
     "types": [
       {
         "name": "Python",
@@ -241,6 +241,11 @@
     ],
     "recent": [
       {
+        "sha": "95db8d9",
+        "msg": "data: 2026-11-26 09:18 自动刷新快照",
+        "time": "11-26 09:18"
+      },
+      {
         "sha": "44056b1",
         "msg": "chore(media): 素材归档快照 1 条抖音(FredTalk)，SnapAny 余额 48",
         "time": "11-26 09:02"
@@ -264,15 +269,10 @@
         "sha": "b7be553",
         "msg": "data: 2026-11-26 03:58 自动刷新快照",
         "time": "11-26 03:58"
-      },
-      {
-        "sha": "13b1efd",
-        "msg": "data: 2026-11-26 03:56 自动刷新快照",
-        "time": "11-26 03:56"
       }
     ]
   },
-  "capturedAt": "2026-11-26 09:18:20",
+  "capturedAt": "2026-11-26 09:31:50",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 03:57",
@@ -411,8 +411,8 @@
     },
     "snapany": {
       "balance": 48,
-      "note": "HTTPError: HTTP Error 503: Service Unavailable",
-      "updated": "2026-11-26 09:18"
+      "note": "",
+      "updated": "2026-11-26 09:31"
     },
     "recent": [
       {
