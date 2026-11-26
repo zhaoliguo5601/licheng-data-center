@@ -1277,6 +1277,7 @@ const hv=(DATA.heat||[]).map(h=>h.v), hmax=Math.max(0.1,...hv);
     .map(([a,b])=>`<div>${a} <b>${b}</b></div>`).join("");
   det.innerHTML=`<div class="cell"><div class="k">账号</div><div class="v">${t.account||'—'}</div></div>
     <div class="cell"><div class="k">已发放</div><div class="v">${r.paid==null?'—':r.paid+' 笔'}</div></div>
+    <div class="cell"><div class="k">待提现</div><div class="v">${r.pendingAmount==null?'—':money(r.pendingAmount)}</div></div>
     <div class="cell"><div class="k">签到</div><div class="v">${sg.done?'+'+sg.gain+' 积分':'未签到'}${sg.streak?' · 连签'+sg.streak+'天':''}</div></div>
     <div class="cell"><div class="k">积分到期</div><div class="v">${p.expire?p.expire.points+' 分 / '+p.expire.date:'—'}</div></div>`;
   if(tag)tag.textContent=t.updated||'会话读取';
