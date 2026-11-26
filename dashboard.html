@@ -2150,17 +2150,34 @@ void main(){ gl_FragColor=vec4(0.72,0.84,1.0,vA*0.42); }`;
     </tr>`).join("");
 })();
 
-/* ============ 固定大屏：一套设计稿整体等比缩放 ============ */
+/* ============ 固定大屏：一套设计稿整体等比缩放 + 放大后可整版拖拽平移 ============ */
 const stage=document.querySelector(".stage");
 const DW=1600,DH=900;
 let baseS=1, userZoom=1, targetZoom=1;
+let panX=0, panY=0, targetPanX=0, targetPanY=0;
 const ZMIN=.6, ZMAX=2.2;
-function applyStage(){ stage.style.transform=`translate(-50%,-50%) translateZ(0) scale(${baseS*userZoom})`; }
+
+/* 整版平移手柄：左右槽轮播、KPI 翻面卡自己处理滑动切页，这里不接管 */
+const PAN_SKIP="#slotL,#slotR,#kpiStage,.side";
+function panAllowed(e){ return !e.target.closest(PAN_SKIP); }
+
+/* 平移边界：缩放后版面超出视口的部分才允许拖出，归中时位移自动清零 */
+function clampPan(){
+  const vw=document.documentElement.clientWidth||window.innerWidth;
+  const vh=document.documentElement.clientHeight||window.innerHeight;
+  const s=baseS*userZoom;
+  const mx=Math.max(0,(DW*s-vw)/2), my=Math.max(0,(DH*s-vh)/2);
+  targetPanX=Math.max(-mx,Math.min(mx,targetPanX));
+  targetPanY=Math.max(-my,Math.min(my,targetPanY));
+}
+function applyStage(){
+  stage.style.transform=`translate(-50%,-50%) translate(${panX}px,${panY}px) translateZ(0) scale(${baseS*userZoom})`;
+}
 function fitStage(){
   const vw=document.documentElement.clientWidth||window.innerWidth;
   const vh=document.documentElement.clientHeight||window.innerHeight;
   baseS=Math.min(vw/DW, vh/DH);
-  applyStage();
+  clampPan(); applyStage();
 }
 fitStage();
 addEventListener("resize",fitStage);
@@ -2168,30 +2185,44 @@ addEventListener("orientationchange",fitStage);
 if(window.ResizeObserver){ new ResizeObserver(fitStage).observe(document.documentElement); }
 setTimeout(fitStage,300); setTimeout(fitStage,900);
 
-/* 阻尼跟随：手势只更新目标倍率，rAF 平滑收敛到目标，跟手且收尾丝滑；只在倍率变化时写样式 */
+/* 阻尼跟随：手势只更新目标倍率/位移，rAF 平滑收敛到目标，跟手且收尾丝滑；只改 transform 走 GPU 合成 */
 function zoomLoop(){
-  const diff=targetZoom-userZoom;
-  window.__zoomActive=Math.abs(diff)>0.001||!!pinch;
-  if(Math.abs(diff)>0.0006){
-    userZoom += diff*.22;
+  const dz=targetZoom-userZoom;
+  const dx=targetPanX-panX, dy=targetPanY-panY;
+  const moving=Math.abs(dx)>.05||Math.abs(dy)>.05;
+  window.__zoomActive=Math.abs(dz)>0.001||!!pinch||moving;
+  if(Math.abs(dz)>0.0006){
+    userZoom += dz*.22;
     if(Math.abs(targetZoom-userZoom)<0.0006) userZoom=targetZoom;
-    applyStage();
   }
+  if(moving){
+    panX+=dx*.22; panY+=dy*.22;
+    if(Math.abs(targetPanX-panX)<.05) panX=targetPanX;
+    if(Math.abs(targetPanY-panY)<.05) panY=targetPanY;
+  }else{ panX=targetPanX; panY=targetPanY; }
+  /* 缩回基准倍率（整版可完整放下）时自动归位居中 */
+  if(userZoom<=1.001){ targetPanX=0; targetPanY=0; }
+  applyStage();
   requestAnimationFrame(zoomLoop);
 }
 requestAnimationFrame(zoomLoop);
 
-/* 双指捏合：在自适应基准上叠加用户倍率，只改 transform 走 GPU 合成，避免原生整页缩放重排重绘卡顿 */
+/* 双指捏合缩放 + 单指/鼠标拖拽平移；只改 transform，避免原生整页缩放重排重绘卡顿 */
 const pointers=new Map();
-let pinch=null;
+let pinch=null, panDrag=null, panMovedAt=0;
 const ptDist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const midPt=()=>{const [p1,p2]=[...pointers.values()];return {x:(p1.x+p2.x)/2,y:(p1.y+p2.y)/2};};
 stage.addEventListener("pointerdown",e=>{
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   try{stage.setPointerCapture(e.pointerId);}catch(_){}
   if(pointers.size===2){
     const [p1,p2]=[...pointers.values()];
-    pinch={d0:ptDist(p1,p2)||1,z0:targetZoom};
+    const m=midPt();
+    pinch={d0:ptDist(p1,p2)||1,z0:targetZoom,mx0:m.x,my0:m.y,px0:targetPanX,py0:targetPanY};
+    panDrag=null;
     window.__pinching=true;
+  }else if(pointers.size===1 && panAllowed(e)){
+    panDrag={sx:e.clientX,sy:e.clientY,px0:targetPanX,py0:targetPanY,moved:false};
   }
 });
 stage.addEventListener("pointermove",e=>{
@@ -2201,14 +2232,34 @@ stage.addEventListener("pointermove",e=>{
     e.preventDefault();
     const [p1,p2]=[...pointers.values()];
     const d=ptDist(p1,p2)||1;
-    const nz=pinch.z0*(d/pinch.d0);
-    targetZoom=Math.min(ZMAX,Math.max(ZMIN,nz));
+    const m=midPt();
+    targetZoom=Math.min(ZMAX,Math.max(ZMIN,pinch.z0*(d/pinch.d0)));
+    targetPanX=pinch.px0+(m.x-pinch.mx0);
+    targetPanY=pinch.py0+(m.y-pinch.my0);
+    clampPan();
+    return;
+  }
+  if(panDrag){
+    if(Math.abs(e.clientX-panDrag.sx)+Math.abs(e.clientY-panDrag.sy)>4) panDrag.moved=true;
+    if(panDrag.moved){
+      targetPanX=panDrag.px0+(e.clientX-panDrag.sx);
+      targetPanY=panDrag.py0+(e.clientY-panDrag.sy);
+      clampPan();
+      panMovedAt=Date.now();
+    }
   }
 });
 function endPt(e){
   pointers.delete(e.pointerId);
-  if(pointers.size<2)pinch=null;
-  if(pointers.size===0)setTimeout(()=>{window.__pinching=false;},250);
+  if(pointers.size<2) pinch=null;
+  if(pointers.size===0){
+    panDrag=null;
+    setTimeout(()=>{window.__pinching=false;},250);
+  }else{
+    /* 双指回落为单指：以残留指重建拖拽基线，避免连续误触 */
+    const rem=[...pointers.values()][0];
+    panDrag=rem?{sx:rem.x,sy:rem.y,px0:targetPanX,py0:targetPanY,moved:true}:null;
+  }
 }
 stage.addEventListener("pointerup",endPt);
 stage.addEventListener("pointercancel",endPt);
@@ -2217,6 +2268,10 @@ stage.addEventListener("wheel",e=>{
   const nz=targetZoom*Math.exp(-e.deltaY*.0012);
   targetZoom=Math.min(ZMAX,Math.max(ZMIN,nz));
 },{passive:false});
+/* 拖拽平移抬手后，抑制一次误触点击 */
+stage.addEventListener("click",e=>{ if(Date.now()-panMovedAt<300){e.stopPropagation();e.preventDefault();} },true);
+/* 双击复位：回到基准倍率并居中 */
+stage.addEventListener("dblclick",()=>{ targetZoom=1; targetPanX=0; targetPanY=0; });
 
 /* ============ 左右槽轮播：数据流板块轮番切换，地球固定居中 ============ */
 (function(){

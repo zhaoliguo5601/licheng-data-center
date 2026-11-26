@@ -1,9 +1,9 @@
 {
-  "versionCode": 7,
-  "versionName": "1.6",
-  "changelog": "更换为神经星环 App 图标与深色启动屏，中心发光神经网络 + 彩色环形刻度；其余功能与上一版一致。",
+  "versionCode": 8,
+  "versionName": "1.7",
+  "changelog": "第二大屏放大后可整版上下左右拖拽查看，双击复位；优化触摸跟手与边缘限制。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://552e24e6.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://90816177.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。"
 }
