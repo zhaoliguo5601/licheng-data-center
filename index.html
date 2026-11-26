@@ -21324,21 +21324,21 @@ requestAnimationFrame(frame);
 #lcModelTrigger .pt-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #lcModelTrigger .pt-arrow{flex:0 0 auto;width:10px;height:10px;fill:#7fd9e8;transition:transform .25s}
 #lcModelTrigger.open .pt-arrow{transform:rotate(180deg)}
-/* 紧凑齿轮滚轮：紧贴模型胶囊上方的窄浮层，不弹居中大窗、无标题/完成按钮 */
+/* 内嵌透明滚轮：无外框无底板，轨道镂空透出 3D 星团，仅保留中心高亮小胶囊 */
 #lcModelPicker{position:fixed;z-index:9998;display:none}
 #lcModelPicker.open{display:block}
 .picker-mask{position:fixed;inset:0;background:transparent}
-.picker-panel{position:relative;width:200px;background:rgba(8,18,26,.95);border:1px solid rgba(0,229,255,.28);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 20px rgba(0,229,255,.10);overflow:hidden;animation:pickerPop .18s ease}
-@keyframes pickerPop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.picker-panel{position:relative;width:200px;background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible;animation:pickerPop .18s ease}
+@keyframes pickerPop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .picker-viewport{position:relative;height:108px;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 28%,#000 72%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 28%,#000 72%,transparent 100%)}
-.picker-indicator{position:absolute;left:8px;right:8px;top:50%;height:36px;transform:translateY(-50%);border-top:1px solid rgba(0,229,255,.28);border-bottom:1px solid rgba(0,229,255,.28);background:rgba(0,229,255,.10);border-radius:10px;pointer-events:none}
+.picker-indicator{position:absolute;left:0;right:0;top:50%;height:36px;transform:translateY(-50%);background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.30);border-radius:10px;pointer-events:none}
 .picker-wheel{will-change:transform;touch-action:pan-y}
 .picker-row{height:36px;display:flex;align-items:center;justify-content:center;font:500 12px/1 ui-monospace,Menlo,monospace;color:#cfe9f0;transition:opacity .18s,filter .18s}
-.picker-row.picker-group{height:36px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#5f93a3;justify-content:flex-start;padding:0 14px}
+.picker-row.picker-group{height:36px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#5f93a3;justify-content:flex-start;padding:0 10px}
 .picker-row.picker-opt{cursor:pointer}
 .picker-row.picker-opt.disabled{color:#55707a;cursor:default}
-.picker-row.near{opacity:.45;filter:blur(.3px)}
-.picker-row.far{opacity:.2}
+.picker-row.near{opacity:.5;filter:blur(.3px)}
+.picker-row.far{opacity:.22}
 .picker-row.center{color:#eafcff;font-weight:600}
 #lcCollapse{border:none;background:transparent;color:#7fd9e8;font-size:15px;cursor:pointer;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center}
 #lcCollapse:hover{background:rgba(0,229,255,.12)}
@@ -21762,16 +21762,17 @@ requestAnimationFrame(frame);
     if(!modelPicker) return;
     var start=pickerRowByKey(modelSel.value);
     if(start>=0){ pickerCenter=start; pickerOffset=centerOffsetForRow(start); paintWheel(); }
-    /* 浮层紧贴触发器：默认朝上展开；上方空间不足时改朝下方 */
+    /* 与原模型胶囊同宽、左对齐；默认朝上展开到星团空白区，上方不足再朝下 */
     var r=modelTrigger.getBoundingClientRect();
-    var w=200, h=PICKER_VIEW_H+2;
-    var left=Math.max(8, Math.min(window.innerWidth-w-8, r.right-w));
+    var w=Math.max(180, r.width), h=PICKER_VIEW_H;
+    var left=Math.max(8, Math.min(window.innerWidth-w-8, r.left));
+    modelPicker.style.width=w+'px';
     modelPicker.style.left=left+'px';
     if(r.top - h - 10 >= 0){
-      modelPicker.style.bottom=(window.innerHeight - r.top + 8)+'px';
+      modelPicker.style.bottom=(window.innerHeight - r.top + 6)+'px';
       modelPicker.style.top='auto';
     }else{
-      modelPicker.style.top=(r.bottom+8)+'px';
+      modelPicker.style.top=(r.bottom+6)+'px';
       modelPicker.style.bottom='auto';
     }
     modelPicker.classList.add('open');
