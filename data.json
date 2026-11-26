@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 10:57",
+    "updated": "2026-11-26 11:06",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "aliyunzhuji",
     "status": "Running",
@@ -9,8 +9,8 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 2.9,
-    "mem": 49.2,
+    "cpu": 2.2,
+    "mem": 44.5,
     "disk": 67.0,
     "rules": [
       {
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-26",
-  "genAt": "11-26 10:57",
+  "genAt": "11-26 11:06",
   "meters": [
     {
       "name": "*凌志",
@@ -211,12 +211,12 @@
     "branch": "main",
     "language": "Python",
     "files": 10,
-    "commits": 145,
+    "commits": 147,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 10:57",
+    "updated": "11-26 11:06",
     "types": [
       {
         "name": "Python",
@@ -241,6 +241,16 @@
     ],
     "recent": [
       {
+        "sha": "e564c84",
+        "msg": "feat: 任务信箱加直答模式切换（/api/chat 秒回）",
+        "time": "11-26 10:58"
+      },
+      {
+        "sha": "2edc93b",
+        "msg": "data: 2026-11-26 10:57 自动刷新快照",
+        "time": "11-26 10:57"
+      },
+      {
         "sha": "a43092d",
         "msg": "feat: 任务信箱加换口令按钮；口令与通道切换",
         "time": "11-26 10:50"
@@ -259,20 +269,10 @@
         "sha": "3651a3e",
         "msg": "style: 阿里云盘/123云盘图标改为极简镂空线稿（去蓝色实底）",
         "time": "11-26 10:26"
-      },
-      {
-        "sha": "41a7f13",
-        "msg": "data: 2026-11-26 10:26 自动刷新快照",
-        "time": "11-26 10:26"
-      },
-      {
-        "sha": "65c56a1",
-        "msg": "feat: 淘粉吧卡片增加待提现；余额归零同步",
-        "time": "11-26 10:16"
       }
     ]
   },
-  "capturedAt": "2026-11-26 10:57:35",
+  "capturedAt": "2026-11-26 11:06:30",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 03:57",
@@ -412,7 +412,7 @@
     "snapany": {
       "balance": 48,
       "note": "",
-      "updated": "2026-11-26 10:57"
+      "updated": "2026-11-26 11:06"
     },
     "recent": [
       {
