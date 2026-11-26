@@ -21842,7 +21842,11 @@ requestAnimationFrame(frame);
       .then(function(d){
         var list=(d&&d.commands)||[];
         if(d&&typeof d.seq==='number') cmdSeq=Math.max(cmdSeq,d.seq);
-        list.forEach(function(c){ if(c&&c.command) handleText(c.command); });
+        list.forEach(function(c){
+          var t=(c&&c.command)||"";
+          if(t.indexOf("TASK|")===0||t.indexOf("REPLY|")===0||t.indexOf("INFO|")===0) return; /* 信箱协议串不喂给闲聊模型 */
+          handleText(t);
+        });
       })
       .catch(function(){ /* 总线暂不可达，下一轮再试 */ })
       .then(function(){ if(!document.hidden) schedulePoll(POLL_MS); else pollTimer = null; });
