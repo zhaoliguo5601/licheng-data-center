@@ -21342,6 +21342,8 @@ requestAnimationFrame(frame);
 #lcInput::placeholder{color:#6f9aa6}
 #lcSend{flex:0 0 auto;border:none;background:rgba(0,229,255,.16);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
 #lcSend:disabled{opacity:.45;cursor:default}
+#lcTaskBtn{margin-left:6px;border:1px solid rgba(0,229,255,.32);background:rgba(0,229,255,.08);color:#9fe8f3;border-radius:8px;padding:5px 9px;font-size:12px;cursor:pointer;white-space:nowrap}
+#lcTaskBtn.on{background:rgba(34,255,156,.16);border-color:rgba(34,255,156,.55);color:#22ff9c;font-weight:700}
 @media(max-width:640px){#lcChat{right:12px;bottom:16px;width:min(320px,calc(100vw-24px))}#lcFab{right:12px;bottom:16px}}
 </style>
 <div id="lcChat" role="dialog" aria-label="立橙智能助手">
@@ -21356,6 +21358,7 @@ requestAnimationFrame(frame);
         <option value="ds">DeepSeek V4.1 Flash</option>
         <option value="ds-econ">DeepSeek V4.1 经济版</option>
       </select>
+      <button id="lcTaskBtn" type="button" title="任务模式：把我说的话交给云端执行（双击可换口令）">任务</button>
       <button id="lcCollapse" type="button" aria-label="收起面板" title="收起面板">▾</button>
     </div>
     <div id="lcLog" aria-live="polite"></div>
@@ -21820,7 +21823,7 @@ requestAnimationFrame(frame);
   if(hostEl) hostEl.__chatPick=function(key){ if(key!=null) selectModel(key); };
 
   /* 文字输入常驻第一行，回车/发送走同一处理链路 */
-  function submitFallback(){ var v=input.value; input.value=''; handleText(v); }
+  function submitFallback(){ var v=input.value; input.value=''; if(window.__lcTaskSend && window.__lcTaskSend(v)) return; handleText(v); }
   send.addEventListener('click',submitFallback);
   input.addEventListener('keydown',function(e){ if(e.key==='Enter') submitFallback(); });
 
@@ -21849,6 +21852,104 @@ requestAnimationFrame(frame);
     else { pollCommands(); }
   });
   pollCommands();
+})();
+</script>
+<script>
+/* 首页面板 · 任务模式（对接任务信箱 /api/commands，口令本机记住） */
+(function(){
+  var API=(window.LCDC_API_BASE||"https://lcdc-chat-idbhhjiiar.cn-beijing.fcapp.run").replace(/\/+$/,"");
+  var BTN=document.getElementById('lcTaskBtn');
+  var logEl=document.getElementById('lcLog'), inp=document.getElementById('lcInput');
+  var statusText=document.getElementById('lcStatusText');
+  if(!BTN||!logEl||!inp) return;
+  var PIN_KEY="lcdc_mbx_pin", MODE_KEY="lcdc_task_mode";
+  var sess=null, on=(localStorage.getItem(MODE_KEY)==="1"), seen={}, pollT=null;
+
+  function bubble(role,txt){
+    var d=document.createElement('div'); d.className='lc-bubble '+role; d.textContent=txt;
+    logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;
+  }
+  function sha24(t){
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)).then(function(b){
+      var h=Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("");
+      return "mb-"+h.slice(0,24);
+    });
+  }
+  function paint(){
+    BTN.classList.toggle('on', on);
+    BTN.textContent = on ? "任务 ✓" : "任务";
+    inp.placeholder = on ? "说要我做什么，执行完回执在这里" : "问点什么…";
+    if(statusText) statusText.textContent = on ? "任务模式 · 说一句我来执行" : "待命 · 点麦克风说话或输入问题";
+  }
+  function ensurePin(force){
+    var p=localStorage.getItem(PIN_KEY);
+    if(force || !p){
+      var v=window.prompt("输入任务信箱口令（本机记住，之后不再问）","");
+      if(!v) return Promise.reject("no-pin");
+      p=v.trim(); localStorage.setItem(PIN_KEY,p);
+    }
+    return sha24(p);
+  }
+  function poll(){
+    if(!on||!sess||document.hidden) return;
+    fetch(API+"/api/commands?since=0&session="+encodeURIComponent(sess),{cache:"no-store"})
+      .then(function(r){return r.json();}).then(function(d){
+        var list=(d&&d.commands)||[];
+        list.forEach(function(c){
+          var t=(c.command||"");
+          if(t.indexOf("REPLY|")===0){
+            var a=t.split("|"); if(a.length<3) return;
+            if(!seen["TASK|"+a[1]] ) return;      /* 不认领没发过的回执 */
+            if(seen[t]) return;
+            seen[t]=1;
+            bubble("assistant",(a[2]==="ok"?"✔ ":a[2]==="ask"?"？ ":"✖ ")+(a.slice(3).join("|")||"已执行"));
+          } else if(t.indexOf("INFO|")===0 && !seen[t]){
+            seen[t]=1; bubble("sys",t.slice(5));
+          }
+        });
+      }).catch(function(){});
+  }
+  function startPoll(){ clearInterval(pollT); pollT=setInterval(poll,12000); setTimeout(poll,1500); }
+  function stopPoll(){ clearInterval(pollT); pollT=null; }
+
+  window.__lcTaskSend=function(text){
+    if(!on) return false;
+    var v=(text||"").trim(); if(!v) return true;
+    if(!sess){ bubble("sys","先输入口令再发任务"); return true; }
+    bubble("user",v);
+    var id="w"+Date.now().toString(36);
+    seen["TASK|"+id]=1;
+    fetch(API+"/api/commands?session="+encodeURIComponent(sess),{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({session:sess,command:("TASK|"+id+"|"+v).slice(0,470),source:"web"})
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d&&d.ok){ if(statusText) statusText.textContent="已发出 · 等我回执"; setTimeout(poll,3000); }
+      else bubble("sys","发送失败，稍后再试");
+    }).catch(function(){ bubble("sys","发送失败：通道不可达"); });
+    return true;
+  };
+
+  BTN.addEventListener('click', function(){
+    if(!on){
+      ensurePin(false).then(function(sd){
+        sess=sd; on=true; localStorage.setItem(MODE_KEY,"1");
+        paint(); bubble("sys","任务模式已开：之后每句话都会交给云主机执行");
+        startPoll();
+      }).catch(function(){ bubble("sys","没输口令，维持闲聊模式"); });
+    } else {
+      on=false; localStorage.setItem(MODE_KEY,"0"); paint(); stopPoll();
+      bubble("sys","已回到闲聊模式（不会落库执行）");
+    }
+  });
+  BTN.addEventListener('dblclick', function(e){
+    e.preventDefault();
+    ensurePin(true).then(function(sd){
+      sess=sd; seen={}; bubble("sys","口令已更新，本机记住了"); if(on) startPoll();
+    }).catch(function(){});
+  });
+
+  if(on){ ensurePin(false).then(function(sd){ sess=sd; paint(); startPoll(); }).catch(function(){ on=false; localStorage.setItem(MODE_KEY,"0"); paint(); }); }
+  else paint();
 })();
 </script>
 </body>
