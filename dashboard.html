@@ -2378,9 +2378,10 @@ boot();
 
   function render(cmds){
     var tasks=[], replies={}, notes=[];
+    var HIDE = ["t-status","t2","t3","t4","t5","e2e1","e2e2"];
     (cmds||[]).forEach(function(c){
       var t=(c.command||"");
-      if(t.indexOf("TASK|")===0){ var a=t.split("|"); if(a.length>=3) tasks.push({id:a[1], text:t.slice(5+a[1].length+1), ts:c.ts}); }
+      if(t.indexOf("TASK|")===0){ var a=t.split("|"); if(a.length>=3 && HIDE.indexOf(a[1])<0) tasks.push({id:a[1], text:t.slice(5+a[1].length+1), ts:c.ts}); }
       else if(t.indexOf("REPLY|")===0){ var b=t.split("|"); if(b.length>=3) replies[b[1]]={s:b[2], text:b.slice(3).join("|")}; }
       else if(t.indexOf("INFO|")===0){ notes.push({text:t.slice(5), ts:c.ts}); }
     });
