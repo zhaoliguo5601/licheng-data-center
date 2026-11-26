@@ -42,7 +42,7 @@ body{
 /* ============ 固定大屏舞台：一套设计稿，整体等比缩放，一屏不滚动 ============ */
 .stage{position:absolute;z-index:4;left:50%;top:50%;width:1600px;height:900px;
   transform:translate(-50%,-50%);transform-origin:center center;touch-action:none;
-  will-change:transform;backface-visibility:hidden;
+  will-change:transform;
   display:flex;flex-direction:column;padding:18px 22px 16px;gap:14px}
 
 /* ============ 中部枢纽：左槽 | 地球固定 | 右槽 ============ */
@@ -2155,6 +2155,8 @@ const stage=document.querySelector(".stage");
 const DW=1600,DH=900;
 let baseS=1, userZoom=1, targetZoom=1;
 let panX=0, panY=0, targetPanX=0, targetPanY=0;
+let velX=0, velY=0, inertia=false, draggingNow=false;
+let lastTransform="";
 const ZMIN=.6, ZMAX=2.2;
 
 /* 整版平移手柄：左右槽轮播、KPI 翻面卡自己处理滑动切页，这里不接管 */
@@ -2171,7 +2173,8 @@ function clampPan(){
   targetPanY=Math.max(-my,Math.min(my,targetPanY));
 }
 function applyStage(){
-  stage.style.transform=`translate(-50%,-50%) translate(${panX}px,${panY}px) translateZ(0) scale(${baseS*userZoom})`;
+  const t=`translate(-50%,-50%) translate(${panX}px,${panY}px) translateZ(0) scale(${baseS*userZoom})`;
+  stage.style.transform=t; lastTransform=t;
 }
 function fitStage(){
   const vw=document.documentElement.clientWidth||window.innerWidth;
@@ -2185,24 +2188,41 @@ addEventListener("orientationchange",fitStage);
 if(window.ResizeObserver){ new ResizeObserver(fitStage).observe(document.documentElement); }
 setTimeout(fitStage,300); setTimeout(fitStage,900);
 
-/* 阻尼跟随：手势只更新目标倍率/位移，rAF 平滑收敛到目标，跟手且收尾丝滑；只改 transform 走 GPU 合成 */
+/* 跟随循环：拖拽/捏合直接跟手；抬手带惯性衰减；静止时跳过 transform 写入，只走 GPU 合成 */
 function zoomLoop(){
   const dz=targetZoom-userZoom;
+
+  /* 抬手惯性：速度驱动目标位移并逐帧衰减 */
+  if(inertia){
+    targetPanX+=velX; targetPanY+=velY;
+    velX*=.93; velY*=.93;
+    clampPan();
+    if(Math.abs(velX)<.06&&Math.abs(velY)<.06){ inertia=false; velX=velY=0; }
+  }
+
   const dx=targetPanX-panX, dy=targetPanY-panY;
   const moving=Math.abs(dx)>.05||Math.abs(dy)>.05;
-  window.__zoomActive=Math.abs(dz)>0.001||!!pinch||moving;
+  window.__zoomActive=Math.abs(dz)>0.001||!!pinch||moving||inertia;
+
   if(Math.abs(dz)>0.0006){
-    userZoom += dz*.22;
+    userZoom+=dz*.22;
     if(Math.abs(targetZoom-userZoom)<0.0006) userZoom=targetZoom;
   }
-  if(moving){
+  if(draggingNow||pinch){
+    /* 手势进行中直接跟随手指，不做阻尼滞后 */
+    panX=targetPanX; panY=targetPanY;
+  }else if(moving){
     panX+=dx*.22; panY+=dy*.22;
     if(Math.abs(targetPanX-panX)<.05) panX=targetPanX;
     if(Math.abs(targetPanY-panY)<.05) panY=targetPanY;
   }else{ panX=targetPanX; panY=targetPanY; }
+
   /* 缩回基准倍率（整版可完整放下）时自动归位居中 */
   if(userZoom<=1.001){ targetPanX=0; targetPanY=0; }
-  applyStage();
+  clampPan();
+
+  const t=`translate(-50%,-50%) translate(${panX}px,${panY}px) translateZ(0) scale(${baseS*userZoom})`;
+  if(t!==lastTransform){ stage.style.transform=t; lastTransform=t; }
   requestAnimationFrame(zoomLoop);
 }
 requestAnimationFrame(zoomLoop);
@@ -2219,10 +2239,13 @@ stage.addEventListener("pointerdown",e=>{
     const [p1,p2]=[...pointers.values()];
     const m=midPt();
     pinch={d0:ptDist(p1,p2)||1,z0:targetZoom,mx0:m.x,my0:m.y,px0:targetPanX,py0:targetPanY};
-    panDrag=null;
+    panDrag=null; draggingNow=false;
     window.__pinching=true;
   }else if(pointers.size===1 && panAllowed(e)){
-    panDrag={sx:e.clientX,sy:e.clientY,px0:targetPanX,py0:targetPanY,moved:false};
+    const now=performance.now();
+    panDrag={sx:e.clientX,sy:e.clientY,px0:targetPanX,py0:targetPanY,moved:false,
+      lastX:e.clientX,lastY:e.clientY,lastT:now};
+    draggingNow=true; inertia=false; velX=velY=0;
   }
 });
 stage.addEventListener("pointermove",e=>{
@@ -2242,8 +2265,14 @@ stage.addEventListener("pointermove",e=>{
   if(panDrag){
     if(Math.abs(e.clientX-panDrag.sx)+Math.abs(e.clientY-panDrag.sy)>4) panDrag.moved=true;
     if(panDrag.moved){
-      targetPanX=panDrag.px0+(e.clientX-panDrag.sx);
-      targetPanY=panDrag.py0+(e.clientY-panDrag.sy);
+      const nx=panDrag.px0+(e.clientX-panDrag.sx);
+      const ny=panDrag.py0+(e.clientY-panDrag.sy);
+      const now=performance.now(), dt=Math.max(1,now-panDrag.lastT);
+      /* 记录最近速度（px/ms），供抬手惯性；限幅避免飞过头 */
+      velX=Math.max(-1.5,Math.min(1.5,(nx-panDrag.lastX)/dt));
+      velY=Math.max(-1.5,Math.min(1.5,(ny-panDrag.lastY)/dt));
+      panDrag.lastX=nx; panDrag.lastY=ny; panDrag.lastT=now;
+      targetPanX=nx; targetPanY=ny;
       clampPan();
       panMovedAt=Date.now();
     }
@@ -2253,12 +2282,18 @@ function endPt(e){
   pointers.delete(e.pointerId);
   if(pointers.size<2) pinch=null;
   if(pointers.size===0){
-    panDrag=null;
+    if(panDrag&&panDrag.moved){
+      inertia=Math.abs(velX)>.08||Math.abs(velY)>.08;
+      if(!inertia) velX=velY=0;
+    }else{ inertia=false; velX=velY=0; }
+    panDrag=null; draggingNow=false;
     setTimeout(()=>{window.__pinching=false;},250);
   }else{
     /* 双指回落为单指：以残留指重建拖拽基线，避免连续误触 */
     const rem=[...pointers.values()][0];
-    panDrag=rem?{sx:rem.x,sy:rem.y,px0:targetPanX,py0:targetPanY,moved:true}:null;
+    const now=performance.now();
+    panDrag=rem?{sx:rem.x,sy:rem.y,px0:targetPanX,py0:targetPanY,moved:true,lastX:rem.x,lastY:rem.y,lastT:now}:null;
+    draggingNow=!!panDrag; inertia=false; velX=velY=0;
   }
 }
 stage.addEventListener("pointerup",endPt);
