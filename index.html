@@ -21315,8 +21315,31 @@ requestAnimationFrame(frame);
 .lc-panel{display:flex;flex-direction:column;gap:8px;background:transparent;border:1px solid rgba(0,229,255,.18);border-radius:16px;overflow:hidden}
 .lc-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:transparent}
 .lc-head-title{display:none}
-#lcModel{margin-right:auto;font:500 11px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);border-radius:9px;padding:6px 8px;outline:none;cursor:pointer;max-width:130px}
+/* 原生 select 保留为状态镜像（外部脚本读写 value / 监听 change 不变），视觉层由下方滚轮 Picker 接管 */
+#lcModel{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}
 #lcModel option{background:#0a141c;color:#eafcff}
+/* 表盘触发器：外观沿用原青色胶囊，文字=当前模型，右侧下拉箭头 */
+#lcModelTrigger{margin-right:auto;display:flex;align-items:center;gap:6px;font:500 11px/1 ui-monospace,Menlo,monospace;color:#7fd9e8;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);border-radius:9px;padding:6px 10px;outline:none;cursor:pointer;max-width:170px;transition:border-color .2s,background .2s}
+#lcModelTrigger:hover{background:rgba(0,229,255,.14);border-color:rgba(0,229,255,.38)}
+#lcModelTrigger .pt-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lcModelTrigger .pt-arrow{flex:0 0 auto;width:10px;height:10px;fill:#7fd9e8;transition:transform .25s}
+#lcModelTrigger.open .pt-arrow{transform:rotate(180deg)}
+/* 紧凑齿轮滚轮：紧贴模型胶囊上方的窄浮层，不弹居中大窗、无标题/完成按钮 */
+#lcModelPicker{position:fixed;z-index:9998;display:none}
+#lcModelPicker.open{display:block}
+.picker-mask{position:fixed;inset:0;background:transparent}
+.picker-panel{position:relative;width:200px;background:rgba(8,18,26,.95);border:1px solid rgba(0,229,255,.28);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 20px rgba(0,229,255,.10);overflow:hidden;animation:pickerPop .18s ease}
+@keyframes pickerPop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.picker-viewport{position:relative;height:108px;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 28%,#000 72%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 28%,#000 72%,transparent 100%)}
+.picker-indicator{position:absolute;left:8px;right:8px;top:50%;height:36px;transform:translateY(-50%);border-top:1px solid rgba(0,229,255,.28);border-bottom:1px solid rgba(0,229,255,.28);background:rgba(0,229,255,.10);border-radius:10px;pointer-events:none}
+.picker-wheel{will-change:transform;touch-action:pan-y}
+.picker-row{height:36px;display:flex;align-items:center;justify-content:center;font:500 12px/1 ui-monospace,Menlo,monospace;color:#cfe9f0;transition:opacity .18s,filter .18s}
+.picker-row.picker-group{height:36px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#5f93a3;justify-content:flex-start;padding:0 14px}
+.picker-row.picker-opt{cursor:pointer}
+.picker-row.picker-opt.disabled{color:#55707a;cursor:default}
+.picker-row.near{opacity:.45;filter:blur(.3px)}
+.picker-row.far{opacity:.2}
+.picker-row.center{color:#eafcff;font-weight:600}
 #lcCollapse{border:none;background:transparent;color:#7fd9e8;font-size:15px;cursor:pointer;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center}
 #lcCollapse:hover{background:rgba(0,229,255,.12)}
 /* 对话气泡区 */
@@ -21356,6 +21379,10 @@ requestAnimationFrame(frame);
         <option value="ds">DeepSeek V4.1 Flash</option>
         <option value="ds-econ">DeepSeek V4.1 经济版</option>
       </select>
+      <button id="lcModelTrigger" type="button" aria-label="选择模型" title="滚轮滑动选择模型">
+        <span class="pt-name">自动分派（母AI调度）</span>
+        <svg class="pt-arrow" viewBox="0 0 12 12"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+      </button>
       <button id="lcCollapse" type="button" aria-label="收起面板" title="收起面板">▾</button>
     </div>
     <div id="lcLog" aria-live="polite"></div>
@@ -21366,6 +21393,16 @@ requestAnimationFrame(frame);
       </button>
       <input id="lcInput" type="text" placeholder="问点什么…" autocomplete="off">
       <button id="lcSend" type="button">发送</button>
+    </div>
+  </div>
+</div>
+<!-- 紧凑齿轮滚轮模型选择器：队列顺序 / 分组标题与原生下拉一致，仅替换交互方式 -->
+<div id="lcModelPicker" role="dialog" aria-label="滚轮选择模型">
+  <div class="picker-mask"></div>
+  <div class="picker-panel">
+    <div class="picker-viewport">
+      <div class="picker-indicator"></div>
+      <div class="picker-wheel" id="lcModelWheel"></div>
     </div>
   </div>
 </div>
@@ -21392,6 +21429,9 @@ requestAnimationFrame(frame);
       micBtn=document.getElementById('lcMicBtn'),
       input=document.getElementById('lcInput'), send=document.getElementById('lcSend'),
       modelSel=document.getElementById('lcModel'),
+      modelTrigger=document.getElementById('lcModelTrigger'),
+      modelPicker=document.getElementById('lcModelPicker'),
+      modelWheel=document.getElementById('lcModelWheel'),
       log=document.getElementById('lcLog'),
       fab=document.getElementById('lcFab'),
       collapseBtn=document.getElementById('lcCollapse');
@@ -21557,6 +21597,7 @@ requestAnimationFrame(frame);
     });
     modelSel.appendChild(cn); modelSel.appendChild(gl);
     modelSel.value=selectedKey;
+    pickerRebuild();
   }
 
   function selectModel(key){
@@ -21564,6 +21605,7 @@ requestAnimationFrame(frame);
     if(modelSel.value!==key) modelSel.value=key;
     if(modelColor[key]) applyTheme(modelColor[key]);
     var f=fx(); if(f&&f.select) f.select(key);
+    refreshTrigger();
   }
 
   /* 拉取各模型累计用量（次数 / token / 耗时），推给 3D 外圈模型卡画横条 */
@@ -21577,6 +21619,230 @@ requestAnimationFrame(frame);
 
   modelSel.addEventListener('change',function(){ selectModel(modelSel.value); });
 
+  /* ============ 表盘滚轮模型选择器（Picker） ============
+     队列顺序 / 分组标题与原生下拉完全一致；仅把平铺下拉换成手表式滚轮：
+     鼠标滚轮 / 触摸拖动上下滑动，居中单选，丝滑惯性 + 齿轮咔哒音效。 */
+  var PICKER_ROW_H=36, PICKER_VIEW_H=108;
+  var pickerRows=[], pickerOptRows=[];
+  var pickerCenter=0, pickerOffset=0, pickerAnim=null;
+  var dragging=false, dragStartY=0, dragStartOffset=0, lastY=0, lastT=0, velocity=0;
+  var wheelAccum=0, wheelLock=false;
+
+  /* 齿轮咔哒：复用 chimeCtx，高频短脉冲 + 噪声脆边，免外部音频文件 */
+  function playTick(){
+    try{
+      if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(chimeCtx.state==='suspended') chimeCtx.resume();
+      var t0=chimeCtx.currentTime;
+      var osc=chimeCtx.createOscillator(), g=chimeCtx.createGain();
+      osc.type='square'; osc.frequency.value=1900+Math.random()*500;
+      g.gain.setValueAtTime(.0001,t0);
+      g.gain.linearRampToValueAtTime(.06,t0+.004);
+      g.gain.exponentialRampToValueAtTime(.0001,t0+.05);
+      osc.connect(g); g.connect(chimeCtx.destination);
+      osc.start(t0); osc.stop(t0+.08);
+      var len=Math.floor(chimeCtx.sampleRate*.03), buf=chimeCtx.createBuffer(1,len,chimeCtx.sampleRate), ch=buf.getChannelData(0);
+      for(var i=0;i<len;i++) ch[i]=(Math.random()*2-1)*(1-i/len);
+      var ns=chimeCtx.createBufferSource(), ng=chimeCtx.createGain(), hp=chimeCtx.createBiquadFilter();
+      ns.buffer=buf; hp.type='highpass'; hp.frequency.value=3000;
+      ng.gain.setValueAtTime(.05,t0); ng.gain.exponentialRampToValueAtTime(.0001,t0+.03);
+      ns.connect(hp); hp.connect(ng); ng.connect(chimeCtx.destination);
+      ns.start(t0);
+    }catch(e){}
+  }
+
+  /* 从原生 select 的 optgroup/option 扁平化，分组标题与队列顺序原样保留 */
+  function pickerRebuild(){
+    pickerRows=[]; pickerOptRows=[];
+    var groups=modelSel.querySelectorAll('optgroup');
+    Array.prototype.forEach.call(groups, function(gr){
+      pickerRows.push({type:'group', label:gr.label});
+      Array.prototype.forEach.call(gr.children, function(o){
+        var row={type:'opt', key:o.value, text:o.textContent, disabled:o.disabled, color:o.dataset.color||''};
+        pickerRows.push(row); pickerOptRows.push(pickerRows.length-1);
+      });
+    });
+    if(!pickerRows.length){
+      Array.prototype.forEach.call(modelSel.options, function(o){
+        var row={type:'opt', key:o.value, text:o.textContent, disabled:o.disabled, color:''};
+        pickerRows.push(row); pickerOptRows.push(pickerRows.length-1);
+      });
+    }
+    buildWheelDOM();
+    var start=pickerRowByKey(modelSel.value);
+    if(start<0) start=pickerOptRows[0]||0;
+    pickerCenter=start;
+    pickerOffset=centerOffsetForRow(start);
+    paintWheel();
+    refreshTrigger();
+  }
+
+  function buildWheelDOM(){
+    if(!modelWheel) return;
+    modelWheel.innerHTML='';
+    pickerRows.forEach(function(row, idx){
+      var el=document.createElement('div');
+      if(row.type==='group'){
+        el.className='picker-row picker-group'; el.textContent=row.label;
+      }else{
+        el.className='picker-row picker-opt'+(row.disabled?' disabled':'');
+        el.textContent=row.text;
+        el.addEventListener('click', function(){ if(!row.disabled) goToRow(idx, true); });
+      }
+      el.dataset.idx=idx;
+      modelWheel.appendChild(el);
+    });
+  }
+
+  function rowTop(i){ return i*PICKER_ROW_H; }
+  function viewportCenter(){ return PICKER_VIEW_H/2; }
+  function centerOffsetForRow(i){ return viewportCenter()-rowTop(i)-PICKER_ROW_H/2; }
+  function clampOffset(off){
+    var maxOff=centerOffsetForRow(0);
+    var minOff=centerOffsetForRow(pickerRows.length-1);
+    return Math.max(minOff, Math.min(maxOff, off));
+  }
+  function pickerRowByKey(key){
+    for(var i=0;i<pickerRows.length;i++){ if(pickerRows[i].type==='opt' && pickerRows[i].key===key) return i; }
+    return -1;
+  }
+  function nearestOptRow(row){
+    var avail=pickerOptRows.filter(function(r){ return !pickerRows[r].disabled; });
+    var pool=avail.length?avail:pickerOptRows;
+    if(!pool.length) return row;
+    var best=pool[0], bd=Infinity;
+    pool.forEach(function(r){ var d=Math.abs(r-row); if(d<bd){bd=d;best=r;} });
+    return best;
+  }
+
+  function paintWheel(){
+    if(!modelWheel) return;
+    modelWheel.style.transform='translate3d(0,'+pickerOffset+'px,0)';
+    Array.prototype.forEach.call(modelWheel.children, function(el){
+      var i=+el.dataset.idx, dist=Math.abs(i-pickerCenter);
+      el.classList.remove('center','near','far');
+      if(dist===0) el.classList.add('center');
+      else if(dist===1) el.classList.add('near');
+      else el.classList.add('far');
+    });
+  }
+
+  /* 滚动到指定行，缓动吸附；commit=停稳后回写模型 */
+  function goToRow(idx, commit){
+    var target=nearestOptRow(idx);
+    cancelAnimationFrame(pickerAnim);
+    var from=pickerOffset, to=centerOffsetForRow(target), startT=performance.now(), dur=280;
+    function step(now){
+      var p=Math.min(1,(now-startT)/dur), e=1-Math.pow(1-p,3);
+      pickerOffset=from+(to-from)*e; pickerCenter=target; paintWheel();
+      if(p<1){ pickerAnim=requestAnimationFrame(step); }
+      else if(commit){ commitPicker(); }
+    }
+    pickerAnim=requestAnimationFrame(step);
+  }
+
+  /* 停稳回写：同步原生 select 并走既有 selectModel 链路（主题色 / 3D 外圈） */
+  function commitPicker(){
+    var row=pickerRows[pickerCenter];
+    if(!row || row.type!=='opt' || row.disabled) return;
+    if(modelSel.value!==row.key) modelSel.value=row.key;
+    selectModel(row.key);
+  }
+
+  /* 触发器文字跟随当前选中 */
+  function refreshTrigger(){
+    if(!modelTrigger) return;
+    var row=pickerRows[pickerRowByKey(modelSel.value)];
+    var name=row?row.text:(modelSel.options[modelSel.selectedIndex]||{}).textContent||'选择模型';
+    var nm=modelTrigger.querySelector('.pt-name');
+    if(nm) nm.textContent=name;
+  }
+
+  function openPicker(){
+    if(!modelPicker) return;
+    var start=pickerRowByKey(modelSel.value);
+    if(start>=0){ pickerCenter=start; pickerOffset=centerOffsetForRow(start); paintWheel(); }
+    /* 浮层紧贴触发器：默认朝上展开；上方空间不足时改朝下方 */
+    var r=modelTrigger.getBoundingClientRect();
+    var w=200, h=PICKER_VIEW_H+2;
+    var left=Math.max(8, Math.min(window.innerWidth-w-8, r.right-w));
+    modelPicker.style.left=left+'px';
+    if(r.top - h - 10 >= 0){
+      modelPicker.style.bottom=(window.innerHeight - r.top + 8)+'px';
+      modelPicker.style.top='auto';
+    }else{
+      modelPicker.style.top=(r.bottom+8)+'px';
+      modelPicker.style.bottom='auto';
+    }
+    modelPicker.classList.add('open');
+    modelTrigger.classList.add('open');
+  }
+  function closePicker(){
+    if(!modelPicker) return;
+    modelPicker.classList.remove('open');
+    modelTrigger.classList.remove('open');
+  }
+
+  /* 鼠标滚轮：一格一项，节流 + 咔哒 */
+  if(modelWheel){
+    modelWheel.addEventListener('wheel', function(e){
+      e.preventDefault();
+      if(wheelLock) return;
+      wheelAccum+=e.deltaY;
+      if(Math.abs(wheelAccum)>=PICKER_ROW_H){
+        wheelLock=true;
+        var dir=wheelAccum>0?1:-1; wheelAccum=0;
+        var avail=pickerOptRows.filter(function(r){ return !pickerRows[r].disabled; });
+        var cur=nearestOptRow(pickerCenter), oi=avail.indexOf(cur);
+        var ni=Math.max(0,Math.min(avail.length-1, oi+dir));
+        playTick(); goToRow(avail[ni], true);
+        setTimeout(function(){ wheelLock=false; }, 120);
+      }
+    }, {passive:false});
+  }
+
+  /* 触摸 / 鼠标拖拽：跟手 + 惯性 + 松手吸附 */
+  function onDown(y){
+    cancelAnimationFrame(pickerAnim);
+    dragging=true; dragStartY=y; dragStartOffset=pickerOffset; lastY=y; lastT=performance.now(); velocity=0;
+  }
+  function onMove(y){
+    if(!dragging) return;
+    pickerOffset=clampOffset(dragStartOffset+(y-dragStartY));
+    var now=performance.now(), dt=now-lastT;
+    if(dt>0) velocity=(y-lastY)/dt;
+    lastY=y; lastT=now;
+    var centerRow=Math.round((viewportCenter()-PICKER_ROW_H/2-pickerOffset)/PICKER_ROW_H);
+    centerRow=Math.max(0,Math.min(pickerRows.length-1,centerRow));
+    if(centerRow!==pickerCenter){ pickerCenter=centerRow; playTick(); }
+    paintWheel();
+  }
+  function onUp(){
+    if(!dragging) return;
+    dragging=false;
+    var fling=Math.max(-2*PICKER_ROW_H, Math.min(2*PICKER_ROW_H, velocity*180));
+    var targetOffset=clampOffset(pickerOffset+fling);
+    var targetRow=Math.round((viewportCenter()-PICKER_ROW_H/2-targetOffset)/PICKER_ROW_H);
+    targetRow=Math.max(0,Math.min(pickerRows.length-1,targetRow));
+    playTick(); goToRow(targetRow, true);
+  }
+  if(modelWheel){
+    modelWheel.addEventListener('pointerdown', function(e){ onDown(e.clientY); try{modelWheel.setPointerCapture(e.pointerId);}catch(_){} });
+    modelWheel.addEventListener('pointermove', function(e){ onMove(e.clientY); });
+    modelWheel.addEventListener('pointerup', onUp);
+    modelWheel.addEventListener('pointercancel', onUp);
+  }
+
+  if(modelTrigger) modelTrigger.addEventListener('click', function(){
+    if(modelPicker.classList.contains('open')) closePicker(); else openPicker();
+  });
+  if(modelPicker){
+    modelPicker.querySelector('.picker-mask').addEventListener('click', closePicker);
+  }
+
+  /* 先用 HTML 内静态选项建一次滚轮表，清单拉取后由 renderModels 重建 */
+  pickerRebuild();
+
   /* 拉取模型清单（含主题色与可用状态）；失败则保留 HTML 内静态兜底选项 */
   fetch(MODELS_ENDPOINT).then(function(r){ return r.json(); }).then(function(d){
     var list=(d&&d.models)||[];
@@ -21585,6 +21851,7 @@ requestAnimationFrame(frame);
     var def=(d&&d.default)||selectedKey;
     if(selectedKey!=='auto' && !modelColor[selectedKey]) selectedKey=def;
     modelSel.value=selectedKey;
+    refreshTrigger();
     if(modelColor[selectedKey]) applyTheme(modelColor[selectedKey]);
     /* 把可用模型清单推给 3D 外圈模型卡；拉取累计用量画横条 */
     var avail=modelListCache.filter(function(m){ return m.available; });
@@ -21655,7 +21922,7 @@ requestAnimationFrame(frame);
         addBubble('assistant', reply);
         var dispatched=(data&&data.key)||selectedKey;
         if(data&&data.color) modelColor[dispatched]=data.color;
-        if(!autoMode){ selectedKey=dispatched; modelSel.value=dispatched; }
+        if(!autoMode){ selectedKey=dispatched; modelSel.value=dispatched; refreshTrigger(); }
         if(data&&data.color) applyTheme(data.color);
         applyNode(dispatched, modelColor[dispatched]);
         var f2=fx(); if(f2&&f2.select) f2.select(dispatched);
