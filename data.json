@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 11:09",
+    "updated": "2026-11-26 11:15",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "aliyunzhuji",
     "status": "Running",
@@ -9,8 +9,8 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 2.3,
-    "mem": 44.4,
+    "cpu": 15.6,
+    "mem": 95.0,
     "disk": 67.0,
     "rules": [
       {
@@ -31,12 +31,12 @@
     ]
   },
   "updated": "2026-11-26",
-  "genAt": "11-26 11:09",
+  "genAt": "11-26 11:15",
   "meters": [
     {
       "name": "*凌志",
       "no": "3700272293458",
-      "balance": -292.66,
+      "balance": -310.71,
       "day": 49.77,
       "avg6": 47.18,
       "yearKwh": 3738,
@@ -211,12 +211,12 @@
     "branch": "main",
     "language": "Python",
     "files": 10,
-    "commits": 150,
+    "commits": 151,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 11:09",
+    "updated": "11-26 11:15",
     "types": [
       {
         "name": "Python",
@@ -241,6 +241,11 @@
     ],
     "recent": [
       {
+        "sha": "fa63d6f",
+        "msg": "data: 2026-11-26 11:10 自动刷新快照",
+        "time": "11-26 11:10"
+      },
+      {
         "sha": "91520ff",
         "msg": "chore: 信箱卡隐藏快车道测试记录",
         "time": "11-26 11:09"
@@ -264,15 +269,10 @@
         "sha": "2edc93b",
         "msg": "data: 2026-11-26 10:57 自动刷新快照",
         "time": "11-26 10:57"
-      },
-      {
-        "sha": "a43092d",
-        "msg": "feat: 任务信箱加换口令按钮；口令与通道切换",
-        "time": "11-26 10:50"
       }
     ]
   },
-  "capturedAt": "2026-11-26 11:09:59",
+  "capturedAt": "2026-11-26 11:15:48",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 03:57",
@@ -412,7 +412,7 @@
     "snapany": {
       "balance": 48,
       "note": "",
-      "updated": "2026-11-26 11:09"
+      "updated": "2026-11-26 11:15"
     },
     "recent": [
       {
