@@ -6254,6 +6254,8 @@ try {
     composer.addPass(new THREE.RenderPass(scene, camera));
     bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(512, 512), .7, .36, .38);
     composer.addPass(bloomPass);
+    /* composer 渲染到离屏 RT，antialias 不生效；补 MSAA 减少星环线条边缘锯齿（WebGL2 生效，WebGL1 自动忽略） */
+    try { if (composer.renderTarget1) composer.renderTarget1.samples = 2; if (composer.renderTarget2) composer.renderTarget2.samples = 2; } catch (_) {}
   } else bloomOn = false;
   glOK = true;
 } catch (e) {
@@ -6766,9 +6768,11 @@ function frame(now){
     if (tapeDirty && tapeAcc > 1) { tapeAcc = 0; drawTape(); }
   }
   if (!glOK) return;
-  if (cam.userT > 0) cam.userT -= dt; else { cam.yaw *= Math.exp(-dt * .7); cam.pitch *= Math.exp(-dt * .7); }
+  if (cam.userT > 0) cam.userT -= dt;
+  /* 用户手动转的视角保持，不自动回摆；只有切模式 / 复位 / Esc 才清零 */
   camWant(animT);
-  const k = 1 - Math.exp(-dt * 1.5);
+  const gesturing = !!(drag || pinch);
+  const k = gesturing ? 1 - Math.exp(-dt * 18) : 1 - Math.exp(-dt * 1.6);
   cam.pos.lerp(cam.want, k); cam.tgt.lerp(cam.wantT, k);
   const moving = cam.pos.distanceToSquared(cam.want) > 1e-5 || cam.userT > 0;
   if (paused && !moving && needsT <= 0) return;
@@ -6881,7 +6885,7 @@ cv.addEventListener('pointermove', e => {
   if (drag) {
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
     if (Math.abs(e.clientX - drag.sx) + Math.abs(e.clientY - drag.sy) > 5) { drag.moved = true; cv.classList.add('drag'); }
-    if (drag.moved && glOK) { cam.yaw -= dx * .005; cam.pitch += dy * .004; cam.userT = 6; needsT = .5; tip.hidden = true; hover = -1; }
+    if (drag.moved && glOK) { cam.yaw -= dx * .006; cam.pitch += dy * .005; cam.userT = 6; needsT = .5; tip.hidden = true; hover = -1; }
     return;
   }
   const i = pickAt(x, y);
