@@ -1,16 +1,16 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 06:44",
+    "updated": "2026-11-26 09:02",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
-    "instanceName": "iZl1m9vyi7nrycZ",
+    "instanceName": "aliyunzhuji",
     "status": "Running",
     "region": "华北2（北京）",
     "spec": "ecs.e-c1m1.large · 2核2G",
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 8.6,
-    "mem": 93.2,
+    "cpu": 2.9,
+    "mem": 49.8,
     "disk": 72.0,
     "rules": [
       {
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-26",
-  "genAt": "11-26 06:44",
+  "genAt": "11-26 09:02",
   "meters": [
     {
       "name": "*凌志",
@@ -211,12 +211,12 @@
     "branch": "main",
     "language": "Python",
     "files": 9,
-    "commits": 133,
+    "commits": 134,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 06:44",
+    "updated": "11-26 09:02",
     "types": [
       {
         "name": "Python",
@@ -241,6 +241,11 @@
     ],
     "recent": [
       {
+        "sha": "bcc6ff4",
+        "msg": "feat: 看板新增素材归档面板（总量/今日/分平台/链路用量/积分/最近列表）",
+        "time": "11-26 06:48"
+      },
+      {
         "sha": "2d8ec78",
         "msg": "data: 2026-11-26 06:06 自动刷新快照",
         "time": "11-26 06:06"
@@ -264,15 +269,10 @@
         "sha": "47baea0",
         "msg": "data: 2026-11-25 快照（京东签到+京豆94/淘粉吧签到+积分23/物流复核）",
         "time": "11-25 21:51"
-      },
-      {
-        "sha": "a76dd6f",
-        "msg": "fix(dashboard): 加载期不再闪现旧2D雷达星团，仅3D失败时兜底启用",
-        "time": "11-25 18:56"
       }
     ]
   },
-  "capturedAt": "2026-11-26 06:44:44",
+  "capturedAt": "2026-11-26 09:02:08",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 03:57",
@@ -383,22 +383,39 @@
     "loginState": "ok"
   },
   "media": {
-    "updated": "",
-    "total": 0,
+    "updated": "2026-11-26 08:59:36",
+    "total": 1,
     "fail": 0,
-    "today": 0,
-    "bytes": 0,
-    "gb": 0.0,
-    "byPlatform": [],
+    "today": 1,
+    "bytes": 21370072,
+    "gb": 0.02,
+    "byPlatform": [
+      {
+        "key": "douyin",
+        "name": "抖音",
+        "count": 1,
+        "bytes": 21370072,
+        "gb": 0.02
+      }
+    ],
     "byMethod": {
       "self": 0,
-      "snapany": 0
+      "snapany": 1
     },
     "snapany": {
-      "balance": 50,
+      "balance": 48,
       "note": "",
-      "updated": "2026-11-26 06:44"
+      "updated": "2026-11-26 09:02"
     },
-    "recent": []
+    "recent": [
+      {
+        "time": "11-26 08:59",
+        "platform": "抖音",
+        "author": "FredTalk",
+        "title": "本月GitHub九大新神级项目，白嫖87家大模型",
+        "size": 21370072,
+        "method": "snapany"
+      }
+    ]
   }
 }
