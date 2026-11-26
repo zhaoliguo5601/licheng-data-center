@@ -206,6 +206,25 @@ main{display:contents}
 .net-ms{font-size:8.5px;color:#7fd2ec;font-variant-numeric:tabular-nums}
 .net-note{font-size:9px;color:rgba(150,200,235,.5);letter-spacing:.1em;text-align:center;flex:none}
 
+
+/* 任务信箱（口令通道，走 FC /api/commands） */
+.mbx{margin:10px 12px 12px;padding:12px 14px 10px;display:flex;flex-direction:column;gap:8px;flex:none;max-height:200px}
+.mbx-log{flex:1;min-height:46px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:2px}
+.mbx-log::-webkit-scrollbar{width:4px}
+.mbx-log::-webkit-scrollbar-thumb{background:rgba(120,200,255,.25);border-radius:3px}
+.mbx-row{display:flex;flex-direction:column;gap:3px}
+.mbx-q{font-size:11.5px;color:#dbeeff;background:rgba(90,160,255,.10);border-left:2px solid #4da3ff;border-radius:0 6px 6px 0;padding:4px 8px;word-break:break-all}
+.mbx-a{font-size:11.5px;color:#d8f6e8;background:rgba(34,255,156,.09);border-left:2px solid #22ff9c;border-radius:0 6px 6px 0;padding:4px 8px;word-break:break-all}
+.mbx-a.wait{color:#ffd9a8;background:rgba(255,179,71,.09);border-left-color:#ffb347}
+.mbx-a.bad{color:#ffc9c9;background:rgba(255,92,110,.10);border-left-color:#ff5c6e}
+.mbx-t{font-size:9.5px;color:rgba(150,200,235,.45);letter-spacing:.06em}
+.mbx-bar{display:flex;gap:8px;align-items:center;flex:none}
+.mbx-bar input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(120,200,255,.18);border-radius:8px;color:#eaf6ff;font-size:12px;padding:8px 10px;outline:none}
+.mbx-bar input:focus{border-color:rgba(120,200,255,.45)}
+.mbx-bar button{flex:none;background:linear-gradient(135deg,#00e5ff,#4da3ff);color:#04121c;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer}
+.mbx-bar button:disabled{opacity:.45;cursor:default}
+.mbx-state{font-size:9.5px;color:rgba(150,200,235,.45);margin-left:auto;letter-spacing:.06em}
+
 /* 云盘 */
 .drive{margin-bottom:11px}
 .drive .top{display:flex;align-items:center;gap:8px;font-size:12.5px;margin-bottom:6px}
@@ -426,6 +445,18 @@ main{display:contents}
     <div class="side" id="slotR">
     </div>
   </main>
+
+    <!-- ===== 任务信箱：网页端下单，云端豆包取件执行后回写 ===== -->
+    <section class="panel mbx" style="--accent:var(--cyan)" id="mbxPanel">
+      <h2>任务信箱 <span class="tag">MAILBOX</span><span class="mbx-state" id="mbxState">未设口令</span></h2>
+      <div class="mbx-log" id="mbxLog"><div class="mbx-t">在这里打字交给豆包，手机/平板/网页三端同一通道；云端每 15 分钟取件一次。</div></div>
+      <div class="mbx-bar">
+        <input id="mbxInput" autocomplete="off" placeholder="说一句话交给豆包…（回车发送，首次会问口令）">
+        <button id="mbxSend">发送</button>
+        <button id="mbxPin" style="background:transparent;border:1px solid rgba(120,200,255,.25);color:#9fd8ff;font-weight:400" title="换口令">换口令</button>
+      </div>
+    </section>
+
 
   <!-- 轮播板块池：由脚本挂载到左右槽 -->
   <div id="panelPool" class="pool">
@@ -2295,5 +2326,105 @@ setTimeout(()=>{
 }
 boot();
 </script>
+
+<script>
+(function(){
+  var API = (window.LCDC_API_BASE || "https://lcdc-chat-idbhhjiiar.cn-beijing.fcapp.run").replace(/\/+$/,"");
+  var log = document.getElementById("mbxLog");
+  var inp = document.getElementById("mbxInput");
+  var btn = document.getElementById("mbxSend");
+  var st  = document.getElementById("mbxState");
+  var KEY = "lcdc_mbx_pin", sess = null, known = {};
+  if(!log || !inp || !btn) return;
+
+  function sha24(txt){
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt)).then(function(buf){
+      var hex = Array.prototype.map.call(new Uint8Array(buf), function(b){return ("0"+b.toString(16)).slice(-2)}).join("");
+      return "mb-" + hex.slice(0,24);
+    });
+  }
+  function getPin(){
+    var p = localStorage.getItem(KEY);
+    if(!p){ p = window.prompt("设置任务信箱口令（6 位以上，本机记住，下次不再问）",""); if(p) localStorage.setItem(KEY, p.trim()); }
+    return p ? p.trim() : null;
+  }
+  function el(tag, cls, txt){ var d=document.createElement(tag); if(cls)d.className=cls; if(txt!=null)d.textContent=txt; return d; }
+  function stamp(ts){ var d=new Date(ts||Date.now()); return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2); }
+
+  function render(cmds){
+    var tasks=[], replies={}, notes=[];
+    cmds.forEach(function(c){
+      var t=(c.command||"");
+      if(t.indexOf("TASK|")===0){ var a=t.split("|"); if(a.length>=3) tasks.push({id:a[1], text:t.slice(5+a[1].length+1), ts:c.ts}); }
+      else if(t.indexOf("REPLY|")===0){ var b=t.split("|"); if(b.length>=3) replies[b[1]]={s:b[2], text:b.slice(3).join("|")}; }
+      else if(t.indexOf("INFO|")===0){ notes.push({text:t.slice(5), ts:c.ts}); }
+    });
+    var sig = JSON.stringify([tasks, replies, notes]);
+    if(sig === render._sig) return; render._sig = sig;
+    log.innerHTML="";
+    if(!tasks.length && !notes.length){ log.appendChild(el("div","mbx-t","还没有任务。打一句话发出来，云端会自动取件执行。")); return; }
+    tasks.forEach(function(t){
+      var row=el("div","mbx-row");
+      var q=el("div","mbx-q", t.text);
+      var head=el("div","mbx-t","我 · "+stamp(t.ts));
+      row.appendChild(head); row.appendChild(q);
+      var r=replies[t.id];
+      if(r){
+        var cls = r.s==="ok"?"mbx-a":(r.s==="ask"?"mbx-a wait":"mbx-a bad");
+        row.appendChild(el("div","mbx-t","豆包 · "+stamp(t.ts)));
+        row.appendChild(el("div",cls,r.text||"已执行"));
+      } else {
+        row.appendChild(el("div","mbx-a wait","已收到，等待云端执行…"));
+      }
+      log.appendChild(row);
+    });
+    notes.forEach(function(n){ log.appendChild(el("div","mbx-a", n.text)); });
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function poll(){
+    if(document.hidden) return;
+    if(!sess) return;
+    fetch(API + "/api/commands?since=0&session=" + encodeURIComponent(sess), {cache:"no-store"})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ render(d.commands||[]); st.textContent="已连接 · "+(d.seq||0); })
+      .catch(function(){ st.textContent="连接失败"; });
+  }
+
+  function send(){
+    var txt = inp.value.trim(); if(!txt) return;
+    var pin = getPin(); if(!pin){ st.textContent="未设口令"; return; }
+    btn.disabled = true;
+    sha24(pin).then(function(sd){
+      sess = sd; st.textContent = "发送中…";
+      var id = Date.now().toString(36);
+      return fetch(API + "/api/commands?session=" + encodeURIComponent(sd), {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({session: sd, command: ("TASK|"+id+"|"+txt).slice(0,470), source:"web"})
+      });
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(!d || !d.ok) throw new Error("send failed");
+      inp.value=""; st.textContent="已发送 · 等云端取件"; poll();
+    }).catch(function(){ st.textContent="发送失败"; })
+      .then(function(){ btn.disabled=false; });
+  }
+
+  inp.addEventListener("keydown", function(e){ if(e.key==="Enter" && !e.isComposing) send(); });
+  btn.addEventListener("click", send);
+  var pinBtn = document.getElementById("mbxPin");
+  if(pinBtn) pinBtn.addEventListener("click", function(){
+    localStorage.removeItem(KEY);
+    var p = window.prompt("输入新的任务信箱口令","");
+    if(!p) { st.textContent="未设口令"; return; }
+    localStorage.setItem(KEY, p.trim());
+    sha24(p.trim()).then(function(sd){ sess = sd; known={}; render._sig=null; log.innerHTML=""; st.textContent="口令已更新"; poll(); });
+  });
+
+  var pin = localStorage.getItem(KEY);
+  if(pin){ sha24(pin.trim()).then(function(sd){ sess=sd; poll(); setInterval(poll, 10000); }); }
+  else { st.textContent="未设口令"; }
+})();
+</script>
+
 </body>
 </html>
