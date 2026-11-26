@@ -2157,21 +2157,14 @@ let baseS=1, userZoom=1, targetZoom=1;
 let panX=0, panY=0, targetPanX=0, targetPanY=0;
 let velX=0, velY=0, inertia=false, draggingNow=false;
 let lastTransform="";
-const ZMIN=.6, ZMAX=2.2;
+const ZMIN=.6, ZMAX=3.0;
 
 /* 整版平移手柄：左右槽轮播、KPI 翻面卡自己处理滑动切页，这里不接管 */
 const PAN_SKIP="#slotL,#slotR,#kpiStage,.side";
 function panAllowed(e){ return !e.target.closest(PAN_SKIP); }
 
-/* 平移边界：缩放后版面超出视口的部分才允许拖出，归中时位移自动清零 */
-function clampPan(){
-  const vw=document.documentElement.clientWidth||window.innerWidth;
-  const vh=document.documentElement.clientHeight||window.innerHeight;
-  const s=baseS*userZoom;
-  const mx=Math.max(0,(DW*s-vw)/2), my=Math.max(0,(DH*s-vh)/2);
-  targetPanX=Math.max(-mx,Math.min(mx,targetPanX));
-  targetPanY=Math.max(-my,Math.min(my,targetPanY));
-}
+/* 自由画布：平移不设固定边界，版面可拖到视口任意位置、不回弹；双击复位找回 */
+function viewCenter(){ return {x:window.innerWidth/2, y:window.innerHeight/2}; }
 function applyStage(){
   const t=`translate(-50%,-50%) translate(${panX}px,${panY}px) translateZ(0) scale(${baseS*userZoom})`;
   stage.style.transform=t; lastTransform=t;
@@ -2180,7 +2173,7 @@ function fitStage(){
   const vw=document.documentElement.clientWidth||window.innerWidth;
   const vh=document.documentElement.clientHeight||window.innerHeight;
   baseS=Math.min(vw/DW, vh/DH);
-  clampPan(); applyStage();
+  applyStage();
 }
 fitStage();
 addEventListener("resize",fitStage);
@@ -2196,7 +2189,6 @@ function zoomLoop(){
   if(inertia){
     targetPanX+=velX; targetPanY+=velY;
     velX*=.93; velY*=.93;
-    clampPan();
     if(Math.abs(velX)<.06&&Math.abs(velY)<.06){ inertia=false; velX=velY=0; }
   }
 
@@ -2217,10 +2209,6 @@ function zoomLoop(){
     if(Math.abs(targetPanY-panY)<.05) panY=targetPanY;
   }else{ panX=targetPanX; panY=targetPanY; }
 
-  /* 缩回基准倍率（整版可完整放下）时自动归位居中 */
-  if(userZoom<=1.001){ targetPanX=0; targetPanY=0; }
-  clampPan();
-
   const t=`translate(-50%,-50%) translate(${panX}px,${panY}px) translateZ(0) scale(${baseS*userZoom})`;
   if(t!==lastTransform){ stage.style.transform=t; lastTransform=t; }
   requestAnimationFrame(zoomLoop);
@@ -2237,8 +2225,11 @@ stage.addEventListener("pointerdown",e=>{
   try{stage.setPointerCapture(e.pointerId);}catch(_){}
   if(pointers.size===2){
     const [p1,p2]=[...pointers.values()];
-    const m=midPt();
-    pinch={d0:ptDist(p1,p2)||1,z0:targetZoom,mx0:m.x,my0:m.y,px0:targetPanX,py0:targetPanY};
+    const m=midPt(); const c=viewCenter();
+    const s0=baseS*targetZoom||1;
+    /* 记录双指中点对应的舞台局部锚点，缩放时该点始终落在手指间 */
+    const ax=(m.x-c.x-targetPanX)/s0, ay=(m.y-c.y-targetPanY)/s0;
+    pinch={d0:ptDist(p1,p2)||1,z0:targetZoom,s0,ax,ay};
     panDrag=null; draggingNow=false;
     window.__pinching=true;
   }else if(pointers.size===1 && panAllowed(e)){
@@ -2255,11 +2246,12 @@ stage.addEventListener("pointermove",e=>{
     e.preventDefault();
     const [p1,p2]=[...pointers.values()];
     const d=ptDist(p1,p2)||1;
-    const m=midPt();
-    targetZoom=Math.min(ZMAX,Math.max(ZMIN,pinch.z0*(d/pinch.d0)));
-    targetPanX=pinch.px0+(m.x-pinch.mx0);
-    targetPanY=pinch.py0+(m.y-pinch.my0);
-    clampPan();
+    const m=midPt(); const c=viewCenter();
+    const z1=Math.min(ZMAX,Math.max(ZMIN,pinch.z0*(d/pinch.d0)));
+    const s1=baseS*z1;
+    targetZoom=z1;
+    targetPanX=m.x-c.x-s1*pinch.ax;
+    targetPanY=m.y-c.y-s1*pinch.ay;
     return;
   }
   if(panDrag){
@@ -2273,7 +2265,6 @@ stage.addEventListener("pointermove",e=>{
       velY=Math.max(-1.5,Math.min(1.5,(ny-panDrag.lastY)/dt));
       panDrag.lastX=nx; panDrag.lastY=ny; panDrag.lastT=now;
       targetPanX=nx; targetPanY=ny;
-      clampPan();
       panMovedAt=Date.now();
     }
   }
@@ -2300,8 +2291,14 @@ stage.addEventListener("pointerup",endPt);
 stage.addEventListener("pointercancel",endPt);
 stage.addEventListener("wheel",e=>{
   e.preventDefault();
-  const nz=targetZoom*Math.exp(-e.deltaY*.0012);
-  targetZoom=Math.min(ZMAX,Math.max(ZMIN,nz));
+  const c=viewCenter();
+  const s=baseS*targetZoom||1;
+  const ax=(e.clientX-c.x-targetPanX)/s, ay=(e.clientY-c.y-targetPanY)/s;
+  const z1=Math.min(ZMAX,Math.max(ZMIN,targetZoom*Math.exp(-e.deltaY*.0012)));
+  const s1=baseS*z1;
+  targetZoom=z1;
+  targetPanX=e.clientX-c.x-s1*ax;
+  targetPanY=e.clientY-c.y-s1*ay;
 },{passive:false});
 /* 拖拽平移抬手后，抑制一次误触点击 */
 stage.addEventListener("click",e=>{ if(Date.now()-panMovedAt<300){e.stopPropagation();e.preventDefault();} },true);
