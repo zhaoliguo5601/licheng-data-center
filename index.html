@@ -21868,6 +21868,9 @@ requestAnimationFrame(frame);
   if(!BTN||!logEl||!inp) return;
   var PIN_KEY="lcdc_mbx_pin", MODE_KEY="lcdc_task_mode";
   var sess=null, on=(localStorage.getItem(MODE_KEY)==="1"), seen={}, pollT=null;
+  var OWN_KEY="lcdc_mbx_own";
+  function own(){ try{ return JSON.parse(localStorage.getItem(OWN_KEY)||"[]") }catch(e){ return [] } }
+  function claim(id){ var a=own(); a.push(id); if(a.length>40) a=a.slice(-40); localStorage.setItem(OWN_KEY,JSON.stringify(a)); }
 
   function bubble(role,txt){
     var d=document.createElement('div'); d.className='lc-bubble '+role; d.textContent=txt;
@@ -21903,7 +21906,7 @@ requestAnimationFrame(frame);
           var t=(c.command||"");
           if(t.indexOf("REPLY|")===0){
             var a=t.split("|"); if(a.length<3) return;
-            if(!seen["TASK|"+a[1]] ) return;      /* 不认领没发过的回执 */
+            if(!seen["TASK|"+a[1]] && own().indexOf(a[1])<0) return;   /* 只认本机发过的回执 */
             if(seen[t]) return;
             seen[t]=1;
             bubble("assistant",(a[2]==="ok"?"✔ ":a[2]==="ask"?"？ ":"✖ ")+(a.slice(3).join("|")||"已执行"));
@@ -21922,7 +21925,7 @@ requestAnimationFrame(frame);
     if(!sess){ bubble("sys","先输入口令再发任务"); return true; }
     bubble("user",v);
     var id="w"+Date.now().toString(36);
-    seen["TASK|"+id]=1;
+    seen["TASK|"+id]=1; claim(id);
     fetch(API+"/api/commands?session="+encodeURIComponent(sess),{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({session:sess,command:("TASK|"+id+"|"+v).slice(0,470),source:"web"})
