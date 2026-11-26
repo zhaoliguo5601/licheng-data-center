@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 09:02",
+    "updated": "2026-11-26 09:18",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "aliyunzhuji",
     "status": "Running",
@@ -9,9 +9,9 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 2.9,
-    "mem": 49.8,
-    "disk": 72.0,
+    "cpu": 60.9,
+    "mem": 94.9,
+    "disk": 67.0,
     "rules": [
       {
         "name": "CPU 高负载",
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-26",
-  "genAt": "11-26 09:02",
+  "genAt": "11-26 09:18",
   "meters": [
     {
       "name": "*凌志",
@@ -211,12 +211,12 @@
     "branch": "main",
     "language": "Python",
     "files": 9,
-    "commits": 134,
+    "commits": 135,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 09:02",
+    "updated": "11-26 09:18",
     "types": [
       {
         "name": "Python",
@@ -241,6 +241,11 @@
     ],
     "recent": [
       {
+        "sha": "44056b1",
+        "msg": "chore(media): 素材归档快照 1 条抖音(FredTalk)，SnapAny 余额 48",
+        "time": "11-26 09:02"
+      },
+      {
         "sha": "bcc6ff4",
         "msg": "feat: 看板新增素材归档面板（总量/今日/分平台/链路用量/积分/最近列表）",
         "time": "11-26 06:48"
@@ -264,15 +269,10 @@
         "sha": "13b1efd",
         "msg": "data: 2026-11-26 03:56 自动刷新快照",
         "time": "11-26 03:56"
-      },
-      {
-        "sha": "47baea0",
-        "msg": "data: 2026-11-25 快照（京东签到+京豆94/淘粉吧签到+积分23/物流复核）",
-        "time": "11-25 21:51"
       }
     ]
   },
-  "capturedAt": "2026-11-26 09:02:08",
+  "capturedAt": "2026-11-26 09:18:20",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 03:57",
@@ -304,24 +304,31 @@
   "tfb": {
     "source": "browser_session",
     "account": "乐邦cheng",
-    "updated": "2026-11-26 03:58",
+    "updated": "2026-11-26 09:18",
     "rebate": {
-      "total": 63.9,
-      "tracking": 0,
-      "pending": 0,
+      "total": 470.49,
+      "tracking": 1,
+      "pending": 1,
       "paid": 1,
       "last": {
         "name": "60D高密度沙发海绵垫定做加厚加硬实木红木椅子垫卡座屁股垫定制",
-        "amount": 5,
+        "amount": 5.0,
         "arrive": "2026-10-31"
-      }
+      },
+      "pendingAmount": 6.43
     },
     "points": {
       "available": 26,
       "expire": {
         "points": 5,
         "date": "2027-01-01"
-      }
+      },
+      "redeemDenoms": [
+        0.1,
+        1.0,
+        5.0,
+        10.0
+      ]
     },
     "sign": {
       "date": "2026-11-26",
@@ -404,8 +411,8 @@
     },
     "snapany": {
       "balance": 48,
-      "note": "",
-      "updated": "2026-11-26 09:02"
+      "note": "HTTPError: HTTP Error 503: Service Unavailable",
+      "updated": "2026-11-26 09:18"
     },
     "recent": [
       {
