@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 22:49",
+    "updated": "2026-11-26 22:51",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "aliyunzhuji",
     "status": "Running",
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-26",
-  "genAt": "11-26 22:49",
+  "genAt": "11-26 22:51",
   "meters": [
     {
       "name": "*凌志",
@@ -211,12 +211,12 @@
     "branch": "main",
     "language": "Python",
     "files": 10,
-    "commits": 161,
+    "commits": 167,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 22:49",
+    "updated": "11-26 22:51",
     "types": [
       {
         "name": "Python",
@@ -241,38 +241,38 @@
     ],
     "recent": [
       {
-        "sha": "32c0e1f",
-        "msg": "feat: 第二大屏放大后整版拖拽平移，APP 升 1.7 (code8)",
-        "time": "11-26 18:56"
+        "sha": "bb444ce",
+        "msg": "data: 2026-11-26 22:50 自动刷新快照",
+        "time": "11-26 22:50"
       },
       {
-        "sha": "6052586",
-        "msg": "chore: 撤下任务信箱卡与首页任务按钮（改用豆包 APP 对话）",
-        "time": "11-26 12:53"
+        "sha": "cb93827",
+        "msg": "perf(神经星环): 拖拽视角跟手保持不回摆，composer 补 MSAA 抗锯齿",
+        "time": "11-26 20:58"
       },
       {
-        "sha": "055049c",
-        "msg": "data: 2026-11-26 12:53 自动刷新快照",
-        "time": "11-26 12:53"
+        "sha": "423b1ea",
+        "msg": "feat(大屏): 自由画布无边界平移，双指/滚轮围绕手指锚点缩放",
+        "time": "11-26 20:41"
       },
       {
-        "sha": "25ee2c2",
-        "msg": "fix: 任务模式本机认领列表持久化（刷新后回执仍可显示）",
-        "time": "11-26 11:58"
+        "sha": "17f0254",
+        "msg": "perf(大屏): 放大后整版平移跟手、抬手惯性与静止停写消闪",
+        "time": "11-26 20:14"
       },
       {
-        "sha": "cbc52a3",
-        "msg": "data: 2026-11-26 11:58 自动刷新快照",
-        "time": "11-26 11:58"
+        "sha": "d8e657b",
+        "msg": "feat(助手): 模型滚轮改为内嵌透明轨道",
+        "time": "11-26 19:24"
       },
       {
-        "sha": "a0d47a3",
-        "msg": "fix: 首页闲聊轮询过滤信箱协议串",
-        "time": "11-26 11:33"
+        "sha": "8468b1a",
+        "msg": "feat(助手): 模型选择改为紧凑齿轮滚轮 Picker",
+        "time": "11-26 19:06"
       }
     ]
   },
-  "capturedAt": "2026-11-26 22:49:51",
+  "capturedAt": "2026-11-26 22:51:07",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 21:46",
@@ -487,8 +487,8 @@
     },
     "snapany": {
       "balance": 48,
-      "note": "",
-      "updated": "2026-11-26 22:49"
+      "note": "HTTPError: HTTP Error 503: Service Unavailable",
+      "updated": "2026-11-26 22:51"
     },
     "recent": [
       {
