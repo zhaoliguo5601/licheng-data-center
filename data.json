@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 12:52",
+    "updated": "2026-11-26 22:49",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "aliyunzhuji",
     "status": "Running",
@@ -9,9 +9,9 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 10.7,
-    "mem": 95.9,
-    "disk": 68.0,
+    "cpu": 2.2,
+    "mem": 48.1,
+    "disk": 67.0,
     "rules": [
       {
         "name": "CPU 高负载",
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-26",
-  "genAt": "11-26 12:52",
+  "genAt": "11-26 22:49",
   "meters": [
     {
       "name": "*凌志",
@@ -65,7 +65,7 @@
       "files": 51802,
       "bytes": 173105439243,
       "gb": 161.22,
-      "pct": 28.0
+      "pct": 26.8
     },
     {
       "name": "阿里云盘",
@@ -75,7 +75,7 @@
       "files": 4371,
       "bytes": 375033007625,
       "gb": 349.28,
-      "pct": 60.7
+      "pct": 58.1
     },
     {
       "name": "123云盘",
@@ -85,17 +85,17 @@
       "files": 734,
       "bytes": 18686350404,
       "gb": 17.4,
-      "pct": 3.0
+      "pct": 2.9
     },
     {
       "name": "联通云盘",
       "key": "wopan",
       "color": "#22ff9c",
       "ico": "联",
-      "files": 9048,
-      "bytes": 50544489326,
-      "gb": 47.07,
-      "pct": 8.2
+      "files": 15331,
+      "bytes": 79193296348,
+      "gb": 73.75,
+      "pct": 12.3
     }
   ],
   "tasks": [
@@ -164,43 +164,43 @@
     }
   ],
   "unicom": {
-    "updated": "2026-11-25 21:25:47",
+    "updated": "2026-11-26 18:14:05",
     "items": [
       {
         "no": "132****5601",
-        "plan": "4G全国流量王8元套餐",
-        "flowTotal": "400MB",
-        "flowUsed": "0MB",
-        "flowRemain": "400MB",
+        "plan": "",
+        "flowTotal": "",
+        "flowUsed": "",
+        "flowRemain": "",
         "smsUsed": 0,
         "smsRemain": 0,
-        "status": "ok",
-        "note": "通用流量200MB当月+200MB上月结转；全国流量王套餐8元/月(首月全量全价)，上月结转限本月使用；语音剩0分钟(已",
-        "updated": "2026-11-25 21:22:19"
+        "status": "wait",
+        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试~”，门户首页亦显示“欢迎来到中",
+        "updated": "2026-11-26 18:14:05"
       },
       {
         "no": "132****5602",
-        "plan": "4G全国流量王8元套餐",
-        "flowTotal": "400MB",
-        "flowUsed": "0MB",
-        "flowRemain": "400MB",
+        "plan": "",
+        "flowTotal": "",
+        "flowUsed": "",
+        "flowRemain": "",
         "smsUsed": 0,
         "smsRemain": 0,
-        "status": "ok",
-        "note": "通用流量200MB当月+200MB上月结转；全国流量王套餐8元/月(首月全量全价)，上月结转限本月使用；语音剩9分钟(已",
-        "updated": "2026-11-25 21:25:47"
+        "status": "wait",
+        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试~”，门户首页亦显示“欢迎来到中",
+        "updated": "2026-11-26 18:14:05"
       },
       {
         "no": "132****5605",
-        "plan": "联通智家全屋光宽带99元-套内5G主卡（首月按天折算）(上月结转限本月使用)",
-        "flowTotal": "96.32GB",
-        "flowUsed": "36.59GB",
-        "flowRemain": "59.73GB",
+        "plan": "",
+        "flowTotal": "",
+        "flowUsed": "",
+        "flowRemain": "",
         "smsUsed": 0,
         "smsRemain": 0,
-        "status": "ok",
-        "note": "通用流量50GB当月+46.32GB上月结转(共享)，另公免流量已用40.66MB；语音剩247分钟(已用753/共10",
-        "updated": "2026-11-25 21:03:08"
+        "status": "wait",
+        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试~”，门户首页亦显示“欢迎来到中",
+        "updated": "2026-11-26 18:14:05"
       }
     ]
   },
@@ -211,12 +211,12 @@
     "branch": "main",
     "language": "Python",
     "files": 10,
-    "commits": 158,
+    "commits": 161,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 12:52",
+    "updated": "11-26 22:49",
     "types": [
       {
         "name": "Python",
@@ -241,6 +241,21 @@
     ],
     "recent": [
       {
+        "sha": "32c0e1f",
+        "msg": "feat: 第二大屏放大后整版拖拽平移，APP 升 1.7 (code8)",
+        "time": "11-26 18:56"
+      },
+      {
+        "sha": "6052586",
+        "msg": "chore: 撤下任务信箱卡与首页任务按钮（改用豆包 APP 对话）",
+        "time": "11-26 12:53"
+      },
+      {
+        "sha": "055049c",
+        "msg": "data: 2026-11-26 12:53 自动刷新快照",
+        "time": "11-26 12:53"
+      },
+      {
         "sha": "25ee2c2",
         "msg": "fix: 任务模式本机认领列表持久化（刷新后回执仍可显示）",
         "time": "11-26 11:58"
@@ -254,28 +269,13 @@
         "sha": "a0d47a3",
         "msg": "fix: 首页闲聊轮询过滤信箱协议串",
         "time": "11-26 11:33"
-      },
-      {
-        "sha": "8f524da",
-        "msg": "data: 2026-11-26 11:33 自动刷新快照",
-        "time": "11-26 11:33"
-      },
-      {
-        "sha": "8219a1e",
-        "msg": "feat: 首页对话面板加任务模式（口令入口+/api/commands 执行回执）",
-        "time": "11-26 11:31"
-      },
-      {
-        "sha": "b4a92fe",
-        "msg": "data: 2026-11-26 11:31 自动刷新快照",
-        "time": "11-26 11:31"
       }
     ]
   },
-  "capturedAt": "2026-11-26 12:52:52",
+  "capturedAt": "2026-11-26 22:49:51",
   "jd": {
     "source": "browser_session",
-    "updated": "2026-11-26 03:57",
+    "updated": "2026-11-26 21:46",
     "walletBalance": 0.0,
     "giftCard": 0.0,
     "beans": 109,
@@ -284,7 +284,51 @@
       "waitPay": 0,
       "waitReceive": 0,
       "waitComment": 0,
-      "afterSale": 0
+      "afterSale": 0,
+      "count": 3,
+      "window": "近3个月",
+      "totalPaid": 1.0,
+      "byStatus": {
+        "waitPay": 0,
+        "waitReceive": 0,
+        "waitComment": 0,
+        "afterSale": 0
+      },
+      "list": [
+        {
+          "time": "2026-10-28 17:14:40",
+          "orderId": "3665410005722334",
+          "shop": "京喜自营官方店",
+          "status": "已完成",
+          "items": [
+            "水龙头防溅头加长延伸起泡器厨房自来水花洒节水可旋转过滤喷头嘴 蓝色+粉色丨麦饭石过滤"
+          ],
+          "amount": 1.0,
+          "logistics": "您的订单已由【本人签收】。如有疑问您可以联系配送员【李峰，18806413600】确认。感谢您在京东购物，欢迎再次光临。【物流问题请致电专属热线950616，可更快解决（不需要联系商家或平台哦）】"
+        },
+        {
+          "time": "2026-10-28 17:11:11",
+          "orderId": "3665410005723041",
+          "shop": "京喜自营官方店",
+          "status": "已取消",
+          "items": [
+            "水龙头防溅头加长延伸起泡器厨房自来水花洒节水可旋转过滤喷头嘴 随机色2个"
+          ],
+          "amount": 1.79,
+          "logistics": null
+        },
+        {
+          "time": "2026-10-28 16:57:58",
+          "orderId": "3665410016396702",
+          "shop": "提居旗舰店",
+          "status": "已取消",
+          "items": [
+            "提居办公室钢架异形办公桌椅子组合套装简约现代36三六人职员工位卡座 定制办公配件"
+          ],
+          "amount": 8.0,
+          "logistics": null
+        }
+      ]
     },
     "checkin": {
       "done": true,
@@ -293,29 +337,60 @@
       "date": "2026-11-26",
       "gain": 15,
       "streak": 2,
-      "note": "03:57 网页端签到 +15 京豆（天天签到），京豆 94→109；11-25 已签 +18，连签 2 天"
+      "note": "03:57 网页端签到 +15 京豆（天天签到），京豆 94→109；11-25 已签 +18，连签 2 天",
+      "lastPrev": "2026-11-25 网页端天天签到领京豆 +18"
     },
     "account": "zg9885c7jril30",
-    "loginState": "ok"
+    "loginState": "ok",
+    "beansCash": 1.09,
+    "baitiao": "去开通",
+    "beanRecords": [
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-26 03:57:22",
+        "delta": 15
+      },
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-25 21:47:19",
+        "delta": 18
+      },
+      {
+        "name": "活动奖励京豆",
+        "time": "2026-11-23 23:59:23",
+        "delta": 2
+      },
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-22 22:00:51",
+        "delta": 28
+      },
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-20 09:45:52",
+        "delta": 28
+      }
+    ]
   },
-  "drivesUpdated": "2026-11-26 03:46:27",
-  "driveFiles": 65955,
-  "driveBytes": 617369286598.0,
+  "drivesUpdated": "2026-11-26 21:42:21",
+  "driveFiles": 72238,
+  "driveBytes": 646018093620.0,
   "tfb": {
     "source": "browser_session",
     "account": "乐邦cheng",
-    "updated": "2026-11-26 10:15",
+    "updated": "2026-11-26 21:45",
     "rebate": {
       "total": 470.49,
-      "tracking": 1,
-      "pending": 1,
+      "tracking": 0,
+      "pending": 0,
       "paid": 1,
       "last": {
         "name": "60D高密度沙发海绵垫定做加厚加硬实木红木椅子垫卡座屁股垫定制",
         "amount": 5.0,
         "arrive": "2026-10-31"
       },
-      "pendingAmount": 0.0
+      "pendingAmount": 0.0,
+      "paidOut": 63.9
     },
     "points": {
       "available": 26,
@@ -338,10 +413,11 @@
       "from": 23,
       "to": 26
     },
-    "loginState": "ok"
+    "loginState": "ok",
+    "signNote": null
   },
   "kuaidi": {
-    "updated": "2026-11-26 03:58",
+    "updated": "2026-11-26 21:46",
     "source": "jd_order_detail",
     "numbers": [
       {
@@ -386,7 +462,7 @@
       "people": 3
     },
     "failedWaybills": [],
-    "note": "03:58 复核京东订单页：近3个月仍3笔（1已完成/2已取消），无新增运单；JDVB71711044988 保持已签收（2026-10-31 15:57 本人签收 济南仲宫站 李峰）",
+    "note": "21:46 复核京东订单页：近3个月 3 笔（1已完成/2已取消），无新增运单；JDVB71711044988 保持已签收（2026-10-31 15:57 本人签收 济南仲宫站 李峰）",
     "loginState": "ok"
   },
   "media": {
@@ -412,7 +488,7 @@
     "snapany": {
       "balance": 48,
       "note": "",
-      "updated": "2026-11-26 12:52"
+      "updated": "2026-11-26 22:49"
     },
     "recent": [
       {
