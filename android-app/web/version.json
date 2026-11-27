@@ -1,11 +1,11 @@
 {
-  "versionCode": 18,
-  "versionName": "1.9.8",
-  "changelog": "本轮一次打包：播放键统一底色+图标几何居中+圆内示波器；星环广告通道改名立橙音乐；标题粉色流星；歌词『隐』按钮可点、去掉收起；点歌补“我要听/要听”等说法；音源回退改并发竞速+自检状态码修正+播放失败自动重试。",
+  "versionCode": 19,
+  "versionName": "1.9.9",
+  "changelog": "看板数据中枢星团长按 2.5 秒（13 色块狂转+外围流星加速）返回首页；同步网页线最新版本",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://f1fd3093.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://aefde2d3.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。",
-  "size": 5873817,
-  "md5": "f6c6ebe322b0434a5469e3dc726ad4fd"
+  "size": 5429542,
+  "md5": "4ff51e390eb120d305e1ba2a70d2f556"
 }
