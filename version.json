@@ -1,9 +1,11 @@
 {
-  "versionCode": 9,
-  "versionName": "1.8",
-  "changelog": "AI 回答开头标明实际调用的模型；外圈模型卡改为星团单程撞击流星并提亮回应；右上角视角按钮下移避开状态栏；断网兜底页与线上版同步。",
+  "versionCode": 10,
+  "versionName": "1.9",
+  "changelog": "首页植入立橙音乐（酷狗搜索+8路音源自动回退，一路失败自动换下一路）；歌词默认隐藏，点「词」展开；频谱接入3D星环律动；断网兜底页与线上版同步。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://9108bdb1.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://c26a29a0.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
-  "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。"
+  "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。",
+  "size": 5867619,
+  "md5": "53dbd1be21e6acfcb289a778184705fe"
 }
