@@ -2806,11 +2806,6 @@ requestAnimationFrame(frame);
 #lmFavBtn.on{color:#c294ff;border-color:rgba(185,139,255,.45);
   box-shadow:0 0 12px rgba(185,139,255,.2) inset,0 0 10px rgba(185,139,255,.12)}
 #lmFavBtn svg{width:16px;height:16px}
-#lmFavList{border:1px solid rgba(185,139,255,.28);background:rgba(185,139,255,.1);color:#d9c2ff;
-  border-radius:8px;padding:5px 8px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;
-  gap:4px;line-height:1;margin-left:auto}
-#lmFavList svg{width:12px;height:12px}
-#lmFavList.on{background:rgba(185,139,255,.24);color:#f3ebff;border-color:rgba(185,139,255,.6)}
 .lm-bar{padding:8px 12px 10px;border-top:1px solid rgba(0,229,255,.14)}
 .lm-prog{height:3px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden;margin-bottom:8px;cursor:pointer}
 .lm-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#00b8ff,#45e6f5);
@@ -2886,7 +2881,6 @@ requestAnimationFrame(frame);
 <div id="lmPanel" role="dialog" aria-label="立橙音乐播放器">
   <div class="lm-head">
     <span class="lm-title"><i></i>立橙音乐<span class="lm-meteor" aria-hidden="true"></span></span>
-    <button id="lmFavList" title="我的收藏" aria-label="我的收藏"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.9c-.45 0-.9-.16-1.24-.45C7.1 17.4 3.5 14 3.5 9.9c0-3 2.2-5.4 5-5.4 1.75 0 3.35.85 4.35 2.28 1-1.43 2.6-2.28 4.35-2.28 2.8 0 5 2.4 5 5.4 0 4.1-3.6 7.5-7.26 10.55-.34.29-.79.45-1.24.45z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><b id="lmFavN" style="font-weight:500">0</b></button>
     <button class="lm-q" id="lmQ" title="切换音质">320k</button>
     <span id="lmSrc" style="font-size:10px;color:#6f9aa6">酷狗 · 星海</span>
     <button class="lm-x" id="lmClose" aria-label="关闭">✕</button>
@@ -2948,8 +2942,6 @@ requestAnimationFrame(frame);
   var srcEl = document.getElementById('lmSrc');
 
   var favBtn = document.getElementById('lmFavBtn');
-  var favListBtn = document.getElementById('lmFavList');
-  var favNEl = document.getElementById('lmFavN');
   var FAV_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.9c-.45 0-.9-.16-1.24-.45C7.1 17.4 3.5 14 3.5 9.9c0-3 2.2-5.4 5-5.4 1.75 0 3.35.85 4.35 2.28 1-1.43 2.6-2.28 4.35-2.28 2.8 0 5 2.4 5 5.4 0 4.1-3.6 7.5-7.26 10.55-.34.29-.79.45-1.24.45z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
   var FAV_KEY = 'lm_fav_v1';
   var favs = (function(){ try { var a = JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); return (a && a.length) ? a : []; } catch(e){ return []; } })();
@@ -2963,11 +2955,10 @@ requestAnimationFrame(frame);
   function favAdd(it){ if (!it || isFav(it)) return; favs.unshift(favPick(it)); favSave(); }
   function favDel(it){ var k = favKey(it); favs = favs.filter(function(f){ return favKey(f) !== k; }); favSave(); }
   function favToggle(it){ if (!it) return; if (isFav(it)) favDel(it); else favAdd(it); syncFavUi(); }
+  /* 播放条爱心 = 收藏列表开关：空心=播放列表，实心紫=正在看收藏 */
   function syncFavUi(){
-    if (favNEl) favNEl.textContent = String(favs.length);
-    var cur = items[idx] || playingItem;
-    if (favBtn) favBtn.classList.toggle('on', !!(cur && isFav(cur)));
-    if (favListBtn) favListBtn.classList.toggle('on', favMode);
+    if (favBtn) favBtn.classList.toggle('on', favMode);
+    if (favBtn) favBtn.title = favMode ? '返回播放列表' : '我的收藏';
   }
 
   var audio = new Audio();
@@ -3048,7 +3039,7 @@ requestAnimationFrame(frame);
   function render(){
     if (!items.length) {
       listEl.innerHTML = favMode
-        ? '<div class="lm-empty">还没有收藏<br>点歌曲右侧的 ♥ 或播放条上的 ♥ 就能存进来</div>'
+        ? '<div class="lm-empty">还没有收藏<br>点歌曲右侧的 ♥ 存进来<br>播放条的紫色 ♥ 就是回到这里</div>'
         : '<div class="lm-empty">没有找到结果</div>';
       syncFavUi(); return;
     }
@@ -3203,28 +3194,23 @@ requestAnimationFrame(frame);
     playAt(Number(row.getAttribute('data-i')));
   });
 
-  favBtn.addEventListener('click', function(){
-    var cur = items[idx] || playingItem;
-    if (!cur) return;
-    favToggle(cur);
-    if (favMode) { items = favs.slice(); idx = items.findIndex(function(f){ return favKey(f) === playingKey; }); render(); }
-    else render();
-  });
+  favBtn.addEventListener('click', function(){ setFavMode(!favMode); });
 
-  favListBtn.addEventListener('click', function(){
-    if (favMode) {
-      favMode = false; items = searchItems.slice();
-      idx = items.findIndex(function(f){ return favKey(f) === playingKey; });
-      render();
-      if (!items.length) listEl.innerHTML = '<div class="lm-empty">输入歌名或歌手开始搜索<br>曲库来自酷狗，选中即刻播放</div>';
-    } else {
+  function setFavMode(on){
+    if (on === favMode) { syncFavUi(); return; }
+    if (on) {
       searchItems = items.slice();
       favMode = true; items = favs.slice();
       idx = items.findIndex(function(f){ return favKey(f) === playingKey; });
       render(); listEl.scrollTop = 0;
+    } else {
+      favMode = false; items = searchItems.slice();
+      idx = items.findIndex(function(f){ return favKey(f) === playingKey; });
+      render();
+      if (!items.length) listEl.innerHTML = '<div class="lm-empty">输入歌名或歌手开始搜索<br>曲库来自酷狗，选中即刻播放</div>';
     }
     syncFavUi();
-  });
+  }
 
   qBtn.addEventListener('click', function(){
     quality = quality === '320k' ? 'flac' : '320k';
