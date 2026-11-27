@@ -1,0 +1,19 @@
+# 依赖与构建产物
+node_modules/
+android/app/build/
+android/build/
+android/.gradle/
+android/app/release/
+*.apk
+*.aab
+*.keystore
+local.properties
+secure/
+
+# 系统/临时
+.DS_Store
+*.log
+
+# 签名与凭据：只在打包机本地保存，不进仓库
+secure/
+*.properties

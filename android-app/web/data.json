@@ -1,0 +1,516 @@
+{
+  "aliyun": {
+    "updated": "2026-11-27 23:14",
+    "instanceId": "i-2ze519nh00d4m0gulmnz",
+    "instanceName": "iZ00d4m0gulmnzZ",
+    "status": "Running",
+    "region": "华北2（北京）",
+    "spec": "ecs.e-c1m4.large · 2核8G",
+    "os": "Windows Server  2022 数据中心版 64位中文版",
+    "publicIp": "101.200.229.90",
+    "privateIp": "172.25.234.150",
+    "cpu": 5.7,
+    "mem": 41.5,
+    "disk": 48.0,
+    "rules": [
+      {
+        "name": "CPU 高负载",
+        "threshold": ">85%",
+        "period": "连续15分钟"
+      },
+      {
+        "name": "内存占用过高",
+        "threshold": ">97%",
+        "period": "连续15分钟"
+      },
+      {
+        "name": "磁盘占用过高",
+        "threshold": ">85%",
+        "period": "连续15分钟"
+      }
+    ]
+  },
+  "updated": "2026-11-27",
+  "genAt": "11-27 23:14",
+  "meters": [
+    {
+      "name": "*凌志",
+      "no": "3700272293458",
+      "balance": -329.85,
+      "day": 33.06,
+      "avg6": 48.91,
+      "yearKwh": 3738,
+      "yearFee": 2089.72,
+      "status": "neg",
+      "sum6": 293.46
+    },
+    {
+      "name": "*立国",
+      "no": "3750037351078",
+      "balance": 47.25,
+      "day": 0.24,
+      "avg6": 0.4,
+      "yearKwh": 167,
+      "yearFee": 91.34,
+      "status": "ok",
+      "sum6": 2.42
+    }
+  ],
+  "drives": [
+    {
+      "name": "百度网盘",
+      "key": "baidu",
+      "color": "#3b82f6",
+      "ico": "百",
+      "files": 51802,
+      "bytes": 173105439243,
+      "gb": 161.22,
+      "pct": 15.5
+    },
+    {
+      "name": "阿里云盘",
+      "key": "ali",
+      "color": "#ffb347",
+      "ico": "阿",
+      "files": 19075,
+      "bytes": 843589029450,
+      "gb": 785.65,
+      "pct": 75.7
+    },
+    {
+      "name": "123云盘",
+      "key": "pan123",
+      "color": "#f5567b",
+      "ico": "1",
+      "files": 737,
+      "bytes": 18949019028,
+      "gb": 17.65,
+      "pct": 1.7
+    },
+    {
+      "name": "联通云盘",
+      "key": "wopan",
+      "color": "#22ff9c",
+      "ico": "联",
+      "files": 15393,
+      "bytes": 79399820018,
+      "gb": 73.95,
+      "pct": 7.1
+    }
+  ],
+  "tasks": [
+    {
+      "name": "国网两户台账·日采集",
+      "status": "ok",
+      "pct": 100
+    },
+    {
+      "name": "云盘清单扫描核对",
+      "status": "ok",
+      "pct": 100
+    },
+    {
+      "name": "驾驶舱数据重算",
+      "status": "ok",
+      "pct": 100
+    },
+    {
+      "name": "京东每日签到",
+      "status": "ok",
+      "pct": 100
+    },
+    {
+      "name": "淘粉吧好评任务",
+      "status": "none",
+      "pct": 0
+    },
+    {
+      "name": "红手指云机待开通",
+      "status": "wait",
+      "pct": 0
+    },
+    {
+      "name": "大华摄像头待接入",
+      "status": "wait",
+      "pct": 0
+    }
+  ],
+  "signs": [
+    {
+      "t": "京东",
+      "r": "已签到 +28 京豆（京豆 137）"
+    },
+    {
+      "t": "淘粉吧",
+      "r": "已签到 +3 积分（余额 29）"
+    }
+  ],
+  "heat": [
+    {
+      "d": "11-19",
+      "v": 20.4
+    },
+    {
+      "d": "11-22",
+      "v": 72.6
+    },
+    {
+      "d": "11-24",
+      "v": 52.77
+    },
+    {
+      "d": "11-26",
+      "v": 50.01
+    },
+    {
+      "d": "11-27",
+      "v": 33.3
+    }
+  ],
+  "unicom": {
+    "updated": "2026-11-26 18:14:05",
+    "items": [
+      {
+        "no": "132****5601",
+        "plan": "",
+        "flowTotal": "",
+        "flowUsed": "",
+        "flowRemain": "",
+        "smsUsed": 0,
+        "smsRemain": 0,
+        "status": "wait",
+        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试~”，门户首页亦显示“欢迎来到中",
+        "updated": "2026-11-26 18:14:05"
+      },
+      {
+        "no": "132****5602",
+        "plan": "",
+        "flowTotal": "",
+        "flowUsed": "",
+        "flowRemain": "",
+        "smsUsed": 0,
+        "smsRemain": 0,
+        "status": "wait",
+        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试~”，门户首页亦显示“欢迎来到中",
+        "updated": "2026-11-26 18:14:05"
+      },
+      {
+        "no": "132****5605",
+        "plan": "",
+        "flowTotal": "",
+        "flowUsed": "",
+        "flowRemain": "",
+        "smsUsed": 0,
+        "smsRemain": 0,
+        "status": "wait",
+        "note": "登录态失效待重新登录：余量查询页提示“登录信息异常，暂无法为您服务，请重新登录或稍后再试~”，门户首页亦显示“欢迎来到中",
+        "updated": "2026-11-26 18:14:05"
+      }
+    ]
+  },
+  "github": {
+    "repo": "licheng-data-center",
+    "owner": "zhaoliguo5601",
+    "private": true,
+    "branch": "main",
+    "language": "Python",
+    "files": 22,
+    "commits": 198,
+    "branches": 3,
+    "stars": 0,
+    "forks": 0,
+    "url": "https://github.com/zhaoliguo5601/licheng-data-center",
+    "updated": "11-27 23:14",
+    "types": [
+      {
+        "name": "Python",
+        "count": 13,
+        "color": "#3b82f6"
+      },
+      {
+        "name": "Shell",
+        "count": 3,
+        "color": "#22ff9c"
+      },
+      {
+        "name": "HTML",
+        "count": 2,
+        "color": "#ffb347"
+      },
+      {
+        "name": "文档/配置",
+        "count": 5,
+        "color": "#a855f7"
+      }
+    ],
+    "recent": [
+      {
+        "sha": "d1b3bae",
+        "msg": "data: 2026-11-27 22:47 自动刷新快照",
+        "time": "11-27 22:47"
+      },
+      {
+        "sha": "ee9ed43",
+        "msg": "恢复数据看板页与入口",
+        "time": "11-27 22:40"
+      },
+      {
+        "sha": "d437106",
+        "msg": "只保留神经星环：删除九套皮肤、主题选择器、旧看板页",
+        "time": "11-27 22:13"
+      },
+      {
+        "sha": "84fc13d",
+        "msg": "清空六通道工作流与任务，只留通道名",
+        "time": "11-27 21:55"
+      },
+      {
+        "sha": "232b1d3",
+        "msg": "播放期间粉色通道心跳式脉动",
+        "time": "11-27 21:45"
+      },
+      {
+        "sha": "b9e8b06",
+        "msg": "播放时朝立橙音乐通道打一束光",
+        "time": "11-27 21:34"
+      }
+    ]
+  },
+  "capturedAt": "2026-11-27 23:14:16",
+  "jd": {
+    "source": "browser_session",
+    "updated": "2026-11-27 21:41",
+    "walletBalance": 0.0,
+    "giftCard": 0.0,
+    "beans": 137,
+    "coupon": 3,
+    "orders": {
+      "waitPay": 0,
+      "waitReceive": 0,
+      "waitComment": 0,
+      "afterSale": 0,
+      "count": 3,
+      "window": "近3个月",
+      "totalPaid": 1.0,
+      "byStatus": {
+        "waitPay": 0,
+        "waitReceive": 0,
+        "waitComment": 0,
+        "afterSale": 0
+      },
+      "list": [
+        {
+          "time": "2026-10-28 17:14:40",
+          "orderId": "3665410005722334",
+          "shop": "京喜自营官方店",
+          "status": "已完成",
+          "items": [
+            "水龙头防溅头加长延伸起泡器厨房自来水花洒节水可旋转过滤喷头嘴 蓝色+粉色丨麦饭石过滤"
+          ],
+          "amount": 1.0,
+          "logistics": "您的订单已由【本人签收】。如有疑问您可以联系配送员【李峰，18806413600】确认。感谢您在京东购物，欢迎再次光临。【物流问题请致电专属热线950616，可更快解决（不需要联系商家或平台哦）】"
+        },
+        {
+          "time": "2026-10-28 17:11:11",
+          "orderId": "3665410005723041",
+          "shop": "京喜自营官方店",
+          "status": "已取消",
+          "items": [
+            "水龙头防溅头加长延伸起泡器厨房自来水花洒节水可旋转过滤喷头嘴 随机色2个"
+          ],
+          "amount": 1.79,
+          "logistics": null
+        },
+        {
+          "time": "2026-10-28 16:57:58",
+          "orderId": "3665410016396702",
+          "shop": "提居旗舰店",
+          "status": "已取消",
+          "items": [
+            "提居办公室钢架异形办公桌椅子组合套装简约现代36三六人职员工位卡座 定制办公配件"
+          ],
+          "amount": 8.0,
+          "logistics": null
+        }
+      ]
+    },
+    "checkin": {
+      "done": true,
+      "state": "已签到",
+      "tasks": [],
+      "date": "2026-11-27",
+      "gain": 28,
+      "streak": 3,
+      "note": "03:57 网页端签到 +15 京豆（天天签到），京豆 94→109；11-25 已签 +18，连签 2 天",
+      "lastPrev": "2026-11-26 网页端天天签到领京豆 +15"
+    },
+    "account": "zg9885c7jril30",
+    "loginState": "ok",
+    "beansCash": 1.37,
+    "baitiao": "去开通",
+    "beanRecords": [
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-27 21:41:27",
+        "delta": 28
+      },
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-26 03:57:22",
+        "delta": 15
+      },
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-25 21:47:19",
+        "delta": 18
+      },
+      {
+        "name": "活动奖励京豆",
+        "time": "2026-11-23 23:59:23",
+        "delta": 2
+      },
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-22 22:00:51",
+        "delta": 28
+      }
+    ]
+  },
+  "drivesUpdated": "2026-11-27 21:40:50",
+  "driveFiles": 87007,
+  "driveBytes": 1115043307739.0,
+  "tfb": {
+    "source": "browser_session",
+    "account": "乐邦cheng",
+    "updated": "2026-11-27 21:42",
+    "rebate": {
+      "total": 470.49,
+      "tracking": 0,
+      "pending": 0,
+      "paid": 1,
+      "last": {
+        "name": "60D高密度沙发海绵垫定做加厚加硬实木红木椅子垫卡座屁股垫定制",
+        "amount": 5.0,
+        "arrive": "2026-10-31"
+      },
+      "pendingAmount": 0.0,
+      "paidOut": 63.9
+    },
+    "points": {
+      "available": 29,
+      "expire": {
+        "points": 5,
+        "date": "2027-01-01"
+      },
+      "redeemDenoms": [
+        0.1,
+        1.0,
+        5.0,
+        10.0
+      ]
+    },
+    "sign": {
+      "date": "2026-11-27",
+      "done": true,
+      "gain": 3,
+      "streak": 4,
+      "from": 26,
+      "to": 29
+    },
+    "loginState": "ok",
+    "signNote": null
+  },
+  "kuaidi": {
+    "updated": "2026-11-27 22:46",
+    "source": "jd_order_detail",
+    "numbers": [
+      {
+        "who": "赵立国",
+        "no": "132****5601"
+      },
+      {
+        "who": "赵立国",
+        "no": "132****5602"
+      },
+      {
+        "who": "赵立国",
+        "no": "132****5605"
+      },
+      {
+        "who": "赵凌志",
+        "no": "139****8534"
+      },
+      {
+        "who": "孙甲花",
+        "no": "135****7470"
+      }
+    ],
+    "parcels": [
+      {
+        "no": "JDVB71711044988",
+        "who": "赵立国",
+        "carrier": "京东快递",
+        "status": "已签收",
+        "orderNo": "3665410005722334",
+        "shop": "京喜自营官方店",
+        "amount": 1.0,
+        "lastTime": "2026-10-31 15:57:12",
+        "lastDesc": "本人签收（济南仲宫站派送，快递员李峰）"
+      }
+    ],
+    "stats": {
+      "numbers": 5,
+      "parcels": 1,
+      "transit": 0,
+      "signed": 1,
+      "people": 3
+    },
+    "failedWaybills": [],
+    "note": "22:46 复核京东订单页：近3个月 3 笔（1已完成/2已取消），无新增运单；JDVB71711044988 保持已签收（2026-10-31 15:57 本人签收 济南仲宫站 李峰，订单 3665410005722334 京喜自营 ¥1.00）",
+    "loginState": "ok"
+  },
+  "media": {
+    "updated": "2026-11-27 23:12:19",
+    "total": 2,
+    "fail": 0,
+    "today": 1,
+    "bytes": 21530564,
+    "gb": 0.02,
+    "byPlatform": [
+      {
+        "key": "douyin",
+        "name": "抖音",
+        "count": 2,
+        "bytes": 21530564,
+        "gb": 0.02
+      }
+    ],
+    "byMethod": {
+      "self": 0,
+      "snapany": 2
+    },
+    "snapany": {
+      "balance": 46,
+      "note": "",
+      "updated": "2026-11-27 23:14"
+    },
+    "recent": [
+      {
+        "time": "11-27 23:12",
+        "platform": "抖音",
+        "author": "小周（薄肌版）",
+        "title": "我这辈子最幸运的事之一，就是认识了埃隆",
+        "size": 160492,
+        "method": "snapany"
+      },
+      {
+        "time": "11-26 08:59",
+        "platform": "抖音",
+        "author": "FredTalk",
+        "title": "本月GitHub九大新神级项目，白嫖87家大模型",
+        "size": 21370072,
+        "method": "snapany"
+      }
+    ]
+  }
+}

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#07070b">
+<title>立橙音乐</title>
+<style>
+:root{
+  --orange:#ff7a2f; --orange-2:#ffb066;
+  --bg:#07070b; --panel:rgba(255,255,255,.045); --line:rgba(255,255,255,.10);
+  --txt:#eceff5; --dim:#8b93a7;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  overflow:hidden}
+body{background:
+  radial-gradient(120% 80% at 50% 0%,rgba(255,122,47,.18),transparent 60%),
+  radial-gradient(90% 60% at 50% 110%,rgba(255,122,47,.10),transparent 60%),
+  var(--bg)}
+#stage{position:fixed;inset:0;display:flex;flex-direction:column}
+
+/* 顶部搜索 */
+header{padding:calc(14px + env(safe-area-inset-top)) 16px 10px;display:flex;gap:8px;align-items:center;z-index:5}
+.logo{font-weight:700;font-size:15px;letter-spacing:.5px;white-space:nowrap}
+.logo i{display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:var(--orange);box-shadow:0 0 12px var(--orange);margin-right:7px;vertical-align:1px}
+.search{flex:1;display:flex;align-items:center;gap:8px;background:var(--panel);
+  border:1px solid var(--line);border-radius:14px;padding:9px 12px;backdrop-filter:blur(12px)}
+.search input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--txt);font-size:14px}
+.search input::placeholder{color:var(--dim)}
+.icon-btn{width:34px;height:34px;border-radius:55%;border:1px solid var(--line);background:var(--panel);
+  color:var(--txt);display:grid;place-items:center;font-size:14px;flex:0 0 auto}
+
+/* 星环区 */
+#ring-wrap{position:relative;flex:1;min-height:0;display:grid;place-items:center;touch-action:pan-y}
+#ring{width:min(78vw,340px);aspect-ratio:1/1;position:relative}
+#ring canvas{position:absolute;inset:0;width:100%;height:100%}
+#ring-core{position:absolute;inset:26%;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,rgba(255,122,47,.22),rgba(10,10,16,.9) 70%);
+  border:1px solid rgba(255,122,47,.35);
+  box-shadow:0 0 40px rgba(255,122,47,.22),inset 0 0 30px rgba(255,122,47,.15);
+  display:grid;place-items:center;padding:12px;text-align:center}
+#now-title{font-size:15px;font-weight:600;line-height:1.3;max-height:2.6em;overflow:hidden}
+#now-singer{font-size:11px;color:var(--dim);margin-top:4px}
+#q-tag{position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--orange-2);
+  border:1px solid rgba(255,122,47,.35);border-radius:20px;padding:1px 8px;background:rgba(0,0,0,.4);display:none}
+
+/* 结果列表 */
+#list{flex:1;min-height:0;overflow-y:auto;padding:0 12px 176px;z-index:4;-webkit-overflow-scrolling:touch}
+.row{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:12px;margin-bottom:4px;
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));
+  border:1px solid rgba(255,255,255,.06)}
+.row:active{background:rgba(255,122,47,.12)}
+.row .n{flex:1;min-width:0}
+.row .t{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .s{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.row .q{font-size:10px;color:var(--orange-2);border:1px solid rgba(255,122,47,.3);border-radius:8px;padding:2px 6px;white-space:nowrap}
+.row.cur{background:rgba(255,122,47,.14);border-color:rgba(255,122,47,.4)}
+.hint{color:var(--dim);font-size:13px;text-align:center;padding:40px 20px;line-height:1.9}
+
+/* 底部播放条 */
+footer{position:fixed;left:0;right:0;bottom:0;padding:8px 14px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(7,7,11,.55),rgba(7,7,11,.96) 40%);
+  backdrop-filter:blur(16px);border-top:1px solid var(--line);z-index:6}
+.bar{height:3px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden;margin:2px 0 8px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--orange-2));
+  box-shadow:0 0 10px rgba(255,122,47,.6)}
+.ctrl{display:flex;align-items:center;gap:14px}
+.time{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums;min-width:38px}
+.play{width:46px;height:46px;border-radius:50%;border:0;flex:0 0 auto;
+  background:linear-gradient(180deg,var(--orange-2),var(--orange));color:#1a0d04;font-size:18px;
+  display:grid;place-items:center;box-shadow:0 6px 22px rgba(255,122,47,.35)}
+.play:active{transform:scale(.95)}
+.mini{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;
+  color:var(--dim);display:grid;place-items:center;font-size:13px}
+.spacer{flex:1}
+#vol{width:70px;accent-color:var(--orange)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <header>
+    <div class="logo"><i></i>立橙音乐</div>
+    <div class="search">
+      <input id="kw" type="search" placeholder="搜歌名 / 歌手，如 告白气球" enterkeyhint="search" autocomplete="off">
+      <button class="icon-btn" id="go" aria-label="搜索">🔍</button>
+    </div>
+  </header>
+
+  <div id="ring-wrap">
+    <div id="ring">
+      <canvas id="cv"></canvas>
+      <div id="ring-core">
+        <div>
+          <div id="q-tag">320k</div>
+          <div id="now-title">等待播放</div>
+          <div id="now-singer">立橙数据中心 · 酷狗音源</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="list"><div class="hint">输入歌名或歌手开始搜索<br>曲库来自酷狗，取链成功后即刻可播</div></div>
+
+  <footer>
+    <div class="bar"><i id="prog"></i></div>
+    <div class="ctrl">
+      <span class="time" id="t-cur">0:00</span>
+      <button class="mini" id="prev" aria-label="上一首">⏮</button>
+      <button class="play" id="play" aria-label="播放">▶</button>
+      <button class="mini" id="next" aria-label="下一首">⏭</button>
+      <span class="time" id="t-dur">0:00</span>
+      <div class="spacer"></div>
+      <input id="vol" type="range" min="0" max="1" step="0.05" value="0.85" aria-label="音量">
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  // 网页走同域；APP(WebView/capacitor/file) 下同域无效，自动切到线上域名
+  var API = (function(){
+    try {
+      var o = location.origin;
+      if (/^(http|https):$/.test(location.protocol) && /pages\.dev$/.test(location.hostname)) return '/api/music';
+      if (/^(http|https):$/.test(location.protocol) && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return '/api/music';
+    } catch(e){}
+    return 'https://lcdc.pages.dev/api/music';
+  })();           // 同域，免跨域
+  var audio = new Audio();
+  audio.preload = 'auto';
+  audio.crossOrigin = 'anonymous';
+  audio.volume = 0.85;
+
+  var listEl = document.getElementById('list');
+  var kwEl = document.getElementById('kw');
+  var progEl = document.getElementById('prog');
+  var tCur = document.getElementById('t-cur');
+  var tDur = document.getElementById('t-dur');
+  var nowTitle = document.getElementById('now-title');
+  var nowSinger = document.getElementById('now-singer');
+  var qTag = document.getElementById('q-tag');
+  var playBtn = document.getElementById('play');
+
+  var items = [], idx = -1, quality = '320k', playing = false;
+  var ctx = null, analyser = null, srcNode = null, freq = null, rafId = 0;
+  var ringEl = document.querySelector('#ring'), cv = document.getElementById('cv'), c2 = cv.getContext('2d');
+  var angle = 0, level = 0, bins = new Uint8Array(0);
+  var cssW = 300, cssH = 300;
+
+  function fmt(s){
+    if (!isFinite(s) || s < 0) s = 0;
+    var m = Math.floor(s/60), x = Math.floor(s%60);
+    return m + ':' + (x<10?'0':'') + x;
+  }
+
+  function resizeCanvas(){
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = ringEl.clientWidth || 300;
+    cv.width = Math.round(w*dpr); cv.height = Math.round(w*dpr);
+    cv.style.width = w+'px'; cv.style.height = w+'px'; cssW = w; cssH = w;
+    c2.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', function(){ resizeCanvas(); });
+  resizeCanvas();
+
+  function drawRing(){
+    var w = cssW, h = cssH;
+    var cx = w/2, cy = h/2, R = Math.min(w,h)/2;
+    c2.clearRect(0,0,w,h);
+    angle += 0.006 + level*0.02;
+    var N = 72;
+    for (var i=0;i<N;i++){
+      var a = angle + i*Math.PI*2/N;
+      var v = bins.length ? bins[Math.floor(i*bins.length/N)]/255 : 0;
+      var len = 6 + v*R*0.30 + level*10;
+      var x1 = cx + Math.cos(a)*(R*0.62), y1 = cy + Math.sin(a)*(R*0.62);
+      var x2 = cx + Math.cos(a)*(R*0.62 + len), y2 = cy + Math.sin(a)*(R*0.62 + len);
+      var g = c2.createLinearGradient(x1,y1,x2,y2);
+      g.addColorStop(0,'rgba(255,122,47,.95)');
+      g.addColorStop(1,'rgba(255,176,102,.25)');
+      c2.strokeStyle = g; c2.lineWidth = 2;
+      c2.beginPath(); c2.moveTo(x1,y1); c2.lineTo(x2,y2); c2.stroke();
+    }
+    // 外圈
+    c2.beginPath(); c2.arc(cx,cy,R*0.955,0,Math.PI*2);
+    c2.strokeStyle='rgba(255,255,255,.10)'; c2.lineWidth=1; c2.stroke();
+    c2.beginPath(); c2.arc(cx,cy,R*0.60,0,Math.PI*2);
+    c2.strokeStyle='rgba(255,122,47,.25)'; c2.lineWidth=1; c2.stroke();
+  }
+
+  function setBins(){
+    if (!analyser) { bins = new Uint8Array(0); return; }
+    if (!freq || freq.length !== analyser.frequencyBinCount) freq = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(freq);
+    bins = freq;
+  }
+
+  function loop(){
+    setBins();
+    level = 0;
+    if (bins.length) {
+      var sum = 0, n = Math.min(bins.length, 40);
+      for (var i=0;i<n;i++) sum += bins[i];
+      level = (sum/n)/255;
+    }
+    drawRing();
+    rafId = requestAnimationFrame(loop);
+  }
+  rafId = requestAnimationFrame(loop);
+
+  function initAudioGraph(){
+    if (ctx) return;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      ctx = new AC();
+      srcNode = ctx.createMediaElementSource(audio);
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 512; analyser.smoothingTimeConstant = 0.82;
+      srcNode.connect(analyser);
+      analyser.connect(ctx.destination);
+    } catch(e){ ctx = null; analyser = null; }
+  }
+
+  function api(path, params){
+    var qs = new URLSearchParams(params || {});
+    return fetch(API + path + '?' + qs.toString(), { cache: 'no-store' }).then(function(r){
+      return r.json().then(function(j){ if (!r.ok || !j.ok) throw new Error(j.msg || ('HTTP '+r.status)); return j; });
+    });
+  }
+
+  function render(){
+    if (!items.length){ listEl.innerHTML = '<div class="hint">没有找到结果</div>'; return; }
+    var html = '';
+    for (var i=0;i<items.length;i++){
+      var it = items[i];
+      html += '<div class="row'+(i===idx?' cur':'')+'" data-i="'+i+'">'+
+        '<div class="n"><div class="t">'+ esc(it.name) +'</div>'+
+        '<div class="s">'+ esc(it.singer) + (it.album?(' · '+esc(it.album)):'') +'</div></div>'+
+        '<div class="q">'+ (it.qualitys.indexOf('flac')>-1?'FLAC':(it.qualitys.indexOf('320k')>-1?'320k':'128k')) +'</div>'+
+      '</div>';
+    }
+    listEl.innerHTML = html;
+  }
+  function esc(s){ return String(s||'').replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function doSearch(){
+    var kw = kwEl.value.trim();
+    if (!kw) return;
+    listEl.innerHTML = '<div class="hint">搜索中…</div>';
+    api('/search', { kw: kw, limit: 30 }).then(function(j){
+      items = j.items || []; idx = -1; render();
+      if (items.length) listEl.scrollTop = 0;
+    }).catch(function(e){
+      listEl.innerHTML = '<div class="hint">搜索失败：'+ esc(e.message) +'<br>稍后再试或换个关键词</div>';
+    });
+  }
+
+  function playAt(i){
+    if (i < 0 || i >= items.length) return;
+    idx = i; render();
+    var it = items[i];
+    nowTitle.textContent = it.name;
+    nowSinger.textContent = it.singer + (it.album ? (' · ' + it.album) : '');
+    qTag.style.display = 'block'; qTag.textContent = quality === 'flac' ? 'FLAC' : '320k';
+
+    var params = { hash: it.hash, hq: it.hashes['320k'] || '', sq: it.hashes['flac'] || '', albumId: it.albumId, quality: quality };
+    nowSinger.textContent = it.singer + ' · 取链中…';
+    var viaName = '';
+    api('/url', params).then(function(j){
+      viaName = j.via || '';
+      var streamUrl = API + '/stream?u=' + encodeURIComponent(j.url);
+      audio.src = streamUrl;
+      initAudioGraph();
+      if (ctx && ctx.state === 'suspended') ctx.resume();
+      return audio.play();
+    }).then(function(){
+      playing = true; playBtn.textContent = '⏸';
+      nowSinger.textContent = it.singer + (it.album ? (' · ' + it.album) : '') + (viaName ? (' · ' + viaName) : '');
+    }).catch(function(e){
+      playing = false; playBtn.textContent = '▶';
+      nowSinger.textContent = '失败：' + e.message;
+    });
+  }
+
+  function toggle(){
+    initAudioGraph();
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+    if (!audio.src){ if (items.length) playAt(0); return; }
+    if (audio.paused){ audio.play().catch(function(){}); playing = true; playBtn.textContent='⏸'; }
+    else { audio.pause(); playing = false; playBtn.textContent='▶'; }
+  }
+
+  audio.addEventListener('timeupdate', function(){
+    var d = audio.duration || 0;
+    progEl.style.width = d ? (audio.currentTime/d*100).toFixed(2)+'%' : '0%';
+    tCur.textContent = fmt(audio.currentTime);
+    tDur.textContent = fmt(d);
+  });
+  audio.addEventListener('ended', function(){ playAt(idx+1 < items.length ? idx+1 : 0); });
+  audio.addEventListener('error', function(){
+    if (!audio.src) return;
+    nowSinger.textContent = '音频加载失败，换下一首试试';
+  });
+
+  document.getElementById('go').addEventListener('click', doSearch);
+  kwEl.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ kwEl.blur(); doSearch(); } });
+  playBtn.addEventListener('click', toggle);
+  document.getElementById('prev').addEventListener('click', function(){ if (items.length) playAt(idx<=0?items.length-1:idx-1); });
+  document.getElementById('next').addEventListener('click', function(){ if (items.length) playAt(idx+1>=items.length?0:idx+1); });
+  document.getElementById('vol').addEventListener('input', function(e){ audio.volume = Number(e.target.value); });
+
+  listEl.addEventListener('click', function(e){
+    var row = e.target.closest && e.target.closest('.row');
+    if (!row) return;
+    playAt(Number(row.getAttribute('data-i')));
+  });
+})();
+</script>
+</body>
+</html>

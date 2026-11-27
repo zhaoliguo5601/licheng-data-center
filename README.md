@@ -19,6 +19,7 @@
 | `taofen8-fanli.html` | 返利说明页（独立，不参与大屏） |
 | `tools/web-deploy.sh` | 网页线：一键上线（不打包） |
 | `tools/release-app.sh` | 打包线：编译 APK + 发版 + 建 GitHub 发行版 |
+| `android-app/` | 安卓壳工程（Capacitor + WebView；源码、图标源文件、`web/` 与 `assets/public/` 离线资源） |
 | `docs/APP-RELEASES.md` | APK 发行台账（历史版本、大小、md5、commit） |
 | `docs/运维汇总台账.md` | 脱敏汇总台账：电表、云盘、ECS 快照等 |
 | `.env.example` | 环境变量占位模板，复制为 `.env` 后填真值，`.env` 不入库 |
@@ -51,6 +52,26 @@
 4. 核对线上：`/sw.js` 状态码、首页下载体积、SW 注册位置，并打印“距上次打包 N 天 / M 次网页改动”
 
 > Cloudflare 的账号接口偶发 503（`upstream connect error`），脚本会明确报「部署失败（CF API 出错）」，重跑即可，本地文件不会丢。
+
+## 安卓壳工程（android-app）
+
+壳工程就是一个只加载 WebView 的安卓容器：启动页、权限、图标、`assets/public/` 里的整套网页。
+App 打开后基本就是壳加载本地网页，所以**网页改动不需要重新打包**，只有壳本身（图标、权限、启动页、资源清单）变了才走打包线。
+
+| 子路径 | 说明 |
+| --- | --- |
+| `android/` | Gradle 工程（AGP 8.2.1，`minSdk`/`targetSdk` 见 `android/variables.gradle`） |
+| `web/` | 待注入的网页资源，发版时由脚本从 `pages-deploy` 覆盖 |
+| `android/app/src/main/assets/public/` | 打进 APK 的离线网页副本（断网可用） |
+| `app-icon-source.png`、`generate_icons.py` | 图标源图与批量生成脚本 |
+| `capacitor.config.json` | Capacitor 配置（WebView 指向 `assets/public`） |
+
+**不进仓库的东西**（都在打包机本地，`.gitignore` 已挡住）：
+
+- keystore（`android-app/secure/licheng-data-center.keystore`，别名 `licheng-lcdc`）与 `keystore-credentials.txt`、`signing.properties`
+- `node_modules/`、`android/app/build/`、`android/.gradle/`、`*.apk`、`local.properties`、构建日志
+
+签名为什么要单独存：系统靠签名判断“新包是不是同一个开发者发的”，换签名老用户只能卸载重装；证书 SHA-256 为 `5f767073…0de45`，发版脚本会校验，指纹不符直接中止。
 
 ## 打包线怎么跑
 

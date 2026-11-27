@@ -1,0 +1,9 @@
+{
+  "apiBase": "",
+  "features": {
+    "aiPanel": true,
+    "voiceInput": true
+  },
+  "carouselSpeed": 3000,
+  "note": "后台改这里即可动态调整，无需重新打包 APP；apiBase 留空则回退页面内置默认地址。"
+}

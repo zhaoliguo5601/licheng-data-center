@@ -1,0 +1,15 @@
+{
+  "appId": "com.licheng.datacenter",
+  "appName": "立橙数据中心",
+  "webDir": "web",
+  "android": {
+    "allowMixedContent": true,
+    "zoomEnabled": true
+  },
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true,
+    "url": "https://lcdc.pages.dev"
+  },
+  "backgroundColor": "#000000"
+}
