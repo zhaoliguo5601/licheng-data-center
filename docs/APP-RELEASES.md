@@ -26,6 +26,7 @@ cd .build/git-work/repo
 
 | 发行版 | versionCode | 大小 | MD5 | 要点 |
 |---|---|---|---|---|
+| [v1.9.8](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.8) | 18 | 5.60MB | `f6c6ebe3…d4fd` | 播放键同底色+图标居中+圆内示波器、星环通道改立橙音乐、标题流星、歌词隐按钮、点歌补词、音源并发竞速 |
 | [v1.9.7](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.7) | 17 | 5.60MB | `3751c50f…50ad6` | 输入条改豆包式按住说话：波形+辉光、上滑取消、键盘切换 |
 | [v1.9.6](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.6) | 16 | 5.60MB | `b4c7cf74…f47c` | 音乐加封面：列表缩略图 + 正在播放大封面，图片走同域代理 |
 | [v1.9.5](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.5) | 15 | 5.60MB | `6856e080…2174` | 面板回左侧原位并压到 26% 透明，按钮留驻 AI 窗口 |

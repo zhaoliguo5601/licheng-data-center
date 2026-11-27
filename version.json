@@ -1,11 +1,11 @@
 {
-  "versionCode": 17,
-  "versionName": "1.9.7",
-  "changelog": "输入条改成豆包式按住说话：整条胶囊按住录音，实时波形+辉光，上滑松开取消，左侧键盘图标切文字输入。",
+  "versionCode": 18,
+  "versionName": "1.9.8",
+  "changelog": "本轮一次打包：播放键统一底色+图标几何居中+圆内示波器；星环广告通道改名立橙音乐；标题粉色流星；歌词『隐』按钮可点、去掉收起；点歌补“我要听/要听”等说法；音源回退改并发竞速+自检状态码修正+播放失败自动重试。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://1ee49a2f.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://f1fd3093.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。",
-  "size": 5871682,
-  "md5": "3751c50f89ca169601084b7c21550ad6"
+  "size": 5873817,
+  "md5": "f6c6ebe322b0434a5469e3dc726ad4fd"
 }
