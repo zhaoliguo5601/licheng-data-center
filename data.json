@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-26 22:51",
+    "updated": "2026-11-27 11:57",
     "instanceId": "i-2ze9gch4l1m9vyi7nryc",
     "instanceName": "aliyunzhuji",
     "status": "Running",
@@ -9,9 +9,9 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "8.152.6.148",
     "privateIp": "172.25.96.69",
-    "cpu": 2.2,
-    "mem": 48.1,
-    "disk": 67.0,
+    "cpu": 3.4,
+    "mem": 55.8,
+    "disk": 68.0,
     "rules": [
       {
         "name": "CPU 高负载",
@@ -30,19 +30,19 @@
       }
     ]
   },
-  "updated": "2026-11-26",
-  "genAt": "11-26 22:51",
+  "updated": "2026-11-27",
+  "genAt": "11-27 11:57",
   "meters": [
     {
       "name": "*凌志",
       "no": "3700272293458",
-      "balance": -310.71,
-      "day": 49.77,
-      "avg6": 47.18,
+      "balance": -329.85,
+      "day": 33.06,
+      "avg6": 48.91,
       "yearKwh": 3738,
       "yearFee": 2089.72,
       "status": "neg",
-      "sum6": 283.08
+      "sum6": 293.46
     },
     {
       "name": "*立国",
@@ -161,6 +161,10 @@
     {
       "d": "11-26",
       "v": 50.01
+    },
+    {
+      "d": "11-27",
+      "v": 33.3
     }
   ],
   "unicom": {
@@ -211,12 +215,12 @@
     "branch": "main",
     "language": "Python",
     "files": 10,
-    "commits": 167,
+    "commits": 175,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-26 22:51",
+    "updated": "11-27 11:57",
     "types": [
       {
         "name": "Python",
@@ -241,38 +245,38 @@
     ],
     "recent": [
       {
-        "sha": "bb444ce",
-        "msg": "data: 2026-11-26 22:50 自动刷新快照",
-        "time": "11-26 22:50"
+        "sha": "b2b866c",
+        "msg": "feat(APP): 升 1.8 (code9)，内嵌页与线上同步并含模型自我介绍",
+        "time": "11-27 11:52"
       },
       {
-        "sha": "cb93827",
-        "msg": "perf(神经星环): 拖拽视角跟手保持不回摆，composer 补 MSAA 抗锯齿",
-        "time": "11-26 20:58"
+        "sha": "28f13c5",
+        "msg": "feat(对话): AI回答开头加被调用模型自我介绍开场白",
+        "time": "11-27 11:08"
       },
       {
-        "sha": "423b1ea",
-        "msg": "feat(大屏): 自由画布无边界平移，双指/滚轮围绕手指锚点缩放",
-        "time": "11-26 20:41"
+        "sha": "26356fe",
+        "msg": "feat(神经星环): 撞击流星改为单程直飞不回弹，仅在忙模型慢速补发",
+        "time": "11-27 10:51"
       },
       {
-        "sha": "17f0254",
-        "msg": "perf(大屏): 放大后整版平移跟手、抬手惯性与静止停写消闪",
-        "time": "11-26 20:14"
+        "sha": "86682fd",
+        "msg": "feat(神经星环): 撞击仅由真实调用/选模型触发，命中点加克制的小范围碎片爆发",
+        "time": "11-27 10:41"
       },
       {
-        "sha": "d8e657b",
-        "msg": "feat(助手): 模型滚轮改为内嵌透明轨道",
-        "time": "11-26 19:24"
+        "sha": "2cf7740",
+        "msg": "feat(神经星环): 撞击落点对准卡片正中，闪光与卡片提亮，流星打水漂连击后弹射延续",
+        "time": "11-27 10:27"
       },
       {
-        "sha": "8468b1a",
-        "msg": "feat(助手): 模型选择改为紧凑齿轮滚轮 Picker",
-        "time": "11-26 19:06"
+        "sha": "b6dd75b",
+        "msg": "feat(神经星环): 星团按自身颜色射出撞击流星命中外圈模型卡并闪光",
+        "time": "11-27 09:56"
       }
     ]
   },
-  "capturedAt": "2026-11-26 22:51:07",
+  "capturedAt": "2026-11-27 11:57:26",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-26 21:46",
@@ -469,7 +473,7 @@
     "updated": "2026-11-26 08:59:36",
     "total": 1,
     "fail": 0,
-    "today": 1,
+    "today": 0,
     "bytes": 21370072,
     "gb": 0.02,
     "byPlatform": [
@@ -487,8 +491,8 @@
     },
     "snapany": {
       "balance": 48,
-      "note": "HTTPError: HTTP Error 503: Service Unavailable",
-      "updated": "2026-11-26 22:51"
+      "note": "",
+      "updated": "2026-11-27 11:57"
     },
     "recent": [
       {
