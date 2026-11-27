@@ -3429,7 +3429,7 @@ const CONFIG = {
   agents: [['01','检索'],['02','拆解'],['03','文案'],['04','设计'],['05','代码'],['06','测试'],
            ['07','审校'],['08','数据'],['09','剪辑'],['10','投放'],['11','客服'],['12','归档']],
   taskNames: ['竞品资料检索','需求拆解','短视频脚本','封面图六版','落地页改版','接口联调','合同条款审校','周报数据汇总',
-              '投标文件生成','私域话术更新','素材归档','发版检查','用户反馈聚类','广告素材测试','知识库更新','直播切片'],
+              '投标文件生成','私域话术更新','素材归档','发版检查','用户反馈聚类','知识库更新','直播切片'],
   workflows: ['资料检索','需求拆解','脚本生成','视觉设计','代码实现','测试验证','合规审校','数据汇总','视频剪辑','投放优化','知识归档'],
   // 执行代码面板：多套示例，随机轮换，一轮内不重复。agent = 对应 agents 的序号（0 起）
   codeSets: [
@@ -3498,15 +3498,6 @@ const CONFIG = {
       "    if diff.risk > 0.3:",
       "        return ask_review(diff)",
       "    return approve(build)"]},
-    {file: 'ads_ab.py', agent: 9, start: 88, lines: [
-      "# 广告素材测试：小预算跑 AB",
-      "variants = load_creatives('第3批')",
-      "for v in variants:",
-      "    ads.launch(v, budget=200)",
-      "wait(hours=24)",
-      "stats = ads.report(variants)",
-      "win = max(stats, key=lambda s: s.ctr)",
-      "ads.scale(win, budget=2000)"]},
     {file: 'archive.py', agent: 11, start: 95, lines: [
       "# 素材归档与知识库更新",
       "files = scan('素材/本周')",
@@ -4212,7 +4203,6 @@ const WF = [
   {id:'W02', zh:'落地页',   ch:2, path:[2,4,5,6,7],   names:['落地页改版','活动页上线','官网首页']},
   {id:'W03', zh:'投标文件', ch:1, path:[1,2,3,7,12],  names:['投标文件生成','技术方案标书','资质材料整理']},
   {id:'W04', zh:'周报',     ch:1, path:[8,3,7,12],    names:['周报数据汇总','月度经营复盘','客户报表']},
-  {id:'W05', zh:'广告素材', ch:4, path:[4,10,8],      names:['广告素材测试','信息流素材','投放 AB 组']},
   {id:'W06', zh:'私域话术', ch:3, path:[11,3,7],      names:['私域话术更新','社群活动文案','回访话术']},
   {id:'W07', zh:'发版',     ch:2, path:[5,6,12],      names:['发版检查','接口联调','热修复']},
   {id:'W08', zh:'用户反馈', ch:5, path:[11,8,2],      names:['用户反馈聚类','差评归因','需求池整理']},
@@ -4238,7 +4228,6 @@ const CODESETS = [
   {file:'tender.py', agent:7, start:56, lines:["# 投标文件：按甲方要求逐条响应","reqs = parse_tender('招标文件.pdf')","doc = Template('投标模板.docx')","for r in reqs:","    ans = draft_response(r, kb)","    doc.fill(r.id, ans)","missing = doc.check_required(reqs)","assert not missing, missing","doc.save('投标文件_v3.docx')"]},
   {file:'weekly.py', agent:8, start:64, lines:["# 周报数据汇总","rows = db.query('tasks', week=42)","done = [r for r in rows if r.done]","rate = len(done) / len(rows)","chart = plot.bar(group(done, 'agent'))","report.add('完成率', f'{rate:.0%}')","report.add_chart(chart)","report.send(to='周报群')"]},
   {file:'preflight.py', agent:6, start:77, lines:["# 发版前检查","def preflight(build):","    tests = run_tests(build, fast=True)","    if tests.failed:","        return block(tests.failed)","    diff = compare(build, last_release)","    if diff.risk > 0.3:","        return ask_review(diff)","    return approve(build)"]},
-  {file:'ads_ab.py', agent:10, start:88, lines:["# 广告素材测试：小预算跑 AB","variants = load_creatives('第3批')","for v in variants:","    ads.launch(v, budget=200)","wait(hours=24)","stats = ads.report(variants)","win = max(stats, key=lambda s: s.ctr)","ads.scale(win, budget=2000)"]},
   {file:'archive.py', agent:12, start:95, lines:["# 素材归档与知识库更新","files = scan('素材/本周')","for f in files:","    tags = vision.tag(f)","    kb.index(f, tags=tags)","    move(f, to=f'归档/{tags[0]}')","log.info(f'归档 {len(files)} 个文件')"]}
 ];
 
@@ -4476,7 +4465,7 @@ function ring(p, col){ rings.push({x: p.x, y: p.y - 6, born: animT, col}); }
     feed.push({t: hms(new Date(back)), a: a.i, verb: v, text, kind: v === '交付' ? 'ship' : ''});
   }
   reviews.push({n: 4517, id: 'T-037', name: '落地页改版', ok: true, item: '全部通过', dur: 44}, {n: 4516, id: 'T-035', name: '社群活动文案', ok: false, item: '合规敏感词', dur: 39}, {n: 4515, id: 'T-033', name: '周报数据汇总', ok: true, item: '全部通过', dur: 51});
-  packet(CHIEF_PT, AG[1].seat, C.joint, () => AG[1].inbox.push(newTask(9)));
+  packet(CHIEF_PT, AG[1].seat, C.joint, () => AG[1].inbox.push(newTask(8)));
 })();
 
 /* ================= 5. 每帧推进 ================= */
@@ -5697,7 +5686,6 @@ const WF = [
   {id:'W02', zh:'落地页',   ch:2, path:[2,4,5,6,7],   names:['落地页改版','活动页上线','官网首页']},
   {id:'W03', zh:'投标文件', ch:1, path:[1,2,3,7,12],  names:['投标文件生成','技术方案标书','资质材料整理']},
   {id:'W04', zh:'周报',     ch:1, path:[8,3,7,12],    names:['周报数据汇总','月度经营复盘','客户报表']},
-  {id:'W05', zh:'广告素材', ch:4, path:[4,10,8],      names:['广告素材测试','信息流素材','投放 AB 组']},
   {id:'W06', zh:'私域话术', ch:3, path:[11,3,7],      names:['私域话术更新','社群活动文案','回访话术']},
   {id:'W07', zh:'发版',     ch:2, path:[5,6,12],      names:['发版检查','接口联调','热修复']},
   {id:'W08', zh:'用户反馈', ch:5, path:[11,8,2],      names:['用户反馈聚类','差评归因','需求池整理']},
@@ -6284,6 +6272,10 @@ function sendSignal(a, b, colHex, cb, kind){
   const path = (u, o) => { const t = fwd ? u : 1 - u, v = 1 - t; o.set(v * v * s.p0.x + 2 * v * t * s.c.x + t * t * s.p1.x, v * v * s.p0.y + 2 * v * t * s.c.y + t * t * s.p1.y, v * v * s.p0.z + 2 * v * t * s.c.z + t * t * s.p1.z); };
   signals.push({kind, path, u: 0, dur: clamp(s.len / 1.5, .8, 1.8), col, cb, tr: 10, gap: .024, head: kind === 'bad' ? .1 : .085, bun: bun.g, to: b});
 }
+/* 音乐模块外呼：只在需要时朝指定通道打一束光（4=粉色立橙音乐通道） */
+window.__ringBeam = function(ch){
+  try { if (typeof sendRay === 'function' && CL && CL.length) sendRay((Math.random() * CL.length) | 0, ch); } catch (e) {}
+};
 function sendRay(ai, ch){
   rateCur++;
   chanN[ch]++;
@@ -6580,9 +6572,12 @@ function drawRing(){
       if (f > .02) { q.fillStyle = rgba(ch.col, .32 * f); q.fillRect(-150, -13, 300, 26); }
       q.font = `700 17px ${MONO}`; q.textAlign = 'center'; q.textBaseline = 'middle';
       q.fillStyle = f > .3 ? '#ffffff' : 'rgba(225,236,250,.82)';
-      // 广告通道对外展示为「立橙音乐」，其余保持原样
+      // 广告通道对外展示为「立橙音乐」，尾部数字换成当前可用音源数
       const lbl = ch.en === 'ADS' ? '立橙音乐' : `${ch.en} ${ch.zh}`;
-      q.fillText(`${lbl} · ${fmt(chanN[j])}`, 0, 1);
+      let tail;
+      if (ch.en === 'ADS') { const st = window.__lmRingSrc; tail = st ? `${st.alive}/${st.total}源` : '源 —'; }
+      else tail = fmt(chanN[j]);
+      q.fillText(`${lbl} · ${tail}`, 0, 1);
     });
   });
   // 外圈模型卡：槽 0=自动分派，槽 1..12=在线模型；竖条=运行/连通，横条=累计用量，选中铺主题色浅底
@@ -6999,7 +6994,7 @@ document.addEventListener('keydown', e => {
 
 /* ---------- 开场 ---------- */
 // 先让几个智能体处在干活中途，画面一打开就是在跑的状态
-[[1, 0], [3, 0], [5, 1], [7, 2], [9, 8], [11, 5], [4, 10]].forEach(([ai, wi]) => {
+[[1, 0], [3, 0], [5, 1], [7, 2], [9, 8], [11, 5], [4, 9]].forEach(([ai, wi]) => {
   const w = WF[wi], t = newTask(wi), st = Math.max(0, w.path.indexOf(ai)); t.stage = st;
   const a = AG[ai]; a.cur = t; a.prog = rnd(.1, .8); a.dur = rnd(5, 9) * a.sp;
 });
@@ -7087,7 +7082,6 @@ const WF = [
   {id:'W02', zh:'落地页',   ch:2, path:[2,4,5,6,7],   names:['落地页改版','活动页上线','官网首页']},
   {id:'W03', zh:'投标文件', ch:1, path:[1,2,3,7,12],  names:['投标文件生成','技术方案标书','资质材料整理']},
   {id:'W04', zh:'周报',     ch:1, path:[8,3,7,12],    names:['周报数据汇总','月度经营复盘','客户报表']},
-  {id:'W05', zh:'广告素材', ch:4, path:[4,10,8],      names:['广告素材测试','信息流素材','投放 AB 组']},
   {id:'W06', zh:'私域话术', ch:3, path:[11,3,7],      names:['私域话术更新','社群活动文案','回访话术']},
   {id:'W07', zh:'发版',     ch:2, path:[5,6,12],      names:['发版检查','接口联调','热修复']},
   {id:'W08', zh:'用户反馈', ch:5, path:[11,8,2],      names:['用户反馈聚类','差评归因','需求池整理']},
@@ -9017,7 +9011,6 @@ const WF = [
   {id:'W02', zh:'落地页',   path:[2,4,5,6,7],   names:['落地页改版','活动页上线','官网首页']},
   {id:'W03', zh:'投标文件', path:[1,2,3,7,12],  names:['投标文件生成','技术方案标书','资质材料整理']},
   {id:'W04', zh:'周报',     path:[8,3,7,12],    names:['周报数据汇总','月度经营复盘','客户报表']},
-  {id:'W05', zh:'广告素材', path:[4,10,8],      names:['广告素材测试','信息流素材','投放 AB 组']},
   {id:'W06', zh:'私域话术', path:[11,3,7],      names:['私域话术更新','社群活动文案','回访话术']},
   {id:'W07', zh:'发版',     path:[5,6,12],      names:['发版检查','接口联调','热修复']},
   {id:'W08', zh:'用户反馈', path:[11,8,2],      names:['用户反馈聚类','差评归因','需求池整理']},
@@ -22644,6 +22637,15 @@ requestAnimationFrame(frame);
     });
   }
 
+  /* 音源探活：结果推给星环标签显示「N/M 源」 */
+  function refreshSources(){
+    api('/sources', {}).then(function(j){
+      if (j && j.total) window.__lmRingSrc = { alive: j.alive || 0, total: j.total };
+    }).catch(function(){});
+  }
+  refreshSources();
+  setInterval(refreshSources, 300000);
+
   function render(){
     if (!items.length) { listEl.innerHTML = '<div class="lm-empty">没有找到结果</div>'; return; }
     var h = '';
@@ -22815,7 +22817,8 @@ requestAnimationFrame(frame);
     var st3 = document.getElementById('lmNowS'); if (st3) st3.textContent = '音频加载失败，换一首试试';
   });
   audio.addEventListener('pause', function(){ if (!audio.ended) { playBtn.classList.remove('on'); fab.classList.remove('on'); stopPump(); } });
-  audio.addEventListener('play', function(){ playBtn.classList.add('on'); fab.classList.add('on'); startPump(); });
+  function ringBeam(){ try { if (window.__ringBeam) window.__ringBeam(4); } catch (e) {} }
+  audio.addEventListener('play', function(){ playBtn.classList.add('on'); fab.classList.add('on'); startPump(); ringBeam(); });
 
   /* 双击 3D 星环区域：有声就切播放/暂停，没声就开面板 */
   var host = document.getElementById('host-neural');

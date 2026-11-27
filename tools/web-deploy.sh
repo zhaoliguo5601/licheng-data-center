@@ -38,8 +38,17 @@ PY
 
 # ③ 部署
 cd "$BUILD"
-OUT="$(CLOUDFLARE_API_TOKEN="$CF_TOKEN" "$WRANGLER" pages deploy pages-deploy --project-name lcdc --branch main 2>&1)"
+if ! OUT="$(CLOUDFLARE_API_TOKEN="$CF_TOKEN" "$WRANGLER" pages deploy pages-deploy --project-name lcdc --branch main 2>&1)"; then
+  echo "部署失败（CF API 出错），本地文件已保留，稍后重跑本脚本即可。"
+  printf '%s' "$OUT" | tail -4
+  exit 1
+fi
 URL="$(printf '%s' "$OUT" | grep -oE 'https://[a-z0-9]+\.lcdc\.pages\.dev' | tail -1)"
+if [ -z "$URL" ]; then
+  echo "部署命令未返回部署地址，按失败处理。"
+  printf '%s' "$OUT" | tail -4
+  exit 1
+fi
 
 # ④ 核对
 C=""
