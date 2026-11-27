@@ -21973,9 +21973,14 @@ requestAnimationFrame(frame);
       .then(function(r){ return r.json(); })
       .then(function(data){
         var reply=(data&&data.reply)||'我这边暂时没回答上来，换个问题试试。';
+        var dispatched=(data&&data.key)||selectedKey;
+        /* 模型自我介绍开场白：回答开头标明当前被调用的是哪个模型 */
+        var mName=dispatched, i;
+        for(i=0;i<modelListCache.length;i++){ if(modelListCache[i].key===dispatched){ mName=modelListCache[i].name; break; } }
+        if(mName===dispatched){ for(i=0;i<FALLBACK_MODELS.length;i++){ if(FALLBACK_MODELS[i].key===dispatched){ mName=FALLBACK_MODELS[i].name; break; } } }
+        if(dispatched&&dispatched!=='auto'&&mName!==dispatched){ reply='我是'+mName+'，现在为您解答：\n\n'+reply; }
         history.push({role:'assistant',content:reply});
         addBubble('assistant', reply);
-        var dispatched=(data&&data.key)||selectedKey;
         if(data&&data.color) modelColor[dispatched]=data.color;
         if(!autoMode){ selectedKey=dispatched; modelSel.value=dispatched; refreshTrigger(); }
         if(data&&data.color) applyTheme(data.color);
