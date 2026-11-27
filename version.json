@@ -1,11 +1,11 @@
 {
-  "versionCode": 10,
-  "versionName": "1.9",
-  "changelog": "首页植入立橙音乐（酷狗搜索+8路音源自动回退，一路失败自动换下一路）；歌词默认隐藏，点「词」展开；频谱接入3D星环律动；断网兜底页与线上版同步。",
+  "versionCode": 11,
+  "versionName": "1.9.1",
+  "changelog": "断网兜底：主框架加载失败自动切包里离线版并提示，不再白屏；其余同步线上。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://c26a29a0.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://e62c779c.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。",
-  "size": 5867619,
-  "md5": "53dbd1be21e6acfcb289a778184705fe"
+  "size": 5868382,
+  "md5": "a8f16d25ed0f3f09b40fe6aab2785439"
 }

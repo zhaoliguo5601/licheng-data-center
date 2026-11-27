@@ -26,6 +26,7 @@ cd .build/git-work/repo
 
 | 发行版 | versionCode | 大小 | MD5 | 要点 |
 |---|---|---|---|---|
+| [v1.9.1](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.1) | 11 | 5.60MB | `a8f16d25…5439` | 断网兜底：主框架加载失败自动切包里离线版，不再白屏 |
 | [v1.9](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9) | 10 | 5.60MB | `53dbd1be…05fe` | 首页植入立橙音乐、8 路音源自动回退、歌词默认隐藏 |
 | v1.8 | 9 | 5.59MB | `636a9e15…22f2` | 回答标注模型、星团撞击动效、视角按钮下移、断网兜底页 |
 

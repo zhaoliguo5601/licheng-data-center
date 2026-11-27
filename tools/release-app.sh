@@ -7,8 +7,9 @@ set -euo pipefail
 VER="${1:?用法: release-app.sh <版本号如1.9> <更新说明>}"
 NOTE="${2:-例行更新}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"          # 仓库根
-APP="$ROOT/../android-app"                        # 安卓工程（与 .build 同级）
-BUILD="$ROOT/../build"                            # CF 部署目录
+LIVE="${LCDC_HOME:-/home/user/Doubao/chats/209744810426882}"   # 立橙项目根（含 .build 与 android-app）
+APP="${APP_DIR:-$LIVE/android-app}"               # 安卓工程
+BUILD="${BUILD_DIR:-$LIVE/.build}"                # CF 部署目录
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export ANDROID_HOME=/home/user/android-sdk
 CF_TOKEN="$(cat "$BUILD/archive/worker-legacy-cf-20261123/.cf-token")"
@@ -28,7 +29,7 @@ cp web/*.html web/*.json android/app/src/main/assets/public/
 
 # ② 编译
 cd android && ./gradlew assembleRelease --offline -q
-APK="app/build/outputs/apk/release/app-release.apk"
+APK="$(pwd)/app/build/outputs/apk/release/app-release.apk"
 BT=$(ls -d "$ANDROID_HOME"/build-tools/* | tail -1)
 SIGN=$("$BT"/apksigner verify --print-certs "$APK" | grep SHA-256 | awk '{print $NF}')
 [ "$SIGN" = "5f767073787f9330f14e000abb1b760a410b9ae86f573c49ebd6ad24ddf0de45" ] || { echo "签名不符，停止"; exit 1; }
