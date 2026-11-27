@@ -2385,5 +2385,73 @@ boot();
 </script>
 
 
+
+<!-- ===== 隐藏返回入口：长按数据中枢星团约 2.5 秒 → 回首页星环 ===== -->
+<style>
+.ring-box{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.lcdc-hold{position:absolute;inset:8%;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .18s ease}
+.lcdc-hold.on,.lcdc-hold.done{opacity:1}
+.lcdc-hold i{position:absolute;inset:0;border-radius:50%;display:block;
+ background:conic-gradient(from -90deg,rgba(0,229,255,.92) calc(var(--p,0)*1turn),rgba(0,229,255,0) 0);
+ -webkit-mask:radial-gradient(farthest-side,#0000 calc(100% - 5px),#0000 calc(100% - 4px),#000 calc(100% - 2px));
+ mask:radial-gradient(farthest-side,#0000 calc(100% - 5px),#0000 calc(100% - 4px),#000 calc(100% - 2px));
+ filter:drop-shadow(0 0 8px rgba(0,229,255,.55))}
+.lcdc-hold.done i{background:conic-gradient(from -90deg,rgba(34,255,156,.96) 1turn,rgba(34,255,156,0) 0);
+ filter:drop-shadow(0 0 12px rgba(34,255,156,.7))}
+</style>
+<script>
+(function(){
+  var HOLD=2500, GAP=12;
+  function boot(){
+    var box=document.querySelector('.ring-box');
+    if(!box || box.dataset.holdInit) return;
+    box.dataset.holdInit='1';
+    var halo=document.createElement('div'); halo.className='lcdc-hold';
+    var arc=document.createElement('i'); halo.appendChild(arc); box.appendChild(halo);
+    var timer=null, raf=null, t0=0, x0=0, y0=0, downs=0, fired=false;
+    function clear(){
+      if(timer){clearTimeout(timer);timer=null;}
+      if(raf){cancelAnimationFrame(raf);raf=null;}
+      halo.classList.remove('on');
+      if(!fired) arc.style.setProperty('--p','0');
+    }
+    function loop(){
+      var p=Math.min(1,(performance.now()-t0)/HOLD);
+      arc.style.setProperty('--p',p.toFixed(3));
+      if(p<1) raf=requestAnimationFrame(loop);
+    }
+    function fire(){
+      fired=true; clearTimeout(timer); timer=null;
+      if(raf){cancelAnimationFrame(raf);raf=null;}
+      arc.style.setProperty('--p','1'); halo.classList.add('done');
+      try{ if(navigator.vibrate) navigator.vibrate(35); }catch(_){}
+      setTimeout(function(){ location.href='/'; },240);
+    }
+    box.addEventListener('pointerdown',function(e){
+      if(fired) return;
+      if(e.pointerType==='mouse' && e.button!==0) return;
+      downs++;
+      if(downs>1){ clear(); return; }          // 双指捏合不触发
+      if(e.target && e.target.closest && e.target.closest('a,button')) return;
+      x0=e.clientX; y0=e.clientY; t0=performance.now();
+      halo.classList.add('on'); arc.style.setProperty('--p','0');
+      raf=requestAnimationFrame(loop);
+      timer=setTimeout(fire,HOLD);
+    },{passive:true});
+    window.addEventListener('pointermove',function(e){
+      if(!timer||fired) return;
+      if(Math.abs(e.clientX-x0)+Math.abs(e.clientY-y0)>GAP) clear();
+    },{passive:true});
+    function up(){ downs=Math.max(0,downs-1); if(!fired) clear(); }
+    window.addEventListener('pointerup',up,{passive:true});
+    window.addEventListener('pointercancel',function(){ downs=Math.max(0,downs-1); if(!fired) clear(); },{passive:true});
+    window.addEventListener('blur',function(){ if(!fired) clear(); });
+    box.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+  else boot();
+})();
+</script>
+
 </body>
 </html>
