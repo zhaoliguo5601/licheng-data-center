@@ -22241,14 +22241,17 @@ requestAnimationFrame(frame);
 
 #lmPanel{position:fixed;left:16px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:9999;
   width:min(352px,calc(100vw - 28px));max-height:min(70vh,600px);display:none;flex-direction:column;
-  background:rgba(4,10,16,.9);border:1px solid rgba(0,229,255,.22);border-radius:16px;overflow:hidden;
-  backdrop-filter:blur(16px);box-shadow:0 18px 48px rgba(0,0,0,.55),0 0 0 1px rgba(0,229,255,.06) inset;
+  background:rgba(6,12,20,.38);border:1px solid rgba(255,119,200,.22);border-radius:16px;overflow:hidden;
+  backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);
+  box-shadow:0 18px 48px rgba(0,0,0,.35),0 0 0 1px rgba(255,119,200,.08) inset;
   font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#eafcff}
 #lmPanel.open{display:flex}
-.lm-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(0,229,255,.14)}
-.lm-title{font-weight:600;font-size:13px;letter-spacing:.5px;color:#eafcff}
-.lm-title i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#00e5ff;
-  box-shadow:0 0 10px #00e5ff;margin-right:6px;vertical-align:1px}
+.lm-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,119,200,.16);
+  background:linear-gradient(180deg,rgba(6,12,20,.30),rgba(6,12,20,0))}
+.lm-title{font-weight:600;font-size:13px;letter-spacing:.5px;color:#ff77c8;
+  text-shadow:0 0 12px rgba(255,119,200,.45)}
+.lm-title i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#ff77c8;
+  box-shadow:0 0 10px #ff77c8;margin-right:6px;vertical-align:1px}
 .lm-q{border:1px solid rgba(0,229,255,.28);color:#7fd9e8;border-radius:8px;padding:2px 7px;
   font:500 10px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,229,255,.06);cursor:pointer}
 .lm-x{margin-left:auto;border:0;background:transparent;color:#7fd9e8;font-size:14px;cursor:pointer;width:26px;height:26px;border-radius:7px}
@@ -22284,7 +22287,8 @@ requestAnimationFrame(frame);
 #lmLyBtn.on{background:rgba(0,229,255,.2);color:#eafcff;border-color:rgba(0,229,255,.55)}
 .lm-now{font-size:11px;color:#7fa8b6;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.lm-lyric{position:absolute;inset:44px 0 0;background:rgba(4,10,16,.94);backdrop-filter:blur(6px);
+.lm-lyric{position:absolute;inset:44px 0 0;background:rgba(6,12,20,.55);backdrop-filter:blur(14px) saturate(1.4);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);
   display:none;flex-direction:column;padding:10px 14px;overflow:hidden}
 .lm-lyric.show{display:flex}
 .lm-lyric-head{display:flex;align-items:center;gap:8px;font-size:11px;color:#7fd9e8;padding-bottom:8px}
