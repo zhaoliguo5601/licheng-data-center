@@ -1,11 +1,11 @@
 {
-  "versionCode": 19,
-  "versionName": "1.9.9",
-  "changelog": "看板数据中枢星团长按 2.5 秒（13 色块狂转+外围流星加速）返回首页；同步网页线最新版本",
+  "versionCode": 20,
+  "versionName": "2.0.0",
+  "changelog": "立橙音乐新增收藏：播放条爱心、每首歌爱心、我的收藏列表（本地持久化）；同步网页最新版本",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://aefde2d3.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://5680e83f.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。",
-  "size": 5429542,
-  "md5": "4ff51e390eb120d305e1ba2a70d2f556"
+  "size": 5430979,
+  "md5": "3ee4b82dfac33f2dd82cbf0bbf6d1502"
 }
