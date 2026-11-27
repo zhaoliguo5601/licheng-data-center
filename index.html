@@ -21419,7 +21419,8 @@ requestAnimationFrame(frame);
 #lcInput::placeholder{color:#6f9aa6}
 #lcSend{flex:0 0 auto;border:none;background:rgba(0,229,255,.16);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
 #lcSend:disabled{opacity:.45;cursor:default}
-@media(max-width:640px){#lcChat{right:12px;bottom:16px;width:min(320px,calc(100vw-24px))}#lcFab{right:12px;bottom:16px}}
+@media(max-width:640px){#lcChat{right:12px;bottom:16px;width:min(320px,calc(100vw-24px))}#lcFab{right:12px;bottom:16px}
+  #lmPanel{right:12px;bottom:calc(80px + env(safe-area-inset-bottom));width:min(320px,calc(100vw - 24px));max-height:min(64vh,560px)}}
 </style>
 <div id="lcChat" role="dialog" aria-label="立橙智能助手">
   <div class="lc-panel">
@@ -21437,6 +21438,7 @@ requestAnimationFrame(frame);
         <span class="pt-name">自动分派（母AI调度）</span>
         <svg class="pt-arrow" viewBox="0 0 12 12"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
       </button>
+      <button id="lmFab" aria-label="立橙音乐" title="立橙音乐">♪</button>
       <button id="lcCollapse" type="button" aria-label="收起面板" title="收起面板">▾</button>
     </div>
     <div id="lcLog" aria-live="polite"></div>
@@ -22228,18 +22230,17 @@ requestAnimationFrame(frame);
 
 <!-- ===== 立橙音乐 · 首页 3D 星环内嵌模块（酷狗音源，同域 /api/music） ===== -->
 <style id="lmCss">
-#lmFab{position:fixed;left:16px;bottom:calc(24px + env(safe-area-inset-bottom));z-index:9996;
-  width:50px;height:50px;border-radius:50%;border:1px solid rgba(0,229,255,.35);
-  background:rgba(4,10,16,.82);backdrop-filter:blur(12px);color:#45e6f5;font-size:19px;
+#lmFab{position:relative;flex:0 0 auto;width:28px;height:28px;border-radius:50%;
+  border:1px solid rgba(255,119,200,.45);background:rgba(255,119,200,.10);color:#ff9ed6;font-size:14px;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
-  box-shadow:0 6px 22px rgba(0,229,255,.22);transition:transform .18s,box-shadow .18s}
+  box-shadow:0 0 12px rgba(255,119,200,.18);transition:transform .18s,box-shadow .18s}
 #lmFab:active{transform:scale(.94)}
-#lmFab.on{border-color:rgba(0,229,255,.75);box-shadow:0 0 0 3px rgba(0,229,255,.12),0 6px 26px rgba(0,229,255,.4);color:#eafcff}
-#lmFab.on::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(0,229,255,.35);
+#lmFab.on{border-color:rgba(255,119,200,.85);box-shadow:0 0 0 3px rgba(255,119,200,.12),0 0 16px rgba(255,119,200,.45);color:#fff2fa}
+#lmFab.on::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(255,119,200,.4);
   animation:lmPulse 2.2s infinite}
 @keyframes lmPulse{0%{transform:scale(.92);opacity:.85}70%{transform:scale(1.22);opacity:0}100%{opacity:0}}
 
-#lmPanel{position:fixed;left:16px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:9999;
+#lmPanel{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:9998;
   width:min(352px,calc(100vw - 28px));max-height:min(70vh,600px);display:none;flex-direction:column;
   background:rgba(6,12,20,.38);border:1px solid rgba(255,119,200,.22);border-radius:16px;overflow:hidden;
   backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);
@@ -22299,8 +22300,6 @@ requestAnimationFrame(frame);
 .lm-ly-line.cur{color:#eafcff;font-weight:600;transform:scale(1.06);text-shadow:0 0 14px rgba(0,229,255,.45)}
 .lm-ly-line.near{color:#9fc3ce}
 </style>
-
-<button id="lmFab" aria-label="立橙音乐" title="立橙音乐">♪</button>
 
 <div id="lmPanel" role="dialog" aria-label="立橙音乐播放器">
   <div class="lm-head">
@@ -22523,7 +22522,14 @@ requestAnimationFrame(frame);
     else { audio.pause(); playBtn.textContent = '▶'; fab.classList.remove('on'); stopPump(); }
   }
 
-  function open(){ panel.classList.add('open'); fab.classList.add('on'); if (!items.length) kwEl.focus(); }
+  function open(){
+    /* 面板随按钮走：对话面板展开时浮在它上沿，收起时落在右下角 */
+    var c = document.getElementById('lcChat');
+    var r = c ? c.getBoundingClientRect() : null;
+    if (r && r.height > 0) panel.style.bottom = (window.innerHeight - r.top + 8) + 'px';
+    else panel.style.bottom = '';
+    panel.classList.add('open'); fab.classList.add('on'); if (!items.length) kwEl.focus();
+  }
   function close(){ panel.classList.remove('open'); if (audio.paused) fab.classList.remove('on'); }
 
   fab.addEventListener('click', function(){
