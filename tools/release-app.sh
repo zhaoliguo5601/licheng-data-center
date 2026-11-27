@@ -80,4 +80,7 @@ subprocess.run(["curl","-sS","-m","180","-X","POST",f"{up}?name=licheng-datacent
 print("发行版:",f"https://github.com/{repo}/releases/tag/{tag}")
 PY
 
+# 重置打包节奏计数器（网页线脚本据此判断离线快照是否偏旧）
+echo "$(date +%s) 0" > "$BUILD/.pack-stamp"
+
 echo "完成：v$VER (code $CODE)  $SIZE bytes  md5 $MD5"
