@@ -1990,6 +1990,7 @@ requestAnimationFrame(frame);
 
   /* Siri 式柔和双音开场提示音：WebAudio 合成，免外部音频文件；两声正弦上扬、指数衰减 */
   var chimeCtx=null;
+  var CHIME_ON=false;   // 开场/录音提示音总开关：需要恢复时改回 true 即可
   function playChime(){
     try{
       if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)();
@@ -2530,7 +2531,7 @@ requestAnimationFrame(frame);
     }
     try{
       try{ if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)(); if(chimeCtx.state==='suspended') chimeCtx.resume(); }catch(e){}
-      playChime();
+      if(CHIME_ON) playChime();
       asrStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
       asrCtx=new (window.AudioContext||window.webkitAudioContext)();
       asrNativeRate=asrCtx.sampleRate||ASR_RATE;
