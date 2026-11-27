@@ -21998,6 +21998,47 @@ requestAnimationFrame(frame);
       .finally(function(){ working=false; send.disabled=false; });
   }
 
+  /* —— 本地音乐指令：不走模型，直接调首页播放器（打字和语音都走这里） —— */
+  function musicIntent(text){
+    var t=(text||'').replace(/[，。！？、,.!?~\s]/g,'');
+    if(!t) return null;
+    if(/^(暂停|停一下|停止播放|别放了|关掉音乐|别唱了)/.test(t)) return {act:'pause'};
+    if(/^(继续|接着放|继续播放|放回去)/.test(t)) return {act:'resume'};
+    if(/(下一首|换一首|下一曲)/.test(t)) return {act:'next'};
+    if(/(上一首|前一首|上一曲)/.test(t)) return {act:'prev'};
+    if(/(关掉歌词|隐藏歌词|收起歌词)/.test(t)) return {act:'lyricOff'};
+    if(/(显示歌词|打开歌词|看歌词)/.test(t)) return {act:'lyricOn'};
+    /* 点歌：只认「放/播放/来一首/听/点一首」开头，后面接歌名或歌手 */
+    var m=t.match(/^(?:帮我|给我|麻烦|请|小橙|豆包)?(?:播放|放一首|放|来一首|来首|点一首|我想听|想听|听)(.+)$/);
+    if(!m) return null;
+    var q=m[1].replace(/(的歌曲|的歌|歌曲|的音乐|音乐|吧|呗|呀|好吗|可以吗)$/g,'').replace(/^(一首|首|个|一下)/,'');
+    if(!q||q.length>24||/^(什么|啥|哪|怎么|为什么|多少)/.test(q)) return null;
+    return {act:'play',q:q};
+  }
+
+  function runMusic(intent){
+    var lm=window.lmMusic;
+    if(!lm){ addBubble('assistant','音乐模块没加载出来，刷新一下页面再试。'); return; }
+    if(intent.act==='pause'){ lm.toggle(); addBubble('assistant','已暂停。'); setStatus('待命 · 点按星环说话','idle'); return; }
+    if(intent.act==='resume'){ lm.toggle(); addBubble('assistant','接着放。'); setStatus('待命 · 点按星环说话','idle'); return; }
+    if(intent.act==='next'){ lm.next(); addBubble('assistant','换下一首。'); return; }
+    if(intent.act==='prev'){ lm.prev(); addBubble('assistant','回上一首。'); return; }
+    if(intent.act==='lyricOn'||intent.act==='lyricOff'){
+      var b=document.getElementById('lmLyBtn'); if(b) b.click();
+      addBubble('assistant', intent.act==='lyricOn'?'歌词已打开。':'歌词已收起。');
+      return;
+    }
+    setStatus('找歌中…','thinking');
+    lm.play(intent.q).then(function(j){
+      var cur=lm.current();
+      addBubble('assistant','好，给你放 '+(cur||intent.q)+'。');
+      setStatus('正在播放…','idle');
+    }).catch(function(e){
+      addBubble('assistant','没搜到「'+intent.q+'」，换个歌名或歌手试试。');
+      setStatus('待命 · 点按星环说话','idle');
+    });
+  }
+
   function handleText(text){
     text=(text||'').trim(); if(!text||working) return;
     addBubble('user', text);
@@ -22006,6 +22047,8 @@ requestAnimationFrame(frame);
       if(window.enterDashboard) window.enterDashboard(); else location.href='dashboard.html';
       return;
     }
+    var mi=musicIntent(text);
+    if(mi){ runMusic(mi); return; }
     callModel(text);
   }
 
@@ -22180,6 +22223,378 @@ requestAnimationFrame(frame);
     else { pollCommands(); }
   });
   pollCommands();
+})();
+</script>
+
+<!-- ===== 立橙音乐 · 首页 3D 星环内嵌模块（酷狗音源，同域 /api/music） ===== -->
+<style id="lmCss">
+#lmFab{position:fixed;left:16px;bottom:calc(24px + env(safe-area-inset-bottom));z-index:9996;
+  width:50px;height:50px;border-radius:50%;border:1px solid rgba(0,229,255,.35);
+  background:rgba(4,10,16,.82);backdrop-filter:blur(12px);color:#45e6f5;font-size:19px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 6px 22px rgba(0,229,255,.22);transition:transform .18s,box-shadow .18s}
+#lmFab:active{transform:scale(.94)}
+#lmFab.on{border-color:rgba(0,229,255,.75);box-shadow:0 0 0 3px rgba(0,229,255,.12),0 6px 26px rgba(0,229,255,.4);color:#eafcff}
+#lmFab.on::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(0,229,255,.35);
+  animation:lmPulse 2.2s infinite}
+@keyframes lmPulse{0%{transform:scale(.92);opacity:.85}70%{transform:scale(1.22);opacity:0}100%{opacity:0}}
+
+#lmPanel{position:fixed;left:16px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:9999;
+  width:min(352px,calc(100vw - 28px));max-height:min(70vh,600px);display:none;flex-direction:column;
+  background:rgba(4,10,16,.9);border:1px solid rgba(0,229,255,.22);border-radius:16px;overflow:hidden;
+  backdrop-filter:blur(16px);box-shadow:0 18px 48px rgba(0,0,0,.55),0 0 0 1px rgba(0,229,255,.06) inset;
+  font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#eafcff}
+#lmPanel.open{display:flex}
+.lm-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(0,229,255,.14)}
+.lm-title{font-weight:600;font-size:13px;letter-spacing:.5px;color:#eafcff}
+.lm-title i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#00e5ff;
+  box-shadow:0 0 10px #00e5ff;margin-right:6px;vertical-align:1px}
+.lm-q{border:1px solid rgba(0,229,255,.28);color:#7fd9e8;border-radius:8px;padding:2px 7px;
+  font:500 10px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,229,255,.06);cursor:pointer}
+.lm-x{margin-left:auto;border:0;background:transparent;color:#7fd9e8;font-size:14px;cursor:pointer;width:26px;height:26px;border-radius:7px}
+.lm-x:hover{background:rgba(0,229,255,.12)}
+.lm-srch{display:flex;gap:8px;padding:10px 12px 6px}
+#lmKw{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(0,229,255,.18);
+  border-radius:10px;padding:8px 10px;color:#eafcff;font-size:13px;outline:none}
+#lmKw::placeholder{color:#6f9aa6}
+#lmGo{border:1px solid rgba(0,229,255,.28);background:rgba(0,229,255,.12);color:#eafcff;
+  border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
+.lm-list{flex:1;min-height:120px;overflow-y:auto;padding:4px 8px 8px;scrollbar-width:thin}
+.lm-row{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+.lm-row:hover{background:rgba(0,229,255,.07)}
+.lm-row.cur{background:rgba(0,229,255,.12);border-color:rgba(0,229,255,.3)}
+.lm-row .t{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm-row .s{font-size:11px;color:#7fa8b6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm-row .q{font-size:10px;color:#7fd9e8;border:1px solid rgba(0,229,255,.25);border-radius:7px;padding:1px 5px}
+.lm-empty{color:#6f9aa6;font-size:12px;text-align:center;padding:26px 16px;line-height:1.9}
+
+.lm-bar{padding:8px 12px 10px;border-top:1px solid rgba(0,229,255,.14)}
+.lm-prog{height:3px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden;margin-bottom:8px;cursor:pointer}
+.lm-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#00b8ff,#45e6f5);
+  box-shadow:0 0 8px rgba(0,229,255,.6)}
+.lm-ctrl{display:flex;align-items:center;gap:8px}
+.lm-time{font:500 11px/1 ui-monospace,Menlo,monospace;color:#7fa8b6;min-width:36px}
+.lm-btn{width:32px;height:32px;border-radius:50%;border:1px solid rgba(0,229,255,.2);
+  background:transparent;color:#7fd9e8;display:grid;place-items:center;font-size:13px;cursor:pointer}
+.lm-play{width:40px;height:40px;border-radius:50%;border:0;background:linear-gradient(180deg,#45e6f5,#00b8ff);
+  color:#031018;font-size:16px;display:grid;place-items:center;box-shadow:0 4px 16px rgba(0,229,255,.35);cursor:pointer}
+.lm-sp{flex:1}
+#lmLyBtn{border:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.08);color:#7fd9e8;
+  border-radius:8px;padding:5px 9px;font-size:11px;cursor:pointer}
+#lmLyBtn.on{background:rgba(0,229,255,.2);color:#eafcff;border-color:rgba(0,229,255,.55)}
+.lm-now{font-size:11px;color:#7fa8b6;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.lm-lyric{position:absolute;inset:44px 0 0;background:rgba(4,10,16,.94);backdrop-filter:blur(6px);
+  display:none;flex-direction:column;padding:10px 14px;overflow:hidden}
+.lm-lyric.show{display:flex}
+.lm-lyric-head{display:flex;align-items:center;gap:8px;font-size:11px;color:#7fd9e8;padding-bottom:8px}
+.lm-lyric-body{flex:1;overflow-y:auto;scrollbar-width:none;text-align:center;
+  padding:calc(50% - 46px) 0;transition:opacity .2s}
+.lm-lyric-body::-webkit-scrollbar{display:none}
+.lm-ly-line{padding:6px 4px;font-size:13px;line-height:1.5;color:#6f9aa6;transition:color .25s,transform .25s}
+.lm-ly-line.cur{color:#eafcff;font-weight:600;transform:scale(1.06);text-shadow:0 0 14px rgba(0,229,255,.45)}
+.lm-ly-line.near{color:#9fc3ce}
+</style>
+
+<button id="lmFab" aria-label="立橙音乐" title="立橙音乐">♪</button>
+
+<div id="lmPanel" role="dialog" aria-label="立橙音乐播放器">
+  <div class="lm-head">
+    <span class="lm-title"><i></i>立橙音乐</span>
+    <button class="lm-q" id="lmQ" title="切换音质">320k</button>
+    <span id="lmSrc" style="font-size:10px;color:#6f9aa6">酷狗 · 星海</span>
+    <button class="lm-x" id="lmClose" aria-label="关闭">✕</button>
+  </div>
+  <div class="lm-srch">
+    <input id="lmKw" type="search" placeholder="搜歌名 / 歌手" enterkeyhint="search" autocomplete="off">
+    <button id="lmGo">搜索</button>
+  </div>
+  <div class="lm-now" id="lmNow">未播放</div>
+  <div class="lm-list" id="lmList"><div class="lm-empty">输入歌名或歌手开始搜索<br>曲库来自酷狗，选中即刻播放</div></div>
+  <div class="lm-bar">
+    <div class="lm-prog" id="lmProg"><i></i></div>
+    <div class="lm-ctrl">
+      <span class="lm-time" id="lmCur">0:00</span>
+      <button class="lm-btn" id="lmPrev" aria-label="上一首">⏮</button>
+      <button class="lm-play" id="lmPlay" aria-label="播放">▶</button>
+      <button class="lm-btn" id="lmNext" aria-label="下一首">⏭</button>
+      <span class="lm-time" id="lmDur">0:00</span>
+      <div class="lm-sp"></div>
+      <button id="lmLyBtn" aria-label="显示歌词">词</button>
+    </div>
+  </div>
+  <div class="lm-lyric" id="lmLyric">
+    <div class="lm-lyric-head"><span>歌词</span><span id="lmLyInfo" style="color:#6f9aa6"></span>
+      <span style="margin-left:auto;cursor:pointer" id="lmLyClose">收起 ✕</span></div>
+    <div class="lm-lyric-body" id="lmLyBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  // 网页走同域；APP(WebView/capacitor/file) 下同域无效，自动切到线上域名
+  var API = (function(){
+    try {
+      var o = location.origin;
+      if (/^(http|https):$/.test(location.protocol) && /pages\.dev$/.test(location.hostname)) return '/api/music';
+      if (/^(http|https):$/.test(location.protocol) && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return '/api/music';
+    } catch(e){}
+    return 'https://lcdc.pages.dev/api/music';
+  })();
+  var panel = document.getElementById('lmPanel');
+  var fab = document.getElementById('lmFab');
+  var listEl = document.getElementById('lmList');
+  var kwEl = document.getElementById('lmKw');
+  var nowEl = document.getElementById('lmNow');
+  var playBtn = document.getElementById('lmPlay');
+  var progEl = document.getElementById('lmProg').firstElementChild;
+  var curEl = document.getElementById('lmCur'), durEl = document.getElementById('lmDur');
+  var qBtn = document.getElementById('lmQ');
+  var lyBtn = document.getElementById('lmLyBtn');
+  var lyWrap = document.getElementById('lmLyric'), lyBody = document.getElementById('lmLyBody'), lyInfo = document.getElementById('lmLyInfo');
+  var srcEl = document.getElementById('lmSrc');
+
+  var audio = new Audio();
+  audio.preload = 'auto';
+  audio.crossOrigin = 'anonymous';
+  audio.setAttribute('playsinline', '');
+  audio.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px';
+  document.body.appendChild(audio);
+
+  var items = [], idx = -1, quality = '320k';
+  var ctx = null, analyser = null, srcNode = null, freq = null, raf = 0;
+  var lyricLines = [], lyricIdx = -1, lyricOn = false;
+  var lyricReq = 0;
+
+  function fmt(s){ if(!isFinite(s)||s<0) s=0; var m=Math.floor(s/60), x=Math.floor(s%60); return m+':'+(x<10?'0':'')+x; }
+  function esc(s){ return String(s||'').replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  /* —— 把音频频谱推给 3D 星环（复用页面已有的 setLevels 桥接，72 段） —— */
+  function fxSet(arr){
+    var f = null;
+    try { if (typeof window.fx === 'function') f = window.fx(); } catch(e){}
+    if (!f) { var h = document.getElementById('host-neural'); f = (h && h.__chatFx) || null; }
+    if (f && f.setLevels) f.setLevels(arr);
+  }
+  var SEGS = 72;
+  function pump(){
+    if (!analyser) { raf = 0; return; }
+    if (!freq || freq.length !== analyser.frequencyBinCount) freq = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(freq);
+    var arr = new Array(SEGS), bins = freq.length, s, i0, i1, b, m;
+    for (s = 0; s < SEGS; s++) {
+      i0 = Math.floor(s / SEGS * bins * 0.72);
+      i1 = Math.max(i0 + 1, Math.floor((s + 1) / SEGS * bins * 0.72));
+      m = 0; for (b = i0; b < i1; b++) if (freq[b] > m) m = freq[b];
+      arr[s] = Math.min(1, Math.pow(m / 255, 1.15) * 1.35);
+    }
+    fxSet(arr);
+    raf = requestAnimationFrame(pump);
+  }
+  function startPump(){ if (!raf) raf = requestAnimationFrame(pump); }
+  function stopPump(){
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    var z = new Array(SEGS); for (var i = 0; i < SEGS; i++) z[i] = 0;
+    fxSet(z);
+  }
+  function initGraph(){
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      ctx = new AC();
+      srcNode = ctx.createMediaElementSource(audio);
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.8;
+      srcNode.connect(analyser);
+      analyser.connect(ctx.destination);
+      startPump();
+    } catch(e){ ctx = null; analyser = null; }
+  }
+
+  function api(path, params){
+    var qs = new URLSearchParams(params || {});
+    return fetch(API + path + '?' + qs.toString(), { cache: 'no-store' }).then(function(r){
+      return r.json().then(function(j){ if (!r.ok || !j.ok) throw new Error((j && j.msg) || ('HTTP ' + r.status)); return j; });
+    });
+  }
+
+  function render(){
+    if (!items.length) { listEl.innerHTML = '<div class="lm-empty">没有找到结果</div>'; return; }
+    var h = '';
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i], q = it.qualitys.indexOf('flac') > -1 ? 'FLAC' : (it.qualitys.indexOf('320k') > -1 ? '320k' : '128k');
+      h += '<div class="lm-row' + (i === idx ? ' cur' : '') + '" data-i="' + i + '">' +
+        '<div style="flex:1;min-width:0"><div class="t">' + esc(it.name) + '</div>' +
+        '<div class="s">' + esc(it.singer) + (it.album ? ' · ' + esc(it.album) : '') + '</div></div>' +
+        '<div class="q">' + q + '</div></div>';
+    }
+    listEl.innerHTML = h;
+  }
+
+  function doSearch(autoplay){
+    var kw = kwEl.value.trim();
+    if (!kw) return Promise.reject(new Error('缺少关键词'));
+    listEl.innerHTML = '<div class="lm-empty">搜索中…</div>';
+    return api('/search', { kw: kw, limit: 30 }).then(function(j){
+      items = j.items || []; idx = -1; render();
+      listEl.scrollTop = 0;
+      if (autoplay && items.length) playAt(0);
+      return j;
+    }).catch(function(e){
+      listEl.innerHTML = '<div class="lm-empty">搜索失败：' + esc(e.message) + '<br>稍后再试</div>';
+      throw e;
+    });
+  }
+
+  function loadLyric(it){
+    var seq = ++lyricReq;
+    lyricLines = []; lyricIdx = -1; lyBody.innerHTML = ''; lyInfo.textContent = '加载中…';
+    api('/lyric', { hash: it.hash, duration: it.duration, albumId: it.albumId, name: it.name, singer: it.singer })
+      .then(function(j){
+        if (seq !== lyricReq) return;
+        lyricLines = j.lines || [];
+        renderLyric();
+        lyInfo.textContent = lyricLines.length ? (lyricLines.length + ' 行') : '暂无歌词';
+      })
+      .catch(function(e){ if (seq === lyricReq) lyInfo.textContent = '歌词不可用'; });
+  }
+  function renderLyric(){
+    if (!lyricLines.length) { lyBody.innerHTML = '<div class="lm-ly-line">暂无歌词</div>'; return; }
+    var h = '';
+    for (var i = 0; i < lyricLines.length; i++) h += '<div class="lm-ly-line" data-i="' + i + '">' + esc(lyricLines[i].s) + '</div>';
+    lyBody.innerHTML = h;
+    syncLyric(true);
+  }
+  function syncLyric(force){
+    if (!lyricLines.length) return;
+    var t = audio.currentTime + 0.25, i = 0;
+    for (i = lyricLines.length - 1; i >= 0; i--) if (lyricLines[i].t <= t) break;
+    if (i !== lyricIdx || force) {
+      lyricIdx = i;
+      var rows = lyBody.children;
+      for (var k = 0; k < rows.length; k++) {
+        rows[k].className = 'lm-ly-line' + (k === i ? ' cur' : (Math.abs(k - i) <= 2 ? ' near' : ''));
+      }
+      var cur = rows[i];
+      if (cur && lyricOn) {
+        var off = cur.offsetTop - lyBody.clientHeight / 2 + cur.offsetHeight / 2;
+        lyBody.scrollTo({ top: Math.max(0, off), behavior: 'smooth' });
+      }
+    }
+  }
+
+  function playAt(i){
+    if (i < 0 || i >= items.length) return;
+    idx = i; render();
+    var it = items[i];
+    nowEl.textContent = '取链中 · ' + it.name;
+    api('/url', { hash: it.hash, hq: it.hashes['320k'] || '', sq: it.hashes['flac'] || '', albumId: it.albumId, quality: quality })
+      .then(function(j){
+        if (srcEl) srcEl.textContent = '酷狗 · ' + (j.via || '自动');
+        if (j.tried && j.tried.length > 1 && srcEl) srcEl.title = '自动切源：' + j.tried.map(function(t){ return t.id + (t.ok ? '✓' : '✗'); }).join(' ');
+        audio.src = API + '/stream?u=' + encodeURIComponent(j.url);
+        initGraph();
+        return audio.play();
+      })
+      .then(function(){
+        playBtn.textContent = '⏸';
+        fab.classList.add('on');
+        nowEl.textContent = it.name + ' · ' + it.singer;
+        loadLyric(it);
+      })
+      .catch(function(e){
+        playBtn.textContent = '▶';
+        fab.classList.remove('on');
+        nowEl.textContent = '播放失败：' + e.message;
+      });
+  }
+
+  function toggle(){
+    initGraph();
+    if (!audio.src) { if (items.length) playAt(idx >= 0 ? idx : 0); else if (!panel.classList.contains('open')) open(); return; }
+    if (audio.paused) { audio.play().catch(function(){}); playBtn.textContent = '⏸'; fab.classList.add('on'); startPump(); }
+    else { audio.pause(); playBtn.textContent = '▶'; fab.classList.remove('on'); stopPump(); }
+  }
+
+  function open(){ panel.classList.add('open'); fab.classList.add('on'); if (!items.length) kwEl.focus(); }
+  function close(){ panel.classList.remove('open'); if (audio.paused) fab.classList.remove('on'); }
+
+  fab.addEventListener('click', function(){
+    if (panel.classList.contains('open')) close(); else open();
+  });
+  document.getElementById('lmClose').addEventListener('click', close);
+  document.getElementById('lmGo').addEventListener('click', doSearch);
+  kwEl.addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); kwEl.blur(); doSearch(); } });
+  playBtn.addEventListener('click', toggle);
+  document.getElementById('lmPrev').addEventListener('click', function(){ if (items.length) playAt(idx <= 0 ? items.length - 1 : idx - 1); });
+  document.getElementById('lmNext').addEventListener('click', function(){ if (items.length) playAt(idx + 1 >= items.length ? 0 : idx + 1); });
+
+  listEl.addEventListener('click', function(e){
+    var row = e.target.closest ? e.target.closest('.lm-row') : null;
+    if (!row) return;
+    playAt(Number(row.getAttribute('data-i')));
+  });
+
+  qBtn.addEventListener('click', function(){
+    quality = quality === '320k' ? 'flac' : '320k';
+    qBtn.textContent = quality === 'flac' ? 'FLAC' : '320k';
+    if (idx >= 0 && items[idx]) playAt(idx);
+  });
+
+  lyBtn.addEventListener('click', function(){
+    lyricOn = !lyricOn;
+    lyWrap.classList.toggle('show', lyricOn);
+    lyBtn.classList.toggle('on', lyricOn);
+    lyBtn.textContent = lyricOn ? '隐' : '词';
+    if (lyricOn) { renderLyric(); syncLyric(true); }
+  });
+  document.getElementById('lmLyClose').addEventListener('click', function(){
+    lyricOn = false; lyWrap.classList.remove('show'); lyBtn.classList.remove('on'); lyBtn.textContent = '词';
+  });
+
+  document.getElementById('lmProg').addEventListener('click', function(e){
+    if (!audio.duration) return;
+    var r = this.getBoundingClientRect();
+    audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * audio.duration;
+  });
+
+  audio.addEventListener('timeupdate', function(){
+    var d = audio.duration || 0;
+    progEl.style.width = d ? (audio.currentTime / d * 100).toFixed(2) + '%' : '0%';
+    curEl.textContent = fmt(audio.currentTime);
+    durEl.textContent = fmt(d);
+    if (lyricOn) syncLyric(false);
+  });
+  audio.addEventListener('ended', function(){ if (items.length) playAt(idx + 1 >= items.length ? 0 : idx + 1); });
+  audio.addEventListener('error', function(){
+    if (!audio.src) return;
+    nowEl.textContent = '音频加载失败，换一首试试';
+  });
+  audio.addEventListener('pause', function(){ if (!audio.ended) { playBtn.textContent = '▶'; fab.classList.remove('on'); stopPump(); } });
+  audio.addEventListener('play', function(){ playBtn.textContent = '⏸'; fab.classList.add('on'); startPump(); });
+
+  /* 双击 3D 星环区域：有声就切播放/暂停，没声就开面板 */
+  var host = document.getElementById('host-neural');
+  if (host) host.addEventListener('dblclick', function(){ toggle(); });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && panel.classList.contains('open')) close();
+  });
+
+  window.lmMusic = {
+    open: open, close: close, toggle: toggle,
+    search: function(kw){ kwEl.value = kw; return doSearch(false); },
+    /* 一句话点歌：搜索并自动播第一条，供 AI 对话调用 */
+    play: function(kw){ open(); kwEl.value = kw; return doSearch(true); },
+    next: function(){ if (items.length) playAt((idx + 1) % items.length); },
+    prev: function(){ if (items.length) playAt((idx - 1 + items.length) % items.length); },
+    current: function(){ var it = items[idx]; return it ? (it.name + ' · ' + it.singer) : ''; },
+    setQuality: function(q){ quality = q === 'flac' ? 'flac' : '320k'; qBtn.textContent = quality === 'flac' ? 'FLAC' : '320k'; },
+    state: function(){ return { idx: idx, playing: !audio.paused, quality: quality, lines: lyricLines.length, lyricOn: lyricOn }; }
+  };
 })();
 </script>
 </body>
