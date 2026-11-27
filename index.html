@@ -5903,6 +5903,9 @@ function simStep(dt){
   } else slotVals[slotHead % NSEG] = clamp(slotTok / (sumTOKR * .78 * SEG_SLOT), .02, 1);
   if ((rateAcc += dt) >= 1) { rateBins.push(rateCur); rateBins.shift(); rateCur = 0; rateAcc = 0; }
   crawlerStep(dt);
+  /* 仅给正在干活（被调用）的模型慢速补发单程流星；空闲模型不发，流星只在星团内活动 */
+  strikeAcc += dt;
+  if (strikeAcc >= 2.2) { strikeAcc = 0; const l = busyList(); if (l.length) strikeModel(l[(Math.random() * l.length) | 0]); }
   partStep(dt);
 }
 
@@ -6291,9 +6294,9 @@ function sendRay(ai, ch){
   meteorBurst(ai, ch);
 }
 
-/* ---------- 星团 → 自身外圈模型卡：彩色撞击流星（打水漂连击 + 弹射延续）----------
-   被调用的模型按它自己星团的颜色出流星，沿弧线撞向外圈对应卡片正中；
-   首撞最亮、卡片随职能色提亮，回弹再撞一次，最后弹射穿出外环沿轨迹继续飞。 */
+/* ---------- 星团 → 自身外圈模型卡：单程彩色撞击流星 ----------
+   仅被调用（正在干活）的模型从自己星团发流星，直线飞向对应卡片正中；
+   命中闪光点 + 小范围碎片 + 卡片提亮后，沿同一方向穿出外环继续前飞，不回弹、不折返。 */
 function cardPoint(i, r){ const th = secAng(i); return new THREE.Vector3(Math.cos(th) * r, Math.sin(th) * r, 0); }
 function bezA(A, M, B, u, o){ const v = 1 - u;
   o.set(v * v * A.x + 2 * v * u * M.x + u * u * B.x, v * v * A.y + 2 * v * u * M.y + u * u * B.y, v * v * A.z + 2 * v * u * M.z + u * u * B.z); }
@@ -6332,13 +6335,9 @@ function launchStrike(i, A, B, bend, col, cb, head, toI){
 function strikeModel(i){
   if (!glOK || i < 1 || i >= NCL) return;
   const col = hex3(AG[i].col);
-  const A = CL[i].clone(), P = cardPoint(i, 2.43);  // 卡片矩形径向正中（画布 y=78 映射半径）
-  const Q = cardPoint(i, 1.5); Q.z = .12;          // 回弹内侧点
-  const F = cardPoint(i, 3.4); F.z = -.05;         // 弹射穿出外环
-  const seg4 = () => launchStrike(i, P, F, .18, col, null, .1, -1);       // 弹出外环继续飞
-  const seg3 = () => launchStrike(i, Q, P, .12, col, () => { strikeHit(i, col, .6); seg4(); }, .09, i);
-  const seg2 = () => launchStrike(i, P, Q, .12, col, seg3, .09, -1);      // 回弹向内侧
-  launchStrike(i, A, P, .22, col, () => { strikeHit(i, col, 1); seg2(); }, .12, i);
+  const A = CL[i].clone(), P = cardPoint(i, 2.43), F = cardPoint(i, 3.4); F.z = -.05;
+  // 单程：星团直飞卡片正中；命中闪光+碎片+提亮后，沿同一方向穿出外环继续前飞，不回弹
+  launchStrike(i, A, P, .16, col, () => { strikeHit(i, col, 1); launchStrike(i, P, F, .1, col, null, .1, -1); }, .12, i);
 }
 function scanAt(k){
   if (!glOK) return;
@@ -6352,7 +6351,7 @@ const PMAX = 1800;
 // 背景粒子密度：0 = 第一版的样子（只有任务脉冲）。想更热闹就把数字调大，比如 {chatter: 20, spark: 10, meteor: 1.2, burst: 2}
 const AMBIENT = {chatter: 0, spark: 0, meteor: 0, burst: 0};
 const parts = Array.from({length: PMAX}, () => ({on: false, m: 0, ax: 0, ay: 0, az: 0, cx: 0, cy: 0, cz: 0, bx: 0, by: 0, bz: 0, u: 0, dur: 1, col: [1, 1, 1], sz: .03, al: 1, tr: 4, gap: .03}));
-let pFree = 0, partAlive = 0, partScale = 1, chatAcc = 0, sparkAcc = 0, metAcc = 0;
+let pFree = 0, partAlive = 0, partScale = 1, chatAcc = 0, sparkAcc = 0, metAcc = 0, strikeAcc = 0;
 const busy = i => i === 0 || !!AG[i].cur;
 const whiten = (c, k) => [c[0] + (1 - c[0]) * k, c[1] + (1 - c[1]) * k, c[2] + (1 - c[2]) * k];
 function pGet(){ for (let n = 0; n < PMAX; n++) { const i = (pFree + n) % PMAX; if (!parts[i].on) { pFree = (i + 1) % PMAX; parts[i].on = true; parts[i].u = 0; return parts[i]; } } return null; }
