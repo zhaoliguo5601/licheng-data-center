@@ -1696,7 +1696,7 @@ requestAnimationFrame(frame);
   document.documentElement.dataset.series = 'neural';
 })();
 (function(){
-  function enterDashboard(){ location.href='dashboard.html'; }
+  function enterDashboard(){ location.href='/dashboard'; }
   window.enterDashboard = enterDashboard; /* 语音唤醒 / 标题点击共用同一入口 */
   function bindBrand(root){
     var b = root && root.querySelector ? root.querySelector('.lc-brand-link') : null;
@@ -2464,7 +2464,7 @@ requestAnimationFrame(frame);
     addBubble('user', text);
     if(isOpenCommand(text)){
       setStatus('正在进入数据中心…','idle');
-      if(window.enterDashboard) window.enterDashboard(); else location.href='dashboard.html';
+      if(window.enterDashboard) window.enterDashboard(); else location.href='/dashboard';
       return;
     }
     var mi=musicIntent(text);
