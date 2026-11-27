@@ -22744,5 +22744,15 @@ requestAnimationFrame(frame);
   };
 })();
 </script>
+<script>
+/* 离线缓存：联网取最新，断网回最近一次缓存（WebView 内同样生效） */
+(function(){
+  try{
+    if('serviceWorker' in navigator && location.protocol === 'https:' && !location.hostname.includes('localhost')){
+      navigator.serviceWorker.register('/sw.js', {scope:'/', updateViaCache:'none'}).catch(function(){});
+    }
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
