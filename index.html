@@ -4198,18 +4198,8 @@ const AG = [
   {k:'CRAWLER',zh:'巡检蛛', role:'先读再派，满屏巡逻', tag:'PATROL', col:'#45e6f5', shape:'spider'}
 ];
 const PROOF = 7, CRAWLER = 13;
-const WF = [
-  {id:'W01', zh:'短视频',   ch:0, path:[1,3,9,7,10],  names:['口播短视频','产品种草短视频','教程短视频']},
-  {id:'W02', zh:'落地页',   ch:2, path:[2,4,5,6,7],   names:['落地页改版','活动页上线','官网首页']},
-  {id:'W03', zh:'投标文件', ch:1, path:[1,2,3,7,12],  names:['投标文件生成','技术方案标书','资质材料整理']},
-  {id:'W04', zh:'周报',     ch:1, path:[8,3,7,12],    names:['周报数据汇总','月度经营复盘','客户报表']},
-  {id:'W06', zh:'私域话术', ch:3, path:[11,3,7],      names:['私域话术更新','社群活动文案','回访话术']},
-  {id:'W07', zh:'发版',     ch:2, path:[5,6,12],      names:['发版检查','接口联调','热修复']},
-  {id:'W08', zh:'用户反馈', ch:5, path:[11,8,2],      names:['用户反馈聚类','差评归因','需求池整理']},
-  {id:'W09', zh:'直播切片', ch:0, path:[9,7,10],      names:['直播切片','直播高光','回放剪辑']},
-  {id:'W10', zh:'知识库',   ch:5, path:[1,12],        names:['知识库更新','竞品资料检索','行业报告收集']},
-  {id:'W11', zh:'封面图',   ch:1, path:[4,7],         names:['封面图六版','海报设计','详情页主图']}
-];
+const WF = [];
+const WF0 = {id:'—', zh:'待配置', ch:0, path:[], names:[]};
 const CH = [{zh:'视频', col:'#ff4458'}, {zh:'图文', col:'#ffd23f'}, {zh:'官网', col:'#3b7cff'}, {zh:'私域', col:'#2fd27a'}, {zh:'广告', col:'#ff5cae'}, {zh:'知识', col:'#9aa6ff'}];
 const CHECKS = [
   {n:'需求覆盖',   ok: t => `${t.req}/${t.req}`,            bad: t => `${t.req - 2}/${t.req}`},
@@ -4251,7 +4241,7 @@ function route(f, t){
 
 /* ================= 3. 状态 ================= */
 let simT = 0, animT = 0, speed = 1, paused = false;
-let tid = 40, chiefT = 1.2, passN = 388, failN = 30, maxReworkSeen = 1, lastDispatch = 'T-040';
+let tid = 40, chiefT = 1.2, passN = 388, failN = 30, maxReworkSeen = 1, lastDispatch = '—';
 const tasks = [], packets = [], papers = [], rings = [], feed = [], reviews = [], scores = [];
 const cycles = Array.from({length: 30}, () => rnd(38, 72));
 let flowIdx = 3, flowT = 0;
@@ -4304,7 +4294,7 @@ function tokenStep(dt){
 }
 
 function newTask(wi){
-  const w = WF[wi];
+  const w = (WF[wi] || WF0);
   const t = {id: 'T-' + pad(++tid, 3), wf: wi, name: pick(w.names), stage: 0, rework: 0, ver: 1, born: simT,
     req: 8 + ((Math.random() * 8) | 0), cites: 4 + ((Math.random() * 16) | 0), words: 600 + ((Math.random() * 1800) | 0),
     tone: rnd(.78, .95), dup: rnd(.01, .06), fail: false, failIdx: 0, score: .9, last: -1};
@@ -4357,14 +4347,14 @@ function startWork(a){
     t.fail = Math.random() < .12 && t.rework < 2;
     t.failIdx = (Math.random() * 5) | 0;
     t.score = t.fail ? rnd(.58, .76) : rnd(.82, .97);
-    rv.cur = t; rv.by = t.last >= 0 ? t.last : WF[t.wf].path[Math.max(0, t.stage - 1)];
+    rv.cur = t; rv.by = t.last >= 0 ? t.last : (WF[t.wf] || WF0).path[Math.max(0, t.stage - 1)];
     flowHit(4);
   } else flowHit(a.i === 2 ? 1 : 3);
   say(a, pick(a.ph));
   log(a.i, '接手', `${t.id} ${t.name}`);
 }
 function finishStage(a){
-  const t = a.cur, path = WF[t.wf].path;
+  const t = a.cur, path = (WF[t.wf] || WF0).path;
   a.cur = null; a.prog = 0; a.idleT = 0; t.last = a.i;
   if (a.i === PROOF) recordReview(t);
   if (a.i === PROOF && t.fail) {
@@ -4397,7 +4387,7 @@ function finishStage(a){
   } else deliver(a, t);
 }
 function deliver(a, t){
-  const w = WF[t.wf], cyc = simT - t.born;
+  const w = (WF[t.wf] || WF0), cyc = simT - t.born;
   total++; a.outs++; bins[bins.length - 1].d++;
   cycles.push(cyc); if (cycles.length > 40) cycles.shift();
   tasks.splice(tasks.indexOf(t), 1);
@@ -4408,12 +4398,13 @@ function deliver(a, t){
   if (Math.random() < .3) spiderGo({kind: 'ship', rect: () => R.flyHud, text: `交付 ${t.id} · +1`, dur: 1.3, card: -1});
 }
 function dispatch(){
+  if (!WF.length) return;
   // CHIEF 看谁闲：优先派给路径里空闲智能体最多的工作流
   const free = a => !a.cur && !a.inbox.length;
   const score = WF.map((w, i) => ({i, s: w.path.reduce((n, ai, k) => n + (free(AG[ai]) ? (k === 0 ? 2 : 1) : 0), 0) + Math.random() * .8}));
   score.sort((p, q) => q.s - p.s);
   const wi = Math.random() < .85 ? score[0].i : (Math.random() * WF.length) | 0;
-  const t = newTask(wi), b = AG[WF[wi].path[0]];
+  const t = newTask(wi), b = AG[(WF[wi] || WF0).path[0]];
   lastDispatch = t.id;
   say(AG[0], `${t.id} 拆好了，${b.k} 先上`);
   log(0, '派单', `${t.id} ${t.name} → ${b.k}`);
@@ -4429,7 +4420,7 @@ function recordReview(t){
   if (scores.length > 30) scores.shift();
   reviews.unshift({n: 4100 + passN + failN, id: t.id, name: t.name, ok: !t.fail, item: t.fail ? CHECKS[t.failIdx].n : '全部通过', dur: Math.round(simT - t.born)});
   if (reviews.length > 3) reviews.pop();
-  rv.last = {t: Object.assign({}, t), fail: t.fail, failIdx: t.failIdx, next: t.fail ? nameOf(WF[t.wf].path[t.stage - 1]) : (t.stage < WF[t.wf].path.length - 1 ? nameOf(WF[t.wf].path[t.stage + 1]) : CH[WF[t.wf].ch].zh)};
+  rv.last = {t: Object.assign({}, t), fail: t.fail, failIdx: t.failIdx, next: t.fail ? nameOf((WF[t.wf] || WF0).path[t.stage - 1]) : (t.stage < (WF[t.wf] || WF0).path.length - 1 ? nameOf((WF[t.wf] || WF0).path[t.stage + 1]) : CH[(WF[t.wf] || WF0).ch].zh)};
   rv.cur = null;
 }
 
@@ -4441,31 +4432,26 @@ function ring(p, col){ rings.push({x: p.x, y: p.y - 6, born: animT, col}); }
 (function seed(){
   const lounge = [11, 12];
   for (const a of workers) {
-    if (lounge.includes(a.i)) continue;
-    const wis = WF.map((w, i) => i).filter(i => WF[i].path.includes(a.i));
+    if (lounge.includes(a.i) || !WF.length) continue;
+    const wis = WF.map((w, i) => i).filter(i => (WF[i] || WF0).path.includes(a.i));
     const wi = pick(wis), t = newTask(wi);
-    t.stage = WF[wi].path.indexOf(a.i); t.born = -rnd(10, 60); t.last = t.stage > 0 ? WF[wi].path[t.stage - 1] : -1;
+    t.stage = (WF[wi] || WF0).path.indexOf(a.i); t.born = -rnd(10, 60); t.last = t.stage > 0 ? (WF[wi] || WF0).path[t.stage - 1] : -1;
     a.cur = t; a.prog = rnd(.1, .85); a.dur = rnd(8, 14) * a.sp; a.say = pick(a.ph);
     if (a.i === PROOF) { t.fail = false; t.failIdx = 2; t.score = rnd(.84, .95); rv.cur = t; rv.by = t.last >= 0 ? t.last : 3; }
   }
-  [[PROOF, 0], [3, 1], [12, 3]].forEach(([ai, k]) => {
-    const wis = WF.map((w, i) => i).filter(i => WF[i].path.includes(ai)), wi = wis[k % wis.length], t = newTask(wi);
-    t.stage = WF[wi].path.indexOf(ai); t.born = -rnd(5, 30); AG[ai].inbox.push(t);
-  });
   lounge.forEach((ai, k) => { const a = AG[ai]; a.at = 'couch'; a.couch = k + 1; COUCH[k + 1].who = ai; a.x = COUCH[k + 1].x; a.y = COUCH[k + 1].y; a.say = '沙发上等活'; });
-  say(AG[3], '开头 5 秒先给结果'); say(AG[9], '高光切 6 段'); say(AG[0], 'T-040 拆好了，SCOUT 先上');
+  say(AG[3], '等活'); say(AG[9], '等活'); say(AG[0], '待配置，先待命');
   for (let k = 0; k < 24; k++) scores.push({v: Math.random() < .1 ? rnd(.6, .76) : rnd(.82, .97), col: pick(workers).col, bad: false});
   scores.forEach(s => { if (s.v < .8) s.bad = true; });
   const verbs = ['接手', '交接', '交付', '派单'];
   let back = Date.now();
-  for (let k = 0; k < 22; k++) {
+  if (WF.length) for (let k = 0; k < 22; k++) {
     back -= rnd(900, 2600);
     const a = pick(AG.slice(0, 13)), w = pick(WF), v = a.i === 0 ? '派单' : pick(verbs.slice(0, 3));
     const text = v === '派单' ? `T-0${pad(39 - k)} ${pick(w.names)} → ${nameOf(w.path[0])}` : v === '交付' ? `T-0${pad(30 - k)} ${pick(w.names)} → ${CH[w.ch].zh}` : `T-0${pad(35 - k)} ${pick(w.names)}`;
     feed.push({t: hms(new Date(back)), a: a.i, verb: v, text, kind: v === '交付' ? 'ship' : ''});
   }
-  reviews.push({n: 4517, id: 'T-037', name: '落地页改版', ok: true, item: '全部通过', dur: 44}, {n: 4516, id: 'T-035', name: '社群活动文案', ok: false, item: '合规敏感词', dur: 39}, {n: 4515, id: 'T-033', name: '周报数据汇总', ok: true, item: '全部通过', dur: 51});
-  packet(CHIEF_PT, AG[1].seat, C.joint, () => AG[1].inbox.push(newTask(8)));
+  /* 通道暂无工作流：不预置任何评审记录 */
 })();
 
 /* ================= 5. 每帧推进 ================= */
@@ -5120,9 +5106,9 @@ function renderReview(){
   const P = AG[PROOF], live = rv.cur && P.cur === rv.cur, src = live ? {t: rv.cur, fail: rv.cur.fail, failIdx: rv.cur.failIdx} : rv.last;
   $('#revMeta').textContent = `REVIEWED ${fmt(passN + failN)} · PASS ${(passRate() * 100).toFixed(1)}%`;
   if (!src) return;
-  const t = src.t, w = WF[t.wf];
+  const t = src.t, w = (WF[t.wf] || WF0);
   $('#rvId').textContent = t.id; $('#rvName').textContent = t.name; $('#rvWf').textContent = `${w.id} ${w.zh}`;
-  const by = live ? rv.by : t.last >= 0 ? t.last : 3; const byEl = $('#rvBy'); byEl.textContent = `by ${nameOf(WF[t.wf].path[Math.max(0, (live ? t.stage : t.stage) - 1)] ?? by)}`;
+  const by = live ? rv.by : t.last >= 0 ? t.last : 3; const byEl = $('#rvBy'); byEl.textContent = `by ${nameOf((WF[t.wf] || WF0).path[Math.max(0, (live ? t.stage : t.stage) - 1)] ?? by)}`;
   const vals = [`${(live ? t.stage : t.stage) + 1}/${w.path.length}`, Math.round(simT - t.born) + 's', 'v' + t.ver, t.cites, fmt(t.words), t.rework];
   [...statsEl.querySelectorAll('b')].forEach((b, i) => { const v = String(vals[i]); if (b.textContent !== v) b.textContent = v; });
   const prog = live ? P.prog : 1, n = CHECKS.length;
@@ -5557,7 +5543,7 @@ function renderFlyHud(){
 }
 function showFlyTip(){
   const h = hubs[hoverHub]; if (!h) { flyTip.hidden = true; return; }
-  const wi = hubWf[hoverHub], w = WF[wi], inflight = tasks.filter(t => t.wf === wi), live = inflight.filter(t => AG[t.owner] && AG[t.owner].cur === t).length;
+  const wi = hubWf[hoverHub], w = (WF[wi] || WF0), inflight = tasks.filter(t => t.wf === wi), live = inflight.filter(t => AG[t.owner] && AG[t.owner].cur === t).length;
   flyTip.innerHTML = `<b>${w.id}</b>${w.zh} → ${CH[w.ch].zh}<span>${w.path.map(nameOf).join(' → ')}</span><span>在途 ${inflight.length} 件 · 正在做 ${live} 件 · 汇入 ${h.curves.length} 条线</span>`;
   flyTip.hidden = false;
   const tw = flyTip.offsetWidth, th = flyTip.offsetHeight;
@@ -5681,18 +5667,8 @@ const AG = [
   {k:'CRAWLER',zh:'巡检蛛', role:'先读再派，满屏巡逻', tag:'PATROL', col:'#45e6f5', sp:1}
 ];
 const PROOF = 7, CRAWLER = 13, NCL = 13;               // 0..12 是神经团，13 是巡检探针
-const WF = [
-  {id:'W01', zh:'短视频',   ch:0, path:[1,3,9,7,10],  names:['口播短视频','产品种草短视频','教程短视频']},
-  {id:'W02', zh:'落地页',   ch:2, path:[2,4,5,6,7],   names:['落地页改版','活动页上线','官网首页']},
-  {id:'W03', zh:'投标文件', ch:1, path:[1,2,3,7,12],  names:['投标文件生成','技术方案标书','资质材料整理']},
-  {id:'W04', zh:'周报',     ch:1, path:[8,3,7,12],    names:['周报数据汇总','月度经营复盘','客户报表']},
-  {id:'W06', zh:'私域话术', ch:3, path:[11,3,7],      names:['私域话术更新','社群活动文案','回访话术']},
-  {id:'W07', zh:'发版',     ch:2, path:[5,6,12],      names:['发版检查','接口联调','热修复']},
-  {id:'W08', zh:'用户反馈', ch:5, path:[11,8,2],      names:['用户反馈聚类','差评归因','需求池整理']},
-  {id:'W09', zh:'直播切片', ch:0, path:[9,7,10],      names:['直播切片','直播高光','回放剪辑']},
-  {id:'W10', zh:'知识库',   ch:5, path:[1,12],        names:['知识库更新','竞品资料检索','行业报告收集']},
-  {id:'W11', zh:'封面图',   ch:1, path:[4,7],         names:['封面图六版','海报设计','详情页主图']}
-];
+const WF = [];
+const WF0 = {id:'—', zh:'待配置', ch:0, path:[], names:[]};
 const CH = [{zh:'视频', en:'VIDEO', col:'#ff4458'}, {zh:'图文', en:'POST', col:'#ffd23f'}, {zh:'官网', en:'WEB', col:'#3b7cff'},
             {zh:'私域', en:'PRIVATE', col:'#2fd27a'}, {zh:'广告', en:'ADS', col:'#ff5cae'}, {zh:'知识', en:'KB', col:'#9aa6ff'}];
 const CHECKS = ['需求覆盖', '事实核验', '品牌口径', '合规敏感词', '重复率'];
@@ -5713,7 +5689,7 @@ function slotUsageOf(k){ const m = slotModel(k); return m ? (slotUsage[m.key] ||
 
 /* ================= 2. 模拟状态（接真实数据时替换这一段） ================= */
 let simT = 0, animT = 0, paused = false;
-let tid = 40, chiefT = 1.0, chiefDur = 1.0, passN = 388, failN = 30, lastDispatch = 'T-040';
+let tid = 40, chiefT = 1.0, chiefDur = 1.0, passN = 388, failN = 30, lastDispatch = '—';
 const midnight = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
 let total = Math.round((Date.now() - midnight()) / 60000 * PER_MIN) + 160;
 let tokDay = Math.round((Date.now() - midnight()) / 60000 * 52000) + 4e5;
@@ -5757,7 +5733,7 @@ function setThemeHex(hex){
 }
 
 function newTask(wi){
-  const w = WF[wi];
+  const w = (WF[wi] || WF0);
   const t = {id: 'T-' + pad(++tid, 3), wf: wi, name: pick(w.names), stage: 0, rework: 0, born: simT, fail: false, failIdx: 0};
   tasks.push(t);
   return t;
@@ -5775,12 +5751,13 @@ const liveN = () => workers.filter(a => a.cur).length;
 const inFlight = () => signals.filter(s => s.kind !== 'ray').length;
 
 function dispatch(){
+  if (!WF.length) return;
   // CHIEF 看谁闲：优先派给路径里空闲智能体最多的工作流
   const free = a => !a.cur && !a.inbox.length;
   const score = WF.map((w, i) => ({i, s: w.path.reduce((n, ai, k) => n + (free(AG[ai]) ? (k === 0 ? 2 : 1) : 0), 0) + Math.random() * .8}));
   score.sort((p, q) => q.s - p.s);
   const wi = Math.random() < .85 ? score[0].i : (Math.random() * WF.length) | 0;
-  const t = newTask(wi), b = AG[WF[wi].path[0]];
+  const t = newTask(wi), b = AG[(WF[wi] || WF0).path[0]];
   lastDispatch = t.id;
   log(0, '派单', `${t.id} ${t.name} → ${b.k}`);
   AG[0].flash = 1;
@@ -5794,7 +5771,7 @@ function startWork(a){
   strikeModel(a.i);   // 该模型星团出一颗同色流星，撞向外圈自己的模型卡
 }
 function finishStage(a){
-  const t = a.cur, path = WF[t.wf].path;
+  const t = a.cur, path = (WF[t.wf] || WF0).path;
   a.cur = null; a.prog = 0; a.outs++;
   if (a.i === PROOF && t.fail) {
     t.rework++; t.stage--; t.fail = false; failN++;
@@ -5813,7 +5790,7 @@ function finishStage(a){
   } else deliver(a, t);
 }
 function deliver(a, t){
-  const w = WF[t.wf];
+  const w = (WF[t.wf] || WF0);
   total++;
   tasks.splice(tasks.indexOf(t), 1);
   log(a.i, '交付', `${t.id} ${t.name} → ${CH[w.ch].zh}`, 'ship');
@@ -6639,7 +6616,7 @@ function drawTape(){
   tapeDirty = false;
   const c = tapeCtx; c.clearRect(0, 0, TW, TH);
   c.font = `500 18px ${MONO}`; c.textBaseline = 'middle';
-  const items = tape.length ? tape : ['CHIEF 派单 T-040 口播短视频 → SCOUT'];
+  const items = tape.length ? tape : ['通道已清空 · 等待接入新工作流'];
   let x = 6, k = 0;
   while (x < TW) {
     const s = items[k % items.length]; k++;
@@ -6996,16 +6973,7 @@ document.addEventListener('keydown', e => {
 
 /* ---------- 开场 ---------- */
 // 先让几个智能体处在干活中途，画面一打开就是在跑的状态
-[[1, 0], [3, 0], [5, 1], [7, 2], [9, 8], [11, 5], [4, 9]].forEach(([ai, wi]) => {
-  const w = WF[wi], t = newTask(wi), st = Math.max(0, w.path.indexOf(ai)); t.stage = st;
-  const a = AG[ai]; a.cur = t; a.prog = rnd(.1, .8); a.dur = rnd(5, 9) * a.sp;
-});
-AG[2].inbox.push(newTask(2)); AG[8].inbox.push(newTask(3));
-log(0, '派单', `T-049 竞品资料检索 → SCOUT`);
-log(3, '交接', `T-047 口播短视频 → CUT`);
-log(7, '打回', `T-045 落地页改版 合规敏感词不过 → TEST 重写`, 'bad');
-log(10, '交付', `T-044 信息流素材 → 广告`, 'ship');
-log(1, '接手', `T-049 竞品资料检索`);
+/* 通道暂无工作流：开屏不预置在途任务，星环保持待命 */
 AG.forEach(a => a.hitT = 0);
 new ResizeObserver(() => layout()).observe(host);
 layout();
@@ -7079,18 +7047,8 @@ const AG = [
   {k:'CRAWLER',zh:'巡检蛛', job:'巡检',     design:'spider', fx:'none',  role:'先读再派，满场巡逻', col:'#45e6f5', sp:1}
 ];
 const PROOF = 7, CRAWLER = 13;
-const WF = [
-  {id:'W01', zh:'短视频',   ch:0, path:[1,3,9,7,10],  names:['口播短视频','产品种草短视频','教程短视频']},
-  {id:'W02', zh:'落地页',   ch:2, path:[2,4,5,6,7],   names:['落地页改版','活动页上线','官网首页']},
-  {id:'W03', zh:'投标文件', ch:1, path:[1,2,3,7,12],  names:['投标文件生成','技术方案标书','资质材料整理']},
-  {id:'W04', zh:'周报',     ch:1, path:[8,3,7,12],    names:['周报数据汇总','月度经营复盘','客户报表']},
-  {id:'W06', zh:'私域话术', ch:3, path:[11,3,7],      names:['私域话术更新','社群活动文案','回访话术']},
-  {id:'W07', zh:'发版',     ch:2, path:[5,6,12],      names:['发版检查','接口联调','热修复']},
-  {id:'W08', zh:'用户反馈', ch:5, path:[11,8,2],      names:['用户反馈聚类','差评归因','需求池整理']},
-  {id:'W09', zh:'直播切片', ch:0, path:[9,7,10],      names:['直播切片','直播高光','回放剪辑']},
-  {id:'W10', zh:'知识库',   ch:5, path:[1,12],        names:['知识库更新','竞品资料检索','行业报告收集']},
-  {id:'W11', zh:'封面图',   ch:1, path:[4,7],         names:['封面图六版','海报设计','详情页主图']}
-];
+const WF = [];
+const WF0 = {id:'—', zh:'待配置', ch:0, path:[], names:[]};
 const CH = [{zh:'视频', col:'#ff4458'}, {zh:'图文', col:'#ffd23f'}, {zh:'官网', col:'#3b7cff'}, {zh:'私域', col:'#2fd27a'}, {zh:'广告', col:'#ff5cae'}, {zh:'知识', col:'#9aa6ff'}];
 const CHECKS = ['需求覆盖', '事实核验', '品牌口径', '合规敏感词', '重复率'];
 // 总工程：每单造一台载具，拆成 8 个子板块 = 8 份交付物；vs 缩放、h 高度、hr 全息环半径
@@ -7160,7 +7118,7 @@ const MPT = {rover: [-1.7, -1.4], crab: [-.2, -1.1], typist: [-1.2, -1.25], pain
 
 /* ================= 3. 模拟（接真实数据时替换这一段） ================= */
 let simT = 0, animT = 0;
-let tid = 40, chiefT = .8, passN = 388, failN = 30, lastDispatch = 'T-040';
+let tid = 40, chiefT = .8, passN = 388, failN = 30, lastDispatch = '—';
 const midnight = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
 const minsToday = () => (Date.now() - midnight()) / 60000;
 let total = Math.round(minsToday() * PER_MIN) + 160;
@@ -7211,11 +7169,12 @@ function startProject(){
   chiefT = .6; sheetDirty = true;
 }
 function dispatch(){
+  if (!WF.length) return;
   const part = proj.parts.find(p => p.state === 'wait');
   if (!part) return;
   const t = {id: 'T-' + pad(++tid, 3), wf: part.wf, name: part.name, part: part.i, stage: 0, rework: 0, fail: false, failIdx: 0, crate: null};
   tasks.push(t);
-  const b = AG[WF[part.wf].path[0]];
+  const b = AG[(WF[part.wf] || WF0).path[0]];
   part.state = 'move'; part.task = t; part.at = b.i;
   lastDispatch = t.id;
   log(0, '派单', `${t.id} ${part.zh} · ${t.name} → ${b.k}`);
@@ -7237,7 +7196,7 @@ function startWork(a){
   log(a.i, '接手', `${t.id} ${p.zh} · ${t.name}`);
 }
 function finishStage(a){
-  const t = a.cur, path = WF[t.wf].path, p = proj.parts[t.part];
+  const t = a.cur, path = (WF[t.wf] || WF0).path, p = proj.parts[t.part];
   a.cur = null; a.prog = 0; a.outs++; thrCur++;
   if (a.i === PROOF && t.fail) {
     t.rework++; t.stage--; t.fail = false; failN++; p.rework++;
@@ -7297,7 +7256,7 @@ function pathAt(path, d, o){
 }
 function sendCrate(fromK, toK, t, cb, bad){
   let c = t.crate;
-  if (!c) { c = {mesh: null, t, state: 'move', pos: {x: 0, y: 0, z: 0}, path: null, d: 0, cb: null, bad: false, k: toK}; t.crate = c; crates.push(c); if (glOK) c.mesh = crateMesh(WF[t.wf].ch); }
+  if (!c) { c = {mesh: null, t, state: 'move', pos: {x: 0, y: 0, z: 0}, path: null, d: 0, cb: null, bad: false, k: toK}; t.crate = c; crates.push(c); if (glOK) c.mesh = crateMesh((WF[t.wf] || WF0).ch); }
   const s0 = sPort(fromK), s1 = sPort(toK);
   let ds = ((s1 - s0) % LOOP.L + LOOP.L) % LOOP.L; if (ds > LOOP.L / 2) ds -= LOOP.L;
   const o = ds >= 0 ? LANE_O : -LANE_O;
@@ -8497,7 +8456,7 @@ function renderFlow(){
   $('#flowMeta').textContent = `在途 ${liveN2} · 已并入 ${doneN}/8`;
   // 总工程的 8 个子板块全部列出：每行是它要流转的工区（实心 = 走过，闪 = 当前），最后一格 ▲ = 并入总工程
   flowEl.innerHTML = proj.parts.map(p => {
-    const path = WF[p.wf].path, t = p.task, done = p.state === 'done', wait = p.state === 'wait' || !t;
+    const path = (WF[p.wf] || WF0).path, t = p.task, done = p.state === 'done', wait = p.state === 'wait' || !t;
     const assembling = p.state === 'ready' || p.state === 'fly';
     const chips = path.map((ai, si) => { const cls = done || assembling || (!wait && si < t.stage) ? 'd' : (!wait && si === t.stage) ? 'c' : ''; return `<i class="${cls}" style="--c:${AG[ai].col}">${AG[ai].k.slice(0, 3)}</i>`; }).join('') + `<i class="a${done ? ' d' : assembling ? ' c' : ''}">▲</i>`;
     const cur = !wait && !done ? AG[path[t.stage]] : null;
@@ -8602,7 +8561,7 @@ function drawRadar(){
   const pulse = .5 + .5 * Math.sin(animT * 3);
   X.strokeStyle = 'rgba(255,194,26,.8)'; X.lineWidth = 2; X.beginPath(); X.arc(rX(0), rY(0), PAD_R * RS_, 0, TAU); X.stroke();
   X.fillStyle = `rgba(255,194,26,${(.25 + .35 * pulse).toFixed(2)})`; X.beginPath(); X.arc(rX(0), rY(0), PAD_R * RS_ * (.35 + .1 * pulse), 0, TAU); X.fill();
-  crates.forEach(c => { if (c.state === 'gone') return; X.fillStyle = c.bad && c.state === 'move' ? '#ff4d5e' : CH[WF[c.t.wf].ch].col; X.fillRect(rX(c.pos.x) - 3.5, rY(c.pos.z) - 3.5, 7, 7); });
+  crates.forEach(c => { if (c.state === 'gone') return; X.fillStyle = c.bad && c.state === 'move' ? '#ff4d5e' : CH[(WF[c.t.wf] || WF0).ch].col; X.fillRect(rX(c.pos.x) - 3.5, rY(c.pos.z) - 3.5, 7, 7); });
   agvs.forEach(A => { X.fillStyle = '#ffc21a'; X.fillRect(rX(A.g.position.x) - 4, rY(A.g.position.z) - 4, 8, 8); });
   drones.forEach(d => { const x = rX(d.p.x), y = rY(d.p.z); X.fillStyle = d.job ? '#45e6f5' : 'rgba(69,230,245,.45)'; X.beginPath(); X.moveTo(x, y - 7); X.lineTo(x + 6, y + 5); X.lineTo(x - 6, y + 5); X.closePath(); X.fill(); });
   if (spiderObj) { const x = rX(spiderObj.g.position.x), y = rY(spiderObj.g.position.z); X.fillStyle = '#ff3f8e'; X.beginPath(); X.arc(x, y, 5, 0, TAU); X.fill(); X.strokeStyle = 'rgba(255,63,142,.5)'; X.lineWidth = 1.5; X.beginPath(); X.arc(x, y, 10 + 4 * pulse, 0, TAU); X.stroke(); }
@@ -8683,7 +8642,7 @@ function updateScene(dt){
     if (c.state === 'lift') { const d = drones.find(q => q.carry === c); if (d) { c.pos.x = d.p.x; c.pos.y = d.p.y - .64; c.pos.z = d.p.z; } }
     c.mesh.position.set(c.pos.x, c.pos.y, c.pos.z);
     const band = c.mesh.userData.band.material;
-    if (c.bad && c.state === 'move') { const f = .5 + .5 * Math.sin(animT * 14); band.color.setRGB(1, .3 * f, .35 * f); } else band.color.set(CH[WF[c.t.wf].ch].col);
+    if (c.bad && c.state === 'move') { const f = .5 + .5 * Math.sin(animT * 14); band.color.setRGB(1, .3 * f, .35 * f); } else band.color.set(CH[(WF[c.t.wf] || WF0).ch].col);
   }
   // 无人机
   for (const d of drones) {
@@ -8943,9 +8902,11 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- 开场 ---------- */
-startProject();
-// 开场先派出几单、装好两个部件，画面一打开就在忙
-for (let k = 0; k < 4; k++) dispatch();
+if (WF.length) {
+  startProject();
+  // 开场先派出几单、装好两个部件，画面一打开就在忙
+  for (let k = 0; k < 4; k++) dispatch();
+}
 crates.forEach(c => { if (c.state === 'move') { c.d = c.path.len * rnd(.3, .8); pathAt(c.path, c.d, c.pos); } });
 [5, 6].forEach(i => { const p = proj.parts[i]; if (p.state === 'wait') { p.state = 'done'; total++; if (glOK && veh) { veh.parts[i].solid.visible = true; veh.parts[i].t = 1; } } });
 AG.forEach(a => a.hitT = 0);
@@ -9008,18 +8969,8 @@ const AG = [
   {k:'CRAWLER',zh:'星云蛛', role:'逐字读需求，模糊就问', col:'#d8ecff'}
 ];
 const CRAWLER = 13;
-const WF = [
-  {id:'W01', zh:'短视频',   path:[1,3,9,7,10],  names:['口播短视频','产品种草短视频','教程短视频']},
-  {id:'W02', zh:'落地页',   path:[2,4,5,6,7],   names:['落地页改版','活动页上线','官网首页']},
-  {id:'W03', zh:'投标文件', path:[1,2,3,7,12],  names:['投标文件生成','技术方案标书','资质材料整理']},
-  {id:'W04', zh:'周报',     path:[8,3,7,12],    names:['周报数据汇总','月度经营复盘','客户报表']},
-  {id:'W06', zh:'私域话术', path:[11,3,7],      names:['私域话术更新','社群活动文案','回访话术']},
-  {id:'W07', zh:'发版',     path:[5,6,12],      names:['发版检查','接口联调','热修复']},
-  {id:'W08', zh:'用户反馈', path:[11,8,2],      names:['用户反馈聚类','差评归因','需求池整理']},
-  {id:'W09', zh:'直播切片', path:[9,7,10],      names:['直播切片','直播高光','回放剪辑']},
-  {id:'W10', zh:'知识库',   path:[1,12],        names:['知识库更新','竞品资料检索','行业报告收集']},
-  {id:'W11', zh:'封面图',   path:[4,7],         names:['封面图六版','海报设计','详情页主图']}
-];
+const WF = [];
+const WF0 = {id:'—', zh:'待配置', ch:0, path:[], names:[]};
 // 模糊词 → 问完 CHIEF 之后补成的具体要求
 const VAGUE = [['尽快', '周五 18:00 前'], ['大概', '误差 ±5%'], ['高级感', '黑金 + 大留白'], ['优化一下', '首屏 < 1.5s'], ['差不多', '对齐竞品 A'], ['适当', '每屏 ≤ 3 个卖点'],
   ['等等', '只要这 4 项'], ['看着办', '按 B 方案'], ['爆款', '完播 > 35%'], ['年轻化', '18–25 岁'], ['简洁点', '≤ 120 字'], ['多弄几版', '3 版'], ['醒目', '主色 #FF6FAE'],
@@ -9084,7 +9035,8 @@ function log(verb, text){
   logDirty = true; capText = `${verb} · ${text}`;
 }
 function newTask(){
-  const wf = WF[(tid + 3) % WF.length];
+  if (!WF.length) return null;
+  const wf = (WF[(tid + 3) % WF.length] || WF0);
   const vagues = shuffle(VAGUE.slice()).slice(0, wf.path.length >= 4 ? 4 + (Math.random() < .5 ? 1 : 0) : 3);
   let vi = 0;
   const sections = wf.path.map((ai, si) => {
@@ -9144,7 +9096,7 @@ function crawlStep(dt){
   crawl.t += dt;
   switch (crawl.phase) {
     case 'brief':
-      if (!task) newTask();
+      if (!task && WF.length) newTask();
       if (crawl.t > .25 && !crawl.stroll && !spider.air && spider.a === 0) { crawl.stroll = 1; walkTo({a: 0, lx: rnd(-1.8, 1.8), lz: rnd(2.2, 3.8)}); }
       if (crawl.t > 1.3 && !spider.walking) { crawl.stroll = 0; crawl.sec = 0; crawl.phase = 'walk'; walkTo(standOf(task.sections[0].ai), () => startRead(), true); log('walk', `→ ${AG[task.sections[0].ai].k.toLowerCase()}`); codeHL = 5; }
       break;
@@ -9183,7 +9135,7 @@ function crawlStep(dt){
     case 'rest':
       trailFade = Math.max(0, 1 - crawl.t / 1.0);
       task.sections.forEach(s => s.words.forEach(w => { w.f = Math.max(0, w.f - dt * 1.3); }));
-      if (crawl.t > 1.1) { crawl.phase = 'brief'; crawl.t = 0; crawl.sec = -1; crawl.ship = 0; newTask(); }
+      if (crawl.t > 1.1) { crawl.phase = 'brief'; crawl.t = 0; crawl.sec = -1; crawl.ship = 0; if (WF.length) newTask(); }
       break;
   }
 }
@@ -10115,7 +10067,7 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- 开场 ---------- */
-newTask();
+if (WF.length) newTask();
 new ResizeObserver(() => layout()).observe(host);
 layout();
 renderLog(); renderTabs(); renderSec(); renderStrip(); renderSecs(); renderCounters(); renderCode(); drawPanels();
