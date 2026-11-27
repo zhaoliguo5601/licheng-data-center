@@ -21410,15 +21410,45 @@ requestAnimationFrame(frame);
 #lcStatus.listening{color:#45e6f5}
 #lcStatus.listening #lcDot{background:#45e6f5;box-shadow:0 0 8px #45e6f5}
 @keyframes lcPulse{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
-/* 底部输入条：麦克风 + 输入框 + 发送 */
-.lc-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:transparent}
+/* 底部输入条：键盘切换 + 按住说话（豆包式）+ 文字模式 */
+.lc-bar{position:relative;display:flex;align-items:center;gap:8px;padding:10px 12px;background:transparent}
 #lcMicBtn{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.08);color:#45e6f5;display:flex;align-items:center;justify-content:center;cursor:pointer}
 #lcMicBtn svg{width:18px;height:18px;fill:currentColor}
-#lcMicBtn.listening{background:rgba(255,92,92,.18);border-color:rgba(255,92,92,.5);color:#ff7b7b}
-#lcInput{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(0,229,255,.18);border-radius:10px;padding:9px 11px;color:#eafcff;font-size:13px;outline:none}
+#lcInput{flex:1;min-width:0;display:none;background:rgba(255,255,255,.05);border:1px solid rgba(0,229,255,.18);border-radius:10px;padding:9px 11px;color:#eafcff;font-size:13px;outline:none}
 #lcInput::placeholder{color:#6f9aa6}
-#lcSend{flex:0 0 auto;border:none;background:rgba(0,229,255,.16);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
+#lcSend{flex:0 0 auto;display:none;border:none;background:rgba(0,229,255,.16);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
 #lcSend:disabled{opacity:.45;cursor:default}
+.lc-bar.text #lcInput{display:block}
+.lc-bar.text #lcSend{display:block}
+.lc-bar.text #lcHold{display:none}
+.lc-bar.text #lcWaveWrap{display:none}
+
+/* 按住说话：整条胶囊，按住发光、上滑取消 */
+#lcHold{flex:1;min-width:0;height:38px;display:flex;align-items:center;justify-content:center;
+  border-radius:19px;border:1px solid rgba(0,229,255,.26);background:rgba(0,229,255,.07);
+  color:#bfeaf3;font-size:13px;letter-spacing:.06em;cursor:pointer;user-select:none;-webkit-user-select:none;
+  touch-action:none;transition:background .18s,border-color .18s,box-shadow .2s,color .2s}
+#lcHold.rec{background:rgba(0,229,255,.20);border-color:rgba(0,229,255,.62);color:#eafcff;
+  box-shadow:0 0 0 2px rgba(0,229,255,.16),0 0 26px rgba(0,229,255,.45),inset 0 0 18px rgba(0,229,255,.22)}
+#lcHold.rec::after{content:"";position:absolute;left:50%;bottom:2px;width:64px;height:64px;transform:translateX(-50%);
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(0,229,255,.42),rgba(0,229,255,0) 68%);
+  animation:lcGlow 1.4s ease-out infinite}
+@keyframes lcGlow{0%{opacity:.85;transform:translateX(-50%) scale(.7)}100%{opacity:0;transform:translateX(-50%) scale(1.5)}}
+.lc-bar.cancel #lcHold{background:rgba(255,92,92,.18);border-color:rgba(255,92,92,.62);color:#ffd0d0;
+  box-shadow:0 0 0 2px rgba(255,92,92,.14),0 0 24px rgba(255,92,92,.4)}
+
+/* 录音时的波形 + 辉光 */
+#lcWaveWrap{position:absolute;left:12px;right:12px;bottom:calc(100% + 4px);display:none;
+  align-items:flex-end;justify-content:center;height:52px;pointer-events:none;overflow:hidden}
+.lc-bar.rec #lcWaveWrap{display:flex}
+#lcWaveWrap::before{content:"";position:absolute;left:50%;bottom:-10px;width:190px;height:70px;transform:translateX(-50%);
+  background:radial-gradient(closest-side,rgba(0,229,255,.26),rgba(0,229,255,0) 72%);filter:blur(2px)}
+#lcWave{display:flex;align-items:center;gap:3px;height:100%}
+#lcWave i{display:block;width:3px;height:6px;border-radius:3px;
+  background:linear-gradient(180deg,#8ff3ff,#00c8e0);box-shadow:0 0 8px rgba(0,229,255,.55);
+  transition:height .06s linear}
+.lc-bar.cancel #lcWave i{background:linear-gradient(180deg,#ffb6b6,#ff5c5c);box-shadow:0 0 8px rgba(255,92,92,.55)}
 @media(max-width:640px){#lcChat{right:12px;bottom:16px;width:min(320px,calc(100vw-24px))}#lcFab{right:12px;bottom:16px}
   #lmPanel{left:12px;right:auto;bottom:calc(80px + env(safe-area-inset-bottom));width:min(320px,calc(100vw - 24px));max-height:min(64vh,560px)}}
 </style>
@@ -21443,12 +21473,16 @@ requestAnimationFrame(frame);
     </div>
     <div id="lcLog" aria-live="polite"></div>
     <div id="lcStatus" class="status"><span id="lcDot"></span><span id="lcStatusText">待命 · 点麦克风说话或输入问题</span></div>
-    <div class="lc-bar">
-      <button id="lcMicBtn" type="button" aria-label="语音输入" title="按住说话">
-        <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2z"/></svg>
+    <div class="lc-bar" id="lcBar">
+      <button id="lcMicBtn" type="button" aria-label="切换到键盘输入" title="切换到键盘输入">
+        <svg viewBox="0 0 24 24"><path d="M20 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zM11 8h2v2h-2V8zm-3 0h2v2H8V8zm6 0h3v2h-3V8zM7 11h2v2H7v-2zm4 0h6v2h-6v-2zM6 14h12v2H6v-2z"/></svg>
       </button>
+      <div id="lcHold" role="button" aria-label="按住说话"><span id="lcHoldTxt">按住说话</span></div>
       <input id="lcInput" type="text" placeholder="问点什么…" autocomplete="off">
       <button id="lcSend" type="button">发送</button>
+      <div id="lcWaveWrap" aria-hidden="true">
+        <div id="lcWave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
     </div>
   </div>
 </div>
@@ -21545,7 +21579,7 @@ requestAnimationFrame(frame);
   var asrRecording=false, asrBusy=false;
   var asrStream=null, asrCtx=null, asrSource=null, asrProcessor=null;
   var asrChunks=[];             // 待编码的 Float32 片段
-  var ASR_RATE=16000, asrNativeRate=ASR_RATE;
+  var ASR_RATE=16000, asrNativeRate=ASR_RATE, asrAnalyser=null;
 
   /* 3D 状态桥接：idle 待命 / listening 聆听 / thinking 思考；无 3D 时安全跳过 */
   function fxSetState(s){ var f=fx(); if(f&&f.setState) f.setState(s); }
@@ -22115,6 +22149,7 @@ requestAnimationFrame(frame);
       asrNativeRate=asrCtx.sampleRate||ASR_RATE;
       asrChunks=[];
       asrSource=asrCtx.createMediaStreamSource(asrStream);
+      try{ asrAnalyser=asrCtx.createAnalyser(); asrAnalyser.fftSize=512; asrAnalyser.smoothingTimeConstant=.8; asrSource.connect(asrAnalyser); }catch(e){ asrAnalyser=null; }
       asrProcessor=asrCtx.createScriptProcessor(4096,1,1);
       var sink=asrCtx.createGain(); sink.gain.value=0;
       asrSource.connect(asrProcessor); asrProcessor.connect(sink); sink.connect(asrCtx.destination);
@@ -22161,6 +22196,97 @@ requestAnimationFrame(frame);
     }
   }
 
+  function asrAbort(msg){
+    asrRecording=false; asrChunks=[];
+    try{ asrCleanup(); }catch(e){}
+    fxSetState('idle'); setStatus(msg||'已取消','idle');
+  }
+
+  /* —— 按住说话的波形：真实音量驱动 9 根竖条 —— */
+  var holdEl=document.getElementById('lcHold'), holdTxt=document.getElementById('lcHoldTxt'),
+      barEl=document.getElementById('lcBar'), waveEl=document.getElementById('lcWave'),
+      waveWrap=document.getElementById('lcWaveWrap'), waveRaf=0, holdCancel=false,
+      holdStartY=0, holdStartAt=0, holdPointer=null;
+  function waveRun(){
+    waveRaf=0;
+    if(!asrRecording) return;
+    var bars=waveEl?waveEl.children:[], lv=0;
+    if(asrAnalyser){
+      var buf=new Uint8Array(asrAnalyser.fftSize);
+      asrAnalyser.getByteTimeDomainData(buf);
+      var sum=0; for(var i=0;i<buf.length;i++){ var d=(buf[i]-128)/128; sum+=d*d; }
+      lv=Math.min(1,Math.sqrt(sum/buf.length)*4.2);
+    } else { lv=0.18+Math.random()*0.22; }
+    for(var k=0;k<bars.length;k++){
+      var shape=1-Math.abs(k-(bars.length-1)/2)/((bars.length-1)/2)*0.72;
+      var h=6+lv*40*shape*(0.72+Math.random()*0.5);
+      bars[k].style.height=Math.max(4,Math.min(44,h))+'px';
+    }
+    waveRaf=requestAnimationFrame(waveRun);
+  }
+  function waveStop(){ if(waveRaf) cancelAnimationFrame(waveRaf); waveRaf=0;
+    if(waveEl){ for(var i=0;i<waveEl.children.length;i++) waveEl.children[i].style.height='6px'; } }
+  function holdReset(){
+    holdCancel=false; holdPointer=null;
+    if(barEl){ barEl.classList.remove('rec'); barEl.classList.remove('cancel'); }
+    if(holdEl) holdEl.classList.remove('rec');
+    if(holdTxt) holdTxt.textContent='按住说话';
+    waveStop();
+  }
+
+  function holdDown(e){
+    if(working||asrBusy||asrRecording) return;
+    e.preventDefault();
+    holdCancel=false; holdStartY=e.clientY; holdStartAt=Date.now();
+    holdPointer=e.pointerId;
+    try{ holdEl.setPointerCapture(e.pointerId); }catch(err){}
+    if(barEl){ barEl.classList.add('rec'); barEl.classList.remove('cancel'); }
+    holdEl.classList.add('rec');
+    holdTxt.textContent='松开 结束';
+    waveRun();
+    pressStart();
+  }
+  function holdMove(e){
+    if(!holdPointer || e.pointerId!==holdPointer) return;
+    var dy=holdStartY-e.clientY;
+    if(dy>48 && !holdCancel){
+      holdCancel=true;
+      if(barEl) barEl.classList.add('cancel');
+      holdTxt.textContent='松开 取消';
+    } else if(dy<32 && holdCancel){
+      holdCancel=false;
+      if(barEl) barEl.classList.remove('cancel');
+      holdTxt.textContent='松开 结束';
+    }
+  }
+  function holdUp(e){
+    if(!holdPointer || (e && e.pointerId!==holdPointer)) return;
+    var dur=Date.now()-holdStartAt, cancel=holdCancel;
+    holdReset();
+    if(!asrRecording && !asrBusy) return;
+    if(cancel){ asrAbort('已取消'); return; }
+    if(dur<600){ asrAbort('说话时间太短'); return; }
+    pressEnd();
+  }
+  if(holdEl){
+    holdEl.addEventListener('pointerdown', holdDown);
+    holdEl.addEventListener('pointermove', holdMove);
+    holdEl.addEventListener('pointerup', holdUp);
+    holdEl.addEventListener('pointercancel', function(){ holdReset(); if(asrRecording) asrAbort('已取消'); });
+    holdEl.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  }
+
+  /* 键盘 / 语音模式切换 */
+  if(micBtn){
+    micBtn.addEventListener('click', function(){
+      if(working||asrBusy||asrRecording) return;
+      var toText=!barEl.classList.contains('text');
+      barEl.classList.toggle('text', toText);
+      micBtn.setAttribute('aria-label', toText?'切换到语音输入':'切换到键盘输入');
+      if(toText){ setTimeout(function(){ try{ input.focus(); }catch(e){} }, 30); }
+    });
+  }
+
   function toggleVoice(){
     if(working||asrBusy) return;
     if(asrRecording){ asrStop(); } else { asrStart(); }
@@ -22177,12 +22303,7 @@ requestAnimationFrame(frame);
     armReleased=true;
     if(asrRecording) asrStop();
   }
-  if(micBtn){
-    micBtn.addEventListener('pointerdown', function(e){ e.preventDefault(); pressStart(); });
-    micBtn.addEventListener('pointerup', pressEnd);
-    micBtn.addEventListener('pointerleave', pressEnd);
-    micBtn.addEventListener('pointercancel', pressEnd);
-  }
+
   /* 语音入口仅标题中间状态灯；3D 星环空白点击不再唤起语音 */
   var hostEl=document.getElementById('host-neural');
   /* 标题中间状态灯点击 = 唤起/挂断语音 */
