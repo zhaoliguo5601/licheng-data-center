@@ -1695,6 +1695,21 @@ requestAnimationFrame(frame);
   if (window.THREE) go(); else loadScripts(THREE_DEPS).then(go, go);
   document.documentElement.dataset.series = 'neural';
 })();
+(function(){
+  function enterDashboard(){ location.href='dashboard.html'; }
+  window.enterDashboard = enterDashboard; /* 语音唤醒 / 标题点击共用同一入口 */
+  function bindBrand(root){
+    var b = root && root.querySelector ? root.querySelector('.lc-brand-link') : null;
+    if(!b) return false;
+    b.addEventListener('click', enterDashboard);
+    b.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); enterDashboard(); } });
+    return true;
+  }
+  /* 标题在 neural 主题的 Shadow DOM 内，主文档 querySelector 穿透不到，需从 host-neural.shadowRoot 取 */
+  var host=document.getElementById('host-neural');
+  var sr=host && host.shadowRoot;
+  if(sr){ if(!bindBrand(sr)) bindBrand(document); } else { bindBrand(document); }
+})();
 </script>
 
 <style>
@@ -2448,8 +2463,8 @@ requestAnimationFrame(frame);
     text=(text||'').trim(); if(!text||working) return;
     addBubble('user', text);
     if(isOpenCommand(text)){
-      addBubble('assistant','旧的数据看板已经下线了，现在只有这一块神经星环。');
-      setStatus('待命','idle');
+      setStatus('正在进入数据中心…','idle');
+      if(window.enterDashboard) window.enterDashboard(); else location.href='dashboard.html';
       return;
     }
     var mi=musicIntent(text);
