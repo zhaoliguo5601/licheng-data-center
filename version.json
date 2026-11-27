@@ -1,9 +1,9 @@
 {
-  "versionCode": 8,
-  "versionName": "1.7",
-  "changelog": "第二大屏放大后可整版上下左右拖拽查看，双击复位；优化触摸跟手与边缘限制。",
+  "versionCode": 9,
+  "versionName": "1.8",
+  "changelog": "AI 回答开头标明实际调用的模型；外圈模型卡改为星团单程撞击流星并提亮回应；右上角视角按钮下移避开状态栏；断网兜底页与线上版同步。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://90816177.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://9108bdb1.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。"
 }
