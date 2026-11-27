@@ -392,6 +392,7 @@ let chatMode = 'idle', chatBoost = 0, chatPulseAcc = 0;
 /* 播报环形律动：speakTarget 为外部每帧推入的 72 段目标电平(0..1)，speakLevels 平滑跟随，speakGain 为整体播报强度 */
 const speakLevels = new Float32Array(NSEG), speakTarget = new Float32Array(NSEG);
 let speakGain = 0;
+let musicOn = false;   // 音乐律动：播放歌曲时也让 72 段条码环吃电平
 /* 当前模型主题色：核心辉光 / 扫描环 / 思考脉冲随所选模型固定配色，切换时平滑过渡。
    themeHex 为目标 hex；themeCur/themeTarget 为 THREE.Color（glOK 后惰性建）。 */
 let themeHex = '#45e6f5', themeCur = null, themeTarget = null;
@@ -1357,10 +1358,10 @@ function updateScene(dt){
   const chatTarget = (chatMode === 'thinking' || chatMode === 'listening' || chatMode === 'speaking') ? 1 : 0;
   chatBoost += (chatTarget - chatBoost) * (1 - Math.exp(-dt * (chatTarget ? 5 : 1.4)));
   // 播报强度：speaking 快速拉起，结束后缓慢回落；72 段电平平滑跟随目标值，非播报态目标值衰减到 0
-  const spkTarget = chatMode === 'speaking' ? 1 : 0;
+  const spkTarget = (chatMode === 'speaking' || musicOn) ? 1 : 0;
   speakGain += (spkTarget - speakGain) * (1 - Math.exp(-dt * (spkTarget ? 8 : 2.2)));
   for (let s = 0; s < NSEG; s++) {
-    if (chatMode !== 'speaking') speakTarget[s] *= Math.exp(-dt * 3);
+    if (chatMode !== 'speaking' && !musicOn) speakTarget[s] *= Math.exp(-dt * 3);
     speakLevels[s] += (speakTarget[s] - speakLevels[s]) * (1 - Math.exp(-dt * (speakTarget[s] > speakLevels[s] ? 14 : 6)));
   }
   // 聆听态：整环随呼吸正弦起伏（Siri/豆包待命聆听感）
@@ -1659,6 +1660,8 @@ host.__nr = {ff(sec){ for (let t = 0; t < sec; t += .05) { simStep(.05); decay(.
 host.__chatFx = {
   setState(s){ chatMode = (s === 'thinking' || s === 'listening' || s === 'speaking') ? s : 'idle'; },
   setLevels(arr){ if(!arr) return; for(let s=0;s<NSEG;s++) speakTarget[s]=clamp(Number(arr[s])||0,0,1); },
+  setMusic(on){ musicOn = !!on; if(!on){ for(let s=0;s<NSEG;s++) speakTarget[s]=0; } },
+  dbgSpeak(){ return { on: musicOn, gain: +speakGain.toFixed(3), lv: Array.from(speakLevels).slice(0,8).map(v=>+v.toFixed(3)) }; },
   pulse(){ boost = Math.min(1.4, boost + .3); },
   setTheme(hex){ setThemeHex(hex); },
   setModels(list){ slotModels = (list || []).slice(0, NCL - 1); },
@@ -3018,7 +3021,10 @@ requestAnimationFrame(frame);
       analyser.connect(ctx.destination);
       startPump();
     } catch(e){ ctx = null; analyser = null; }
+    try { window.__lmAudioDbg = function(){ return { state: ctx ? ctx.state : 'none', n: freq ? freq.length : 0, bins: freq ? Array.from(freq).slice(0, 10) : [] }; }; } catch(e){}
   }
+
+  function initGraphResume(){ try { if (ctx && ctx.state === 'suspended') ctx.resume().catch(function(){}); } catch(e){} }
 
   function api(path, params){
     var qs = new URLSearchParams(params || {});
@@ -3239,20 +3245,27 @@ requestAnimationFrame(frame);
     durEl.textContent = fmt(d);
     if (lyricOn) syncLyric(false);
   });
-  audio.addEventListener('ended', function(){ if (items.length) playAt(idx + 1 >= items.length ? 0 : idx + 1); });
+  audio.addEventListener('ended', function(){ fxMusic(false); if (items.length) playAt(idx + 1 >= items.length ? 0 : idx + 1); });
   audio.addEventListener('error', function(){
     if (!audio.src) return;
     var st3 = document.getElementById('lmNowS'); if (st3) st3.textContent = '音频加载失败，换一首试试';
   });
-  audio.addEventListener('pause', function(){ if (!audio.ended) { playBtn.classList.remove('on'); fab.classList.remove('on'); stopPump(); ringBeat(false); } });
+  audio.addEventListener('pause', function(){ if (!audio.ended) { playBtn.classList.remove('on'); fab.classList.remove('on'); stopPump(); fxMusic(false); ringBeat(false); } });
   let beamTimer = 0;
   function ringBeam(){ try { if (window.__ringBeam) window.__ringBeam(4); } catch (e) {} }
+  /* 把「在放音乐」告诉星环：72 段条码环改用歌曲频谱，暂停即还回去 */
+  function fxMusic(on){
+    var f = null;
+    try { if (typeof window.fx === 'function') f = window.fx(); } catch(e){}
+    if (!f) { var h = document.getElementById('host-neural'); f = (h && h.__chatFx) || null; }
+    if (f && f.setMusic) f.setMusic(on);
+  }
   function ringBeat(on){
     try { window.__ringMusicPulse = !!on; } catch (e) {}
     if (beamTimer) { clearInterval(beamTimer); beamTimer = 0; }
     if (on) beamTimer = setInterval(ringBeam, 5000);
   }
-  audio.addEventListener('play', function(){ playBtn.classList.add('on'); fab.classList.add('on'); startPump(); ringBeam(); ringBeat(true); });
+  audio.addEventListener('play', function(){ playBtn.classList.add('on'); fab.classList.add('on'); initGraphResume(); startPump(); fxMusic(true); ringBeam(); ringBeat(true); });
 
   /* 双击 3D 星环区域：有声就切播放/暂停，没声就开面板 */
   var host = document.getElementById('host-neural');
