@@ -49,3 +49,11 @@ cd .build/git-work/repo
 - 系统默认 java 是 11，跑 gradle 会失败，脚本里已固定 `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64`
 - gradle 已缓存 8.2.1，编译用 `--offline` 避免拉网
 - `android-app/` 与 `.build/` 同级，脚本里的相对路径按这个结构写死
+
+## 打包节奏（自 v1.9.7 起调整）
+
+页面改动默认**只部署网页、不重打包**：`capacitor.config.json` 的 `server.url` 指向线上，联网时 WebView 直接加载最新页面，改完即生效。
+
+`sw.js` 提供离线缓存（同源导航 network-first、4.5s 超时回缓存；首次无缓存时不做超时），断网时由 Service Worker 直接返回最近一次打开过的页面，不再依赖包内快照，因此也不必为每次 UI 调整重打包。
+
+只在以下情况打包留档：需要离线包快照与线上一致、功能里程碑、或要发一个新版本号（`tools/release-app.sh`）。
