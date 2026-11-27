@@ -1859,6 +1859,23 @@ requestAnimationFrame(frame);
   /* 接口地址：优先取 window.LCDC_API_BASE；未注入时回退阿里云 FC 函数域名 */
   var LCDC_API_BASE = window.LCDC_API_BASE || "https://lcdc-chat-idbhhjiiar.cn-beijing.fcapp.run";
   var CHAT_ENDPOINT = LCDC_API_BASE + "/api/chat";
+  /* 备用 AI 通道（Cloudflare Worker + 阿里百炼）：主链火山欠费 403 时自动顶上 */
+  var LCDC_API_FALLBACK = window.LCDC_API_FALLBACK || "https://lcdc-ai-fallback.13256665601.workers.dev";
+  function apiPost(path, payload, ms){
+    function hit(base){
+      return fetch(base + path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
+        .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d||{}}; }, function(){ return {ok:false, d:{}}; }); });
+    }
+    return Promise.race([
+      hit(LCDC_API_BASE).then(function(res){
+        if(res.ok && !(res.d && res.d.error)) return res.d;
+        return hit(LCDC_API_FALLBACK).then(function(r2){ return (r2.ok && !(r2.d&&r2.d.error)) ? r2.d : res.d; });
+      }),
+      new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout')); }, ms||20000); })
+    ]).catch(function(){
+      return hit(LCDC_API_FALLBACK).then(function(r2){ return r2.d || {}; }).catch(function(){ return {}; });
+    });
+  }
   var MODELS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/models");
   var TTS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/tts");
   var ASR_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/asr");
@@ -2334,8 +2351,7 @@ requestAnimationFrame(frame);
     if(!t) return;
     if(audioEl){ try{ audioEl.pause(); }catch(e){} audioEl=null; }
     stopSpeakLevels();
-    fetch(TTS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})})
-      .then(function(r){ return r.json(); })
+    apiPost('/api/tts',{text:t}, 26000)
       .then(function(d){
         if(!d||!d.audio){ setStatus('待命','idle'); return; }
         var bin=atob(d.audio), u8=new Uint8Array(bin.length);
@@ -2384,8 +2400,7 @@ requestAnimationFrame(frame);
     var autoMode = selectedKey==='auto';
     if(!autoMode) applyNode(selectedKey, modelColor[selectedKey]);
     history.push({role:'user',content:text});
-    fetch(CHAT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:selectedKey,messages:history.slice(-10)})})
-      .then(function(r){ return r.json(); })
+    apiPost('/api/chat',{model:selectedKey,messages:history.slice(-10)},26000)
       .then(function(data){
         var reply=(data&&data.reply)||'我这边暂时没回答上来，换个问题试试。';
         var dispatched=(data&&data.key)||selectedKey;
@@ -2570,12 +2585,8 @@ requestAnimationFrame(frame);
     try{
       var wav=pcmToWav(pcm, ASR_RATE);
       var b64=await blobToBase64(wav);
-      var resp=await fetch(ASR_RECOGNIZE_ENDPOINT,{
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({format:'wav', data:b64})
-      });
-      var data=await resp.json().catch(function(){ return {}; });
-      if(!resp.ok || data.error){ asrFail((data&&data.reply)||'识别服务暂时不可用'); return; }
+      var data=await apiPost('/api/asr/recognize',{format:'wav', data:b64}, 26000);
+      if(!data || data.error){ asrFail((data&&data.reply)||'识别服务暂时不可用'); return; }
       var text=(data&&data.text)||'';
       if(!text.trim()){ asrFail('没有听清，换个说法试试'); return; }
       handleText(text.trim());
