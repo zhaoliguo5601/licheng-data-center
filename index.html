@@ -209,7 +209,7 @@ body{background:var(--page);overflow:hidden}
 .lc-brand-pre{cursor:default}
 .lc-brand-link{cursor:pointer}
 .lc-brand-link:hover{color:#fff;text-shadow:0 0 24px rgba(0,229,255,.65)}
-.lc-brand-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a;margin:0 .4em;vertical-align:middle;cursor:pointer;transition:background .25s,box-shadow .25s;animation:lcDotBreath 3.2s ease-in-out infinite}
+.lc-brand-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2fd27a;box-shadow:0 0 8px #2fd27a;margin:0 .4em;vertical-align:middle;cursor:default;pointer-events:none;transition:background .25s,box-shadow .25s;animation:lcDotBreath 3.2s ease-in-out infinite}
 .lc-brand-dot.busy{background:#45e6f5;box-shadow:0 0 8px #45e6f5}
 @keyframes lcDotBreath{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.72;transform:scale(.86)}}
 .lc-brand-sub{margin-top:5px;font-family:var(--cjk);font-weight:400;color:#d7e6f5;font-size:12px;letter-spacing:.16em;opacity:.55}
@@ -1993,19 +1993,20 @@ requestAnimationFrame(frame);
   var CHIME_ON=true;    // 语音提示音总开关（只在点「按住说话」/状态灯唤起语音时响）
   function playChime(){
     try{
-      if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)();
-      if(chimeCtx.state==='suspended') chimeCtx.resume();
-      var t0=chimeCtx.currentTime;
+      var C=(window.AudioContext||window.webkitAudioContext); if(!C) return;
+      /* 每次按下都用独立上下文：避免首次录音后被麦克风抢占/挂起，导致第二、三次没声 */
+      var c=new C(), t0=c.currentTime;
       [[659.25,0,.16],[987.77,.12,.22]].forEach(function(n){
-        var osc=chimeCtx.createOscillator(), g=chimeCtx.createGain();
+        var osc=c.createOscillator(), g=c.createGain();
         osc.type='sine'; osc.frequency.value=n[0];
         var start=t0+n[1];
         g.gain.setValueAtTime(0.0001,start);
         g.gain.linearRampToValueAtTime(.16,start+.025);
         g.gain.exponentialRampToValueAtTime(.0001,start+n[2]);
-        osc.connect(g); g.connect(chimeCtx.destination);
+        osc.connect(g); g.connect(c.destination);
         osc.start(start); osc.stop(start+n[2]+.05);
       });
+      setTimeout(function(){ try{ c.close(); }catch(e){} }, 800);
     }catch(e){ /* 音频不可用则静默 */ }
   }
 
@@ -2696,7 +2697,6 @@ requestAnimationFrame(frame);
   var hostEl=document.getElementById('host-neural');
   /* 标题中间状态灯点击 = 唤起/挂断语音 */
   var brandEl=brandDot();
-  if(brandEl) brandEl.addEventListener('click', toggleVoice);
   /* 3D 外圈模型卡点击 → 反向切换对话模型（与下拉框同步） */
   if(hostEl) hostEl.__chatPick=function(key){ if(key!=null) selectModel(key); };
 
