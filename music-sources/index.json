@@ -1,0 +1,63 @@
+{
+ "generated": "2026-11-27",
+ "tested_on": "阿里云济南云主机 · LX 官方宿主协议(node:vm)",
+ "criteria": "初始化成功 + 酷狗取链返回可播直链并 HEAD 200",
+ "sources": [
+  {
+   "file": "星海音乐源-v3.2.20-线上在用.js",
+   "origin": "pdone/lx-music-source · 线上生产在用",
+   "bytes": 24661,
+   "sha256": "b21de3a45a2b41ec",
+   "platforms": [
+    "kg",
+    "kw",
+    "tx",
+    "wy",
+    "mg"
+   ],
+   "verdict": "已上线验证：搜索→取令牌→直链，HEAD 200"
+  },
+  {
+   "file": "K×H-v1.7.17.js",
+   "origin": "wangshiyulin/LXmusic-source · v1.7.17",
+   "bytes": 68271,
+   "sha256": "5c0fd239110e4835",
+   "platforms": [
+    "kg",
+    "kw",
+    "tx",
+    "wy",
+    "mg"
+   ],
+   "verdict": "kg 取链 1.09s，HEAD 200"
+  },
+  {
+   "file": "全豆要聚合音源-v9.3.js",
+   "origin": "wangshiyulin/LXmusic-source · v9.3",
+   "bytes": 31037,
+   "sha256": "6e76f75e00f56ba3",
+   "platforms": [
+    "kg",
+    "kw",
+    "tx",
+    "wy",
+    "mg"
+   ],
+   "verdict": "kg 取链 2.0s，HEAD 200"
+  },
+  {
+   "file": "hy.js",
+   "origin": "Jasiav/lxmusic · 未标版本",
+   "bytes": 11640,
+   "sha256": "0fdb240b65bdd63b",
+   "platforms": [
+    "kg",
+    "kw",
+    "tx",
+    "wy",
+    "mg"
+   ],
+   "verdict": "kg 直链真酷狗 fsandroid，0.9s，HEAD 200"
+  }
+ ]
+}
