@@ -1,11 +1,11 @@
 {
-  "versionCode": 12,
-  "versionName": "1.9.2",
-  "changelog": "AI 对话接入音乐指令：一句话点歌/暂停/切歌/开关歌词；音乐模块支持自动播放首条；离线包同步到本版。",
+  "versionCode": 13,
+  "versionName": "1.9.3",
+  "changelog": "音乐面板改半透明毛玻璃（能透出后面星环），标题与小圆点转粉色；离线包同步本版样式。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://7da1b752.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://70878018.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。",
-  "size": 5869479,
-  "md5": "5d5f0d490eb82c7ff73de651cfb6849a"
+  "size": 5869551,
+  "md5": "760f5bf09b667f66f428d383aef9e1cf"
 }

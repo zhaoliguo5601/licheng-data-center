@@ -26,6 +26,7 @@ cd .build/git-work/repo
 
 | 发行版 | versionCode | 大小 | MD5 | 要点 |
 |---|---|---|---|---|
+| [v1.9.3](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.3) | 13 | 5.60MB | `760f5bf0…e1cf` | 音乐面板改半透明毛玻璃、标题转粉色；离线包同步 |
 | [v1.9.2](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.2) | 12 | 5.60MB | `5d5f0d49…849a` | AI 对话一句话点歌/暂停/切歌/开关歌词；离线包同步本版 |
 | [v1.9.1](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.1) | 11 | 5.60MB | `a8f16d25…5439` | 断网兜底：主框架加载失败自动切包里离线版，不再白屏 |
 | [v1.9](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9) | 10 | 5.60MB | `53dbd1be…05fe` | 首页植入立橙音乐、8 路音源自动回退、歌词默认隐藏 |
