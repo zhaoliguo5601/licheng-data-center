@@ -5903,9 +5903,6 @@ function simStep(dt){
   } else slotVals[slotHead % NSEG] = clamp(slotTok / (sumTOKR * .78 * SEG_SLOT), .02, 1);
   if ((rateAcc += dt) >= 1) { rateBins.push(rateCur); rateBins.shift(); rateCur = 0; rateAcc = 0; }
   crawlerStep(dt);
-  /* 干活中的智能体周期性补撞自己的模型卡，形成多次撞击的视觉节奏 */
-  strikeAcc += dt;
-  if (strikeAcc >= 1.7) { strikeAcc = 0; const l = busyList(); if (l.length) strikeModel(l[(Math.random() * l.length) | 0]); }
   partStep(dt);
 }
 
@@ -6300,9 +6297,23 @@ function sendRay(ai, ch){
 function cardPoint(i, r){ const th = secAng(i); return new THREE.Vector3(Math.cos(th) * r, Math.sin(th) * r, 0); }
 function bezA(A, M, B, u, o){ const v = 1 - u;
   o.set(v * v * A.x + 2 * v * u * M.x + u * u * B.x, v * v * A.y + 2 * v * u * M.y + u * u * B.y, v * v * A.z + 2 * v * u * M.z + u * u * B.z); }
+/* 命中点小范围碎片爆发：数量克制、飞散距离短，带亮度衰减，不抢星环主体 */
+function spawnHitFrag(center, col, level){
+  const n = Math.max(3, Math.round(7 * level));
+  for (let k = 0; k < n; k++){
+    const p = pGet(); if (!p) break;
+    const ang = Math.random() * TAU, z = rnd(-.35, .35), len = rnd(.1, .26);
+    p.m = 0;
+    p.ax = center.x; p.ay = center.y; p.az = center.z;
+    p.bx = center.x + Math.cos(ang) * len; p.by = center.y + Math.sin(ang) * len; p.bz = center.z + z * len;
+    p.dur = rnd(.22, .4); p.col = whiten(col, .3); p.sz = rnd(.025, .045); p.al = level; p.tr = 3; p.gap = .05;
+  }
+}
 function strikeHit(i, col, level){
   if (!glOK) return;
   AG[i].hitT = Math.max(AG[i].hitT || 0, level);   // 卡片底色随职能色提亮回应
+  const P = cardPoint(i, 2.43);
+  spawnHitFrag(P, col, level);                      // 命中点闪光点 + 小范围碎片弹出
   const h = hits.find(q => q.t >= .55) || hits[0];
   if (!h) return;
   const th = secAng(i) + spin.rotation.z;
@@ -6341,7 +6352,7 @@ const PMAX = 1800;
 // 背景粒子密度：0 = 第一版的样子（只有任务脉冲）。想更热闹就把数字调大，比如 {chatter: 20, spark: 10, meteor: 1.2, burst: 2}
 const AMBIENT = {chatter: 0, spark: 0, meteor: 0, burst: 0};
 const parts = Array.from({length: PMAX}, () => ({on: false, m: 0, ax: 0, ay: 0, az: 0, cx: 0, cy: 0, cz: 0, bx: 0, by: 0, bz: 0, u: 0, dur: 1, col: [1, 1, 1], sz: .03, al: 1, tr: 4, gap: .03}));
-let pFree = 0, partAlive = 0, partScale = 1, chatAcc = 0, sparkAcc = 0, metAcc = 0, strikeAcc = 0;
+let pFree = 0, partAlive = 0, partScale = 1, chatAcc = 0, sparkAcc = 0, metAcc = 0;
 const busy = i => i === 0 || !!AG[i].cur;
 const whiten = (c, k) => [c[0] + (1 - c[0]) * k, c[1] + (1 - c[1]) * k, c[2] + (1 - c[2]) * k];
 function pGet(){ for (let n = 0; n < PMAX; n++) { const i = (pFree + n) % PMAX; if (!parts[i].on) { pFree = (i + 1) % PMAX; parts[i].on = true; parts[i].u = 0; return parts[i]; } } return null; }
