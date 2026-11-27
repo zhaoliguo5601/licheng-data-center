@@ -1,6 +1,6 @@
 {
   "aliyun": {
-    "updated": "2026-11-27 22:46",
+    "updated": "2026-11-27 23:14",
     "instanceId": "i-2ze519nh00d4m0gulmnz",
     "instanceName": "iZ00d4m0gulmnzZ",
     "status": "Running",
@@ -9,7 +9,7 @@
     "os": "Windows Server  2022 数据中心版 64位中文版",
     "publicIp": "101.200.229.90",
     "privateIp": "172.25.234.150",
-    "cpu": 5.9,
+    "cpu": 5.7,
     "mem": 41.5,
     "disk": 48.0,
     "rules": [
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-27",
-  "genAt": "11-27 22:46",
+  "genAt": "11-27 23:14",
   "meters": [
     {
       "name": "*凌志",
@@ -215,12 +215,12 @@
     "branch": "main",
     "language": "Python",
     "files": 22,
-    "commits": 197,
+    "commits": 198,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-27 22:46",
+    "updated": "11-27 23:14",
     "types": [
       {
         "name": "Python",
@@ -245,6 +245,11 @@
     ],
     "recent": [
       {
+        "sha": "d1b3bae",
+        "msg": "data: 2026-11-27 22:47 自动刷新快照",
+        "time": "11-27 22:47"
+      },
+      {
         "sha": "ee9ed43",
         "msg": "恢复数据看板页与入口",
         "time": "11-27 22:40"
@@ -268,15 +273,10 @@
         "sha": "b9e8b06",
         "msg": "播放时朝立橙音乐通道打一束光",
         "time": "11-27 21:34"
-      },
-      {
-        "sha": "1d0b773",
-        "msg": "app: v1.9.8 打包留档（播放键/星环/歌词/点歌/音源）",
-        "time": "11-27 20:13"
       }
     ]
   },
-  "capturedAt": "2026-11-27 22:46:29",
+  "capturedAt": "2026-11-27 23:14:16",
   "jd": {
     "source": "browser_session",
     "updated": "2026-11-27 21:41",
@@ -470,31 +470,39 @@
     "loginState": "ok"
   },
   "media": {
-    "updated": "2026-11-26 08:59:36",
-    "total": 1,
+    "updated": "2026-11-27 23:12:19",
+    "total": 2,
     "fail": 0,
-    "today": 0,
-    "bytes": 21370072,
+    "today": 1,
+    "bytes": 21530564,
     "gb": 0.02,
     "byPlatform": [
       {
         "key": "douyin",
         "name": "抖音",
-        "count": 1,
-        "bytes": 21370072,
+        "count": 2,
+        "bytes": 21530564,
         "gb": 0.02
       }
     ],
     "byMethod": {
       "self": 0,
-      "snapany": 1
+      "snapany": 2
     },
     "snapany": {
-      "balance": 48,
+      "balance": 46,
       "note": "",
-      "updated": "2026-11-27 22:46"
+      "updated": "2026-11-27 23:14"
     },
     "recent": [
+      {
+        "time": "11-27 23:12",
+        "platform": "抖音",
+        "author": "小周（薄肌版）",
+        "title": "我这辈子最幸运的事之一，就是认识了埃隆",
+        "size": 160492,
+        "method": "snapany"
+      },
       {
         "time": "11-26 08:59",
         "platform": "抖音",
