@@ -6798,6 +6798,8 @@ function updateScene(dt){
 function decay(dt){
   AG.forEach(a => { a.flash *= Math.exp(-dt * 2.4); a.bad *= Math.exp(-dt * 1.6); a.hitT = Math.max(0, a.hitT - dt * .8); });
   for (let j = 0; j < chanFlash.length; j++) chanFlash[j] *= Math.exp(-dt * 1.8);
+  /* 音乐在播时：粉色通道（4）常亮一点，随节拍低频呼吸 */
+  if (window.__ringMusicPulse) { const tt = performance.now() / 1000; chanFlash[4] = Math.max(chanFlash[4], .24 + .16 * Math.sin(tt * 1.35)); }
   boost *= Math.exp(-dt * .9);
   if (lastHand) lastHand.t -= dt;
 }
@@ -22816,9 +22818,15 @@ requestAnimationFrame(frame);
     if (!audio.src) return;
     var st3 = document.getElementById('lmNowS'); if (st3) st3.textContent = '音频加载失败，换一首试试';
   });
-  audio.addEventListener('pause', function(){ if (!audio.ended) { playBtn.classList.remove('on'); fab.classList.remove('on'); stopPump(); } });
+  audio.addEventListener('pause', function(){ if (!audio.ended) { playBtn.classList.remove('on'); fab.classList.remove('on'); stopPump(); ringBeat(false); } });
+  let beamTimer = 0;
   function ringBeam(){ try { if (window.__ringBeam) window.__ringBeam(4); } catch (e) {} }
-  audio.addEventListener('play', function(){ playBtn.classList.add('on'); fab.classList.add('on'); startPump(); ringBeam(); });
+  function ringBeat(on){
+    try { window.__ringMusicPulse = !!on; } catch (e) {}
+    if (beamTimer) { clearInterval(beamTimer); beamTimer = 0; }
+    if (on) beamTimer = setInterval(ringBeam, 5000);
+  }
+  audio.addEventListener('play', function(){ playBtn.classList.add('on'); fab.classList.add('on'); startPump(); ringBeam(); ringBeat(true); });
 
   /* 双击 3D 星环区域：有声就切播放/暂停，没声就开面板 */
   var host = document.getElementById('host-neural');
