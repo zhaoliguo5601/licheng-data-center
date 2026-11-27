@@ -1,11 +1,11 @@
 {
-  "versionCode": 14,
-  "versionName": "1.9.4",
-  "changelog": "音乐按钮从大屏左下角移到「自动分派」胶囊旁，与对话头部同一排；播放面板跟随对话面板定位，不再单独占大屏空间。",
+  "versionCode": 15,
+  "versionName": "1.9.5",
+  "changelog": "音乐按钮留驻 AI 窗口内，播放面板回首页左侧原位并进一步透明（26% 玻璃），减少对星环遮挡。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://7c4fc532.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://64aca670.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。",
-  "size": 5869742,
-  "md5": "29355980c5f6266aa65c09e19f9eb0dd"
+  "size": 5869623,
+  "md5": "6856e0802a1fe221bece729b64fa2174"
 }

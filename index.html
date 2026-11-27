@@ -21420,7 +21420,7 @@ requestAnimationFrame(frame);
 #lcSend{flex:0 0 auto;border:none;background:rgba(0,229,255,.16);color:#eafcff;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
 #lcSend:disabled{opacity:.45;cursor:default}
 @media(max-width:640px){#lcChat{right:12px;bottom:16px;width:min(320px,calc(100vw-24px))}#lcFab{right:12px;bottom:16px}
-  #lmPanel{right:12px;bottom:calc(80px + env(safe-area-inset-bottom));width:min(320px,calc(100vw - 24px));max-height:min(64vh,560px)}}
+  #lmPanel{left:12px;right:auto;bottom:calc(80px + env(safe-area-inset-bottom));width:min(320px,calc(100vw - 24px));max-height:min(64vh,560px)}}
 </style>
 <div id="lcChat" role="dialog" aria-label="立橙智能助手">
   <div class="lc-panel">
@@ -22240,11 +22240,11 @@ requestAnimationFrame(frame);
   animation:lmPulse 2.2s infinite}
 @keyframes lmPulse{0%{transform:scale(.92);opacity:.85}70%{transform:scale(1.22);opacity:0}100%{opacity:0}}
 
-#lmPanel{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:9998;
+#lmPanel{position:fixed;left:16px;right:auto;bottom:calc(86px + env(safe-area-inset-bottom));z-index:9999;
   width:min(352px,calc(100vw - 28px));max-height:min(70vh,600px);display:none;flex-direction:column;
-  background:rgba(6,12,20,.38);border:1px solid rgba(255,119,200,.22);border-radius:16px;overflow:hidden;
-  backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);
-  box-shadow:0 18px 48px rgba(0,0,0,.35),0 0 0 1px rgba(255,119,200,.08) inset;
+  background:rgba(6,12,20,.26);border:1px solid rgba(255,119,200,.20);border-radius:16px;overflow:hidden;
+  backdrop-filter:blur(18px) saturate(1.45);-webkit-backdrop-filter:blur(18px) saturate(1.45);
+  box-shadow:0 14px 40px rgba(0,0,0,.28),0 0 0 1px rgba(255,119,200,.06) inset;
   font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#eafcff}
 #lmPanel.open{display:flex}
 .lm-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,119,200,.16);
@@ -22263,7 +22263,8 @@ requestAnimationFrame(frame);
 #lmKw::placeholder{color:#6f9aa6}
 #lmGo{border:1px solid rgba(0,229,255,.28);background:rgba(0,229,255,.12);color:#eafcff;
   border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
-.lm-list{flex:1;min-height:120px;overflow-y:auto;padding:4px 8px 8px;scrollbar-width:thin}
+.lm-list{flex:1;min-height:120px;overflow-y:auto;padding:4px 8px 8px;scrollbar-width:thin;
+  background:linear-gradient(180deg,rgba(6,12,20,.10),rgba(6,12,20,.02))}
 .lm-row{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent}
 .lm-row:hover{background:rgba(0,229,255,.07)}
 .lm-row.cur{background:rgba(0,229,255,.12);border-color:rgba(0,229,255,.3)}
@@ -22522,14 +22523,7 @@ requestAnimationFrame(frame);
     else { audio.pause(); playBtn.textContent = '▶'; fab.classList.remove('on'); stopPump(); }
   }
 
-  function open(){
-    /* 面板随按钮走：对话面板展开时浮在它上沿，收起时落在右下角 */
-    var c = document.getElementById('lcChat');
-    var r = c ? c.getBoundingClientRect() : null;
-    if (r && r.height > 0) panel.style.bottom = (window.innerHeight - r.top + 8) + 'px';
-    else panel.style.bottom = '';
-    panel.classList.add('open'); fab.classList.add('on'); if (!items.length) kwEl.focus();
-  }
+  function open(){ panel.classList.add('open'); fab.classList.add('on'); if (!items.length) kwEl.focus(); }
   function close(){ panel.classList.remove('open'); if (audio.paused) fab.classList.remove('on'); }
 
   fab.addEventListener('click', function(){
