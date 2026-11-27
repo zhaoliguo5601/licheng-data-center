@@ -6294,30 +6294,40 @@ function sendRay(ai, ch){
   meteorBurst(ai, ch);
 }
 
-/* ---------- 星团 → 自身外圈模型卡：彩色撞击流星 ----------
-   被调用的模型按它自己星团的颜色出一颗流星，沿外凸弧线撞向外圈对应卡片正中，
-   到站在卡片中心放一颗同色命中闪光；多次撞击，一眼能看出谁撞了谁。 */
-function strikeHit(i, col){
+/* ---------- 星团 → 自身外圈模型卡：彩色撞击流星（打水漂连击 + 弹射延续）----------
+   被调用的模型按它自己星团的颜色出流星，沿弧线撞向外圈对应卡片正中；
+   首撞最亮、卡片随职能色提亮，回弹再撞一次，最后弹射穿出外环沿轨迹继续飞。 */
+function cardPoint(i, r){ const th = secAng(i); return new THREE.Vector3(Math.cos(th) * r, Math.sin(th) * r, 0); }
+function bezA(A, M, B, u, o){ const v = 1 - u;
+  o.set(v * v * A.x + 2 * v * u * M.x + u * u * B.x, v * v * A.y + 2 * v * u * M.y + u * u * B.y, v * v * A.z + 2 * v * u * M.z + u * u * B.z); }
+function strikeHit(i, col, level){
   if (!glOK) return;
-  AG[i].hitT = 1;   // 卡片底色随职能色闪一下
+  AG[i].hitT = Math.max(AG[i].hitT || 0, level);   // 卡片底色随职能色提亮回应
   const h = hits.find(q => q.t >= .55) || hits[0];
   if (!h) return;
   const th = secAng(i) + spin.rotation.z;
   h.t = 0; h.s.visible = true;
-  h.s.material.color.setRGB(col[0], col[1], col[2]);
-  h.s.position.set(Math.cos(th) * 2.5, Math.sin(th) * 2.5, .05);
+  const br = 1 - (1 - level) * .5;                 // 二次撞击略暗
+  h.s.material.color.setRGB(Math.min(1, col[0] * br + .18), Math.min(1, col[1] * br + .18), Math.min(1, col[2] * br + .18));
+  h.s.position.set(Math.cos(th) * 2.43, Math.sin(th) * 2.43, .05);
+}
+function launchStrike(i, A, B, bend, col, cb, head, toI){
+  const M = A.clone().add(B).multiplyScalar(.5);
+  const mr = Math.hypot(M.x, M.y) || .01;
+  M.x += M.x / mr * bend; M.y += M.y / mr * bend; M.z += bend * .7;
+  signals.push({kind: 'strike', path: (u, o) => bezA(A, M, B, u, o),
+    u: 0, dur: clamp(A.distanceTo(B) / 1.6, .5, 1.1), col, cb, tr: 10, gap: .02, head, bun: -1, to: toI == null ? i : toI});
 }
 function strikeModel(i){
   if (!glOK || i < 1 || i >= NCL) return;
-  const A = CL[i].clone(), th = secAng(i);
-  const B = new THREE.Vector3(Math.cos(th) * 2.5, Math.sin(th) * 2.5, 0);
-  const M = A.clone().add(B).multiplyScalar(.5);
-  const mr = Math.hypot(M.x, M.y) || .01;
-  M.x += M.x / mr * .25; M.y += M.y / mr * .25; M.z += .18;   // 向外拱起的弧线
   const col = hex3(AG[i].col);
-  signals.push({kind: 'strike', path: (u, o) => { const v = 1 - u;
-    o.set(v * v * A.x + 2 * v * u * M.x + u * u * B.x, v * v * A.y + 2 * v * u * M.y + u * u * B.y, v * v * A.z + 2 * v * u * M.z + u * u * B.z); },
-    u: 0, dur: clamp(A.distanceTo(B) / 1.6, .7, 1.3), col, cb: () => strikeHit(i, col), tr: 10, gap: .02, head: .1, bun: -1, to: i});
+  const A = CL[i].clone(), P = cardPoint(i, 2.43);  // 卡片矩形径向正中（画布 y=78 映射半径）
+  const Q = cardPoint(i, 1.5); Q.z = .12;          // 回弹内侧点
+  const F = cardPoint(i, 3.4); F.z = -.05;         // 弹射穿出外环
+  const seg4 = () => launchStrike(i, P, F, .18, col, null, .1, -1);       // 弹出外环继续飞
+  const seg3 = () => launchStrike(i, Q, P, .12, col, () => { strikeHit(i, col, .6); seg4(); }, .09, i);
+  const seg2 = () => launchStrike(i, P, Q, .12, col, seg3, .09, -1);      // 回弹向内侧
+  launchStrike(i, A, P, .22, col, () => { strikeHit(i, col, 1); seg2(); }, .12, i);
 }
 function scanAt(k){
   if (!glOK) return;
@@ -6588,15 +6598,15 @@ function drawRing(){
       const w = sw * .93, y0 = 26;
       // 分区底色：未选中铺一层较浓主题色底，选中/命中再叠亮
       q.fillStyle = rgba(col, .28); q.fillRect(-w / 2, -30, w, 60);
-      if (active) { q.fillStyle = rgba(col, .50); q.fillRect(-w / 2, -30, w, 60); }
-      if (hit > 0) { q.fillStyle = rgba(col, .22 * hit); q.fillRect(-w / 2, -30, w, 60); }
+      if (active) { q.fillStyle = rgba(col, .62); q.fillRect(-w / 2, -30, w, 60); }
+      if (hit > 0) { q.fillStyle = rgba(col, .46 * hit); q.fillRect(-w / 2, -30, w, 60); }
       // 分区彩色描边
-      q.strokeStyle = rgba(col, active ? .85 : .55); q.lineWidth = 1;
+      q.strokeStyle = rgba(col, active ? .9 : (.55 + .35 * hit)); q.lineWidth = 1;
       q.strokeRect(-w / 2, -30, w, 60);
       q.fillStyle = 'rgba(200,225,255,.14)'; q.fillRect(-w / 2, y0, w, 4);
-      q.fillStyle = rgba(col, active ? 1 : .9);
+      q.fillStyle = rgba(col, active ? 1 : (.9 + .1 * hit));
       q.fillRect(-w / 2, y0, w * usageRatio, 4);
-      q.fillStyle = rgba(col, active ? 1 : .85); q.fillRect(-w / 2, -24, 4, 46);
+      q.fillStyle = rgba(col, active ? 1 : (.85 + .15 * hit)); q.fillRect(-w / 2, -24, 4, 46);
       q.textBaseline = 'middle'; q.textAlign = 'left';
       const en = m ? (m.key === 'auto' ? 'AUTO' : m.key.toUpperCase()) : a.k;
       const zh = m ? m.name : a.zh;
@@ -6770,7 +6780,7 @@ function updateScene(dt){
   }
   barcode.geometry.attributes.color.needsUpdate = true;
   for (let s = 0; s < NSEG; s++) segFlash[s] *= Math.exp(-dt * 3.2);
-  hits.forEach(h => { if (!h.s.visible) return; h.t += dt; const k = h.t / .55; if (k >= 1) { h.s.visible = false; return; } h.s.scale.setScalar(.1 + .32 * k); h.s.material.opacity = 1 - k; });
+  hits.forEach(h => { if (!h.s.visible) return; h.t += dt; const k = h.t / .6; if (k >= 1) { h.s.visible = false; return; } h.s.scale.setScalar(.12 + .5 * k); h.s.material.opacity = 1 - k; });
   if (themeCur) coreSpr.material.color.copy(themeCur);
   coreSpr.material.opacity = .1 + AF[0] * .14 + boost * .05 + chatBoost * .13 + breathe * .12;
   chanSpr.forEach((s, j) => { const f = chanFlash[j]; s.material.opacity = f; s.scale.setScalar(.12 + .55 * f); });
@@ -6779,7 +6789,7 @@ function updateScene(dt){
   dust.rotation.y = animT * .004; dust.rotation.x = animT * .002;
 }
 function decay(dt){
-  AG.forEach(a => { a.flash *= Math.exp(-dt * 2.4); a.bad *= Math.exp(-dt * 1.6); a.hitT = Math.max(0, a.hitT - dt); });
+  AG.forEach(a => { a.flash *= Math.exp(-dt * 2.4); a.bad *= Math.exp(-dt * 1.6); a.hitT = Math.max(0, a.hitT - dt * .8); });
   for (let j = 0; j < chanFlash.length; j++) chanFlash[j] *= Math.exp(-dt * 1.8);
   boost *= Math.exp(-dt * .9);
   if (lastHand) lastHand.t -= dt;
