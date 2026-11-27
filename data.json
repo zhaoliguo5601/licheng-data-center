@@ -1,17 +1,17 @@
 {
   "aliyun": {
-    "updated": "2026-11-27 11:57",
-    "instanceId": "i-2ze9gch4l1m9vyi7nryc",
-    "instanceName": "aliyunzhuji",
+    "updated": "2026-11-27 22:46",
+    "instanceId": "i-2ze519nh00d4m0gulmnz",
+    "instanceName": "iZ00d4m0gulmnzZ",
     "status": "Running",
     "region": "华北2（北京）",
-    "spec": "ecs.e-c1m1.large · 2核2G",
+    "spec": "ecs.e-c1m4.large · 2核8G",
     "os": "Windows Server  2022 数据中心版 64位中文版",
-    "publicIp": "8.152.6.148",
-    "privateIp": "172.25.96.69",
-    "cpu": 3.4,
-    "mem": 55.8,
-    "disk": 68.0,
+    "publicIp": "101.200.229.90",
+    "privateIp": "172.25.234.150",
+    "cpu": 5.9,
+    "mem": 41.5,
+    "disk": 48.0,
     "rules": [
       {
         "name": "CPU 高负载",
@@ -31,7 +31,7 @@
     ]
   },
   "updated": "2026-11-27",
-  "genAt": "11-27 11:57",
+  "genAt": "11-27 22:46",
   "meters": [
     {
       "name": "*凌志",
@@ -65,37 +65,37 @@
       "files": 51802,
       "bytes": 173105439243,
       "gb": 161.22,
-      "pct": 26.8
+      "pct": 15.5
     },
     {
       "name": "阿里云盘",
       "key": "ali",
       "color": "#ffb347",
       "ico": "阿",
-      "files": 4371,
-      "bytes": 375033007625,
-      "gb": 349.28,
-      "pct": 58.1
+      "files": 19075,
+      "bytes": 843589029450,
+      "gb": 785.65,
+      "pct": 75.7
     },
     {
       "name": "123云盘",
       "key": "pan123",
       "color": "#f5567b",
       "ico": "1",
-      "files": 734,
-      "bytes": 18686350404,
-      "gb": 17.4,
-      "pct": 2.9
+      "files": 737,
+      "bytes": 18949019028,
+      "gb": 17.65,
+      "pct": 1.7
     },
     {
       "name": "联通云盘",
       "key": "wopan",
       "color": "#22ff9c",
       "ico": "联",
-      "files": 15331,
-      "bytes": 79193296348,
-      "gb": 73.75,
-      "pct": 12.3
+      "files": 15393,
+      "bytes": 79399820018,
+      "gb": 73.95,
+      "pct": 7.1
     }
   ],
   "tasks": [
@@ -138,11 +138,11 @@
   "signs": [
     {
       "t": "京东",
-      "r": "已签到 +15 京豆（京豆 109）"
+      "r": "已签到 +28 京豆（京豆 137）"
     },
     {
       "t": "淘粉吧",
-      "r": "已签到 +3 积分（余额 26）"
+      "r": "已签到 +3 积分（余额 29）"
     }
   ],
   "heat": [
@@ -214,13 +214,13 @@
     "private": true,
     "branch": "main",
     "language": "Python",
-    "files": 10,
-    "commits": 175,
+    "files": 22,
+    "commits": 197,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-27 11:57",
+    "updated": "11-27 22:46",
     "types": [
       {
         "name": "Python",
@@ -245,44 +245,44 @@
     ],
     "recent": [
       {
-        "sha": "b2b866c",
-        "msg": "feat(APP): 升 1.8 (code9)，内嵌页与线上同步并含模型自我介绍",
-        "time": "11-27 11:52"
+        "sha": "ee9ed43",
+        "msg": "恢复数据看板页与入口",
+        "time": "11-27 22:40"
       },
       {
-        "sha": "28f13c5",
-        "msg": "feat(对话): AI回答开头加被调用模型自我介绍开场白",
-        "time": "11-27 11:08"
+        "sha": "d437106",
+        "msg": "只保留神经星环：删除九套皮肤、主题选择器、旧看板页",
+        "time": "11-27 22:13"
       },
       {
-        "sha": "26356fe",
-        "msg": "feat(神经星环): 撞击流星改为单程直飞不回弹，仅在忙模型慢速补发",
-        "time": "11-27 10:51"
+        "sha": "84fc13d",
+        "msg": "清空六通道工作流与任务，只留通道名",
+        "time": "11-27 21:55"
       },
       {
-        "sha": "86682fd",
-        "msg": "feat(神经星环): 撞击仅由真实调用/选模型触发，命中点加克制的小范围碎片爆发",
-        "time": "11-27 10:41"
+        "sha": "232b1d3",
+        "msg": "播放期间粉色通道心跳式脉动",
+        "time": "11-27 21:45"
       },
       {
-        "sha": "2cf7740",
-        "msg": "feat(神经星环): 撞击落点对准卡片正中，闪光与卡片提亮，流星打水漂连击后弹射延续",
-        "time": "11-27 10:27"
+        "sha": "b9e8b06",
+        "msg": "播放时朝立橙音乐通道打一束光",
+        "time": "11-27 21:34"
       },
       {
-        "sha": "b6dd75b",
-        "msg": "feat(神经星环): 星团按自身颜色射出撞击流星命中外圈模型卡并闪光",
-        "time": "11-27 09:56"
+        "sha": "1d0b773",
+        "msg": "app: v1.9.8 打包留档（播放键/星环/歌词/点歌/音源）",
+        "time": "11-27 20:13"
       }
     ]
   },
-  "capturedAt": "2026-11-27 11:57:26",
+  "capturedAt": "2026-11-27 22:46:29",
   "jd": {
     "source": "browser_session",
-    "updated": "2026-11-26 21:46",
+    "updated": "2026-11-27 21:41",
     "walletBalance": 0.0,
     "giftCard": 0.0,
-    "beans": 109,
+    "beans": 137,
     "coupon": 3,
     "orders": {
       "waitPay": 0,
@@ -338,17 +338,22 @@
       "done": true,
       "state": "已签到",
       "tasks": [],
-      "date": "2026-11-26",
-      "gain": 15,
-      "streak": 2,
+      "date": "2026-11-27",
+      "gain": 28,
+      "streak": 3,
       "note": "03:57 网页端签到 +15 京豆（天天签到），京豆 94→109；11-25 已签 +18，连签 2 天",
-      "lastPrev": "2026-11-25 网页端天天签到领京豆 +18"
+      "lastPrev": "2026-11-26 网页端天天签到领京豆 +15"
     },
     "account": "zg9885c7jril30",
     "loginState": "ok",
-    "beansCash": 1.09,
+    "beansCash": 1.37,
     "baitiao": "去开通",
     "beanRecords": [
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-27 21:41:27",
+        "delta": 28
+      },
       {
         "name": "网页端天天签到领京豆",
         "time": "2026-11-26 03:57:22",
@@ -368,21 +373,16 @@
         "name": "网页端天天签到领京豆",
         "time": "2026-11-22 22:00:51",
         "delta": 28
-      },
-      {
-        "name": "网页端天天签到领京豆",
-        "time": "2026-11-20 09:45:52",
-        "delta": 28
       }
     ]
   },
-  "drivesUpdated": "2026-11-26 21:42:21",
-  "driveFiles": 72238,
-  "driveBytes": 646018093620.0,
+  "drivesUpdated": "2026-11-27 21:40:50",
+  "driveFiles": 87007,
+  "driveBytes": 1115043307739.0,
   "tfb": {
     "source": "browser_session",
     "account": "乐邦cheng",
-    "updated": "2026-11-26 21:45",
+    "updated": "2026-11-27 21:42",
     "rebate": {
       "total": 470.49,
       "tracking": 0,
@@ -397,7 +397,7 @@
       "paidOut": 63.9
     },
     "points": {
-      "available": 26,
+      "available": 29,
       "expire": {
         "points": 5,
         "date": "2027-01-01"
@@ -410,18 +410,18 @@
       ]
     },
     "sign": {
-      "date": "2026-11-26",
+      "date": "2026-11-27",
       "done": true,
       "gain": 3,
-      "streak": 3,
-      "from": 23,
-      "to": 26
+      "streak": 4,
+      "from": 26,
+      "to": 29
     },
     "loginState": "ok",
     "signNote": null
   },
   "kuaidi": {
-    "updated": "2026-11-26 21:46",
+    "updated": "2026-11-27 22:46",
     "source": "jd_order_detail",
     "numbers": [
       {
@@ -466,7 +466,7 @@
       "people": 3
     },
     "failedWaybills": [],
-    "note": "21:46 复核京东订单页：近3个月 3 笔（1已完成/2已取消），无新增运单；JDVB71711044988 保持已签收（2026-10-31 15:57 本人签收 济南仲宫站 李峰）",
+    "note": "22:46 复核京东订单页：近3个月 3 笔（1已完成/2已取消），无新增运单；JDVB71711044988 保持已签收（2026-10-31 15:57 本人签收 济南仲宫站 李峰，订单 3665410005722334 京喜自营 ¥1.00）",
     "loginState": "ok"
   },
   "media": {
@@ -492,7 +492,7 @@
     "snapany": {
       "balance": 48,
       "note": "",
-      "updated": "2026-11-27 11:57"
+      "updated": "2026-11-27 22:46"
     },
     "recent": [
       {
