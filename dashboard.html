@@ -1666,6 +1666,10 @@ void main(){ gl_FragColor=vec4(0.72,0.84,1.0,vA*0.42); }`;
   let brainLines, brainPts, sigGeo, sigMat, trGeo, streaks, dust;
   let coreSpr, barcode, sweep, ringRing, ringTex, ringCtx, dashRing, tickA, tickB, arcsA, arcsB;
   let ringTex2=null;
+  /* 长按回首页 · 穿越隧道式加速（只转外圈 13 色块，不动星团本体） */
+  let warp=0, warpT=0, warpAngle=0, warpSnap=0;
+  window.__dashWarp=(on)=>{ warpT=on?1:0; if(!on){ warpSnap=Math.round(warpAngle/TAU)*TAU; } };
+  window.__dashWarpDbg=()=>({warp:+warp.toFixed(3), angle:+warpAngle.toFixed(3), snap:+warpSnap.toFixed(3), boost:+(3.8*warp*warp).toFixed(3)});
   const AF=new Float32Array(96);
   for(let i=0;i<48;i++){ AF[i*2]=.1; AF[i*2+1]=1; }
   const CL=[], BUN=[], MEM=[], NX=[], NY=[], NZ=[];
@@ -1978,6 +1982,15 @@ void main(){ gl_FragColor=vec4(0.72,0.84,1.0,vA*0.42); }`;
     while(pulses.length<PULSE_MAX) spawnPulse();
     writeSignals();
 
+    /* 长按加速：按得越久转速越高，松手回落到最近的扇区对齐位置 */
+    { const k=1-Math.exp(-dt*(warpT?2.2:5.0));
+      warp+=(warpT-warp)*k;
+      if(warpT>0) warpAngle+=(0.9+6*warp*warp)*dt;
+      else { warpAngle+=(warpSnap-warpAngle)*(1-Math.exp(-dt*12)); if(Math.abs(warpSnap-warpAngle)<1e-3) warpAngle=warpSnap; }
+      if(ringRing) ringRing.rotation.z=warpAngle;
+      if(camera) camera.position.z=10-1.35*warp*warp;
+      if(dust) dust.rotation.z=-warpAngle*.06;
+    }
     spin.rotation.z=animT*.035;
     tickA.rotation.z=animT*.02; tickB.rotation.z=-animT*.008;
     dashRing.rotation.z=animT*.05;
@@ -1991,7 +2004,7 @@ void main(){ gl_FragColor=vec4(0.72,0.84,1.0,vA*0.42); }`;
           for(let q=0;q<4;q++){ const o=((s*6+k)*4+q)*3; bc[o]=.78*br;bc[o+1]=.9*br;bc[o+2]=1*br; } } }
       barcode.geometry.attributes.color.needsUpdate=true; }
     coreSpr.material.opacity=.1+AF[0]*.14;
-    streaks.material.uniforms.uTime.value=animT; streaks.material.uniforms.uBoost.value=0;
+    streaks.material.uniforms.uTime.value=animT; streaks.material.uniforms.uBoost.value=3.8*warp*warp;
     dust.rotation.y=animT*.004; dust.rotation.x=animT*.002;
   }
 
@@ -2390,14 +2403,12 @@ boot();
 <style>
 .ring-box{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .lcdc-hold{position:absolute;inset:8%;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .18s ease}
-.lcdc-hold.on,.lcdc-hold.done{opacity:1}
+.lcdc-hold.on{opacity:1}
 .lcdc-hold i{position:absolute;inset:0;border-radius:50%;display:block;
  background:conic-gradient(from -90deg,rgba(0,229,255,.92) calc(var(--p,0)*1turn),rgba(0,229,255,0) 0);
  -webkit-mask:radial-gradient(farthest-side,#0000 calc(100% - 5px),#0000 calc(100% - 4px),#000 calc(100% - 2px));
  mask:radial-gradient(farthest-side,#0000 calc(100% - 5px),#0000 calc(100% - 4px),#000 calc(100% - 2px));
  filter:drop-shadow(0 0 8px rgba(0,229,255,.55))}
-.lcdc-hold.done i{background:conic-gradient(from -90deg,rgba(34,255,156,.96) 1turn,rgba(34,255,156,0) 0);
- filter:drop-shadow(0 0 12px rgba(34,255,156,.7))}
 </style>
 <script>
 (function(){
@@ -2406,46 +2417,65 @@ boot();
     var box=document.querySelector('.ring-box');
     if(!box || box.dataset.holdInit) return;
     box.dataset.holdInit='1';
-    var halo=document.createElement('div'); halo.className='lcdc-hold';
-    var arc=document.createElement('i'); halo.appendChild(arc); box.appendChild(halo);
-    var timer=null, raf=null, t0=0, x0=0, y0=0, downs=0, fired=false;
-    function clear(){
-      if(timer){clearTimeout(timer);timer=null;}
-      if(raf){cancelAnimationFrame(raf);raf=null;}
-      halo.classList.remove('on');
-      if(!fired) arc.style.setProperty('--p','0');
+
+    /* 有 3D 引擎时走“隧道加速”：外圈 13 色块狂转 + 外围流星加速，无 3D 时退回青色进度弧 */
+    var halo=null, arc=null, raf=null, timer=null, t0=0, x0=0, y0=0, downs=0, fired=false, warping=false;
+
+    function fallbackArc(show){
+      if(show){
+        if(!halo){
+          halo=document.createElement('div'); halo.className='lcdc-hold';
+          arc=document.createElement('i'); halo.appendChild(arc); box.appendChild(halo);
+        }
+        halo.classList.add('on'); arc.style.setProperty('--p','0');
+        (function loop(){
+          var p=Math.min(1,(performance.now()-t0)/HOLD);
+          arc.style.setProperty('--p',p.toFixed(3));
+          if(p<1) raf=requestAnimationFrame(loop); else raf=null;
+        })();
+      }else{
+        if(raf){cancelAnimationFrame(raf);raf=null;}
+        if(halo) halo.classList.remove('on');
+        if(arc) arc.style.setProperty('--p','0');
+      }
     }
-    function loop(){
-      var p=Math.min(1,(performance.now()-t0)/HOLD);
-      arc.style.setProperty('--p',p.toFixed(3));
-      if(p<1) raf=requestAnimationFrame(loop);
+    function start(){
+      if(fired) return;
+      warping=true;
+      if(window.__dashWarp) window.__dashWarp(true); else fallbackArc(true);
+    }
+    function stop(){
+      if(!warping) return;
+      warping=false;
+      if(window.__dashWarp) window.__dashWarp(false); else fallbackArc(false);
     }
     function fire(){
-      fired=true; clearTimeout(timer); timer=null;
-      if(raf){cancelAnimationFrame(raf);raf=null;}
-      arc.style.setProperty('--p','1'); halo.classList.add('done');
-      try{ if(navigator.vibrate) navigator.vibrate(35); }catch(_){}
-      setTimeout(function(){ location.href='/'; },240);
+      fired=true;
+      if(timer){clearTimeout(timer);timer=null;}
+      try{ if(navigator.vibrate) navigator.vibrate([18,40,18]); }catch(_){}
+      setTimeout(function(){ location.href='/'; },220);
     }
+
     box.addEventListener('pointerdown',function(e){
       if(fired) return;
       if(e.pointerType==='mouse' && e.button!==0) return;
       downs++;
-      if(downs>1){ clear(); return; }          // 双指捏合不触发
+      if(downs>1){ if(timer){clearTimeout(timer);timer=null;} stop(); return; }
       if(e.target && e.target.closest && e.target.closest('a,button')) return;
       x0=e.clientX; y0=e.clientY; t0=performance.now();
-      halo.classList.add('on'); arc.style.setProperty('--p','0');
-      raf=requestAnimationFrame(loop);
+      start();
       timer=setTimeout(fire,HOLD);
     },{passive:true});
+
     window.addEventListener('pointermove',function(e){
       if(!timer||fired) return;
-      if(Math.abs(e.clientX-x0)+Math.abs(e.clientY-y0)>GAP) clear();
+      if(Math.abs(e.clientX-x0)+Math.abs(e.clientY-y0)>GAP){ clearTimeout(timer); timer=null; stop(); }
     },{passive:true});
-    function up(){ downs=Math.max(0,downs-1); if(!fired) clear(); }
+
+    function up(){ downs=Math.max(0,downs-1); if(!fired){ if(timer){clearTimeout(timer);timer=null;} stop(); } }
     window.addEventListener('pointerup',up,{passive:true});
-    window.addEventListener('pointercancel',function(){ downs=Math.max(0,downs-1); if(!fired) clear(); },{passive:true});
-    window.addEventListener('blur',function(){ if(!fired) clear(); });
+    window.addEventListener('pointercancel',up,{passive:true});
+    window.addEventListener('blur',function(){ if(!fired){ if(timer){clearTimeout(timer);timer=null;} stop(); } });
     box.addEventListener('contextmenu',function(e){ e.preventDefault(); });
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
