@@ -59,5 +59,31 @@
    ],
    "verdict": "kg 直链真酷狗 fsandroid，0.9s，HEAD 200"
   }
- ]
+ ],
+ "chain": {
+  "file": "resolvers.js",
+  "entry": "resolveChain(ctx) -> {url,via,viaId,index,tried}",
+  "order": [
+   "xinghai",
+   "nianxin",
+   "gdstudio",
+   "haitangw",
+   "xinghai-legacy",
+   "huibq",
+   "lingchuan",
+   "hyw"
+  ],
+  "alive_check": "Range 取 1KB，要求 200/206 且 content-type 为音频类",
+  "function_file": "pages-function.js",
+  "routes": [
+   "health",
+   "search",
+   "url|resolve",
+   "lyric",
+   "play",
+   "selftest",
+   "stream"
+  ],
+  "live": "https://lcdc.pages.dev/api/music/"
+ }
 }

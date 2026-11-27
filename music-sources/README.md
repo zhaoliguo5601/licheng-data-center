@@ -35,6 +35,30 @@
 
 最后这一类是**服务端侧问题，不是脚本坏了**。对方恢复了仍可能可用，需要时再复测，别照着名单一概判死。
 
+## 链式回退（生产落地版）
+
+把音源脚本的取链逻辑**逐个复刻成直连 HTTP 解析器**，不跑 `node:vm`，所以能直接放进 Cloudflare Pages Function / Worker。两个文件：
+
+- `resolvers.js` — 8 个后端按命中率排序，`resolveChain()` 逐路回退，`alive()` 用 Range 取 1KB 验活（要 200/206 且 `content-type` 是音频类）
+- `pages-function.js` — Pages Function 主体，路由 `health` / `search` / `url|resolve` / `lyric` / `play` / `selftest` / `stream`
+
+回退顺序（`resolvers.js` 里 `BACKENDS`）：
+
+| # | 后端 | 端点 | 2026-11-27 |
+|---|---|---|---|
+| 0 | xinghai | `yy1.zddyr.top/lx/api/` + `token.php` | 可用 0.98s |
+| 1 | nianxin | `mcp.nianxinxz.com/share/ceshi/kg.php` | 可用 1.06s |
+| 2 | gdstudio | `music-api.gdstudio.xyz/api.php` | 503 上游超时 |
+| 3 | haitangw | `music.haitangw.cc/kgqq/kg.php` | code=201 |
+| 4 | xinghai-legacy | `yy.zddyr.top/lx/api/` | 503 |
+| 5 | huibq | `api.huibq.com/api/url/kg/<hash>` | DNS 失败 |
+| 6 | lingchuan | `api.lingchuan.com/v1/url` | DNS 失败 |
+| 7 | hyw | `103.79.184.97/api/music/url`（key 内置） | 可用 1.67s |
+
+后 6 个不是判死，是**服务端侧当时故障**；回退链会自动跳过，恢复了自动回归。整链调用返回 `{url, via, viaId, index, tried}`，`tried` 里带每一路成败，便于线上定位。
+
+线上实测（`https://lcdc.pages.dev/api/music/`）：搜索「告白气球」480 条、取链走星海 0.9s、`/stream` 代理 206、歌词 51 行、`selftest` 状态码 200（=200+命中序号，599=全挂）。
+
 ## 用法
 
 脚本是第三方作者的作品，只在自用场景调用，不转售、不公开分发；上游更新后请重新下载替换，不要长期用旧版。
