@@ -2794,6 +2794,23 @@ requestAnimationFrame(frame);
 .lm-row .q{font-size:10px;color:#7fd9e8;border:1px solid rgba(0,229,255,.25);border-radius:7px;padding:1px 5px}
 .lm-empty{color:#6f9aa6;font-size:12px;text-align:center;padding:26px 16px;line-height:1.9}
 
+/* 收藏 · 爱心（轮廓=未收，实心=已收） */
+.lm-h{flex:0 0 auto;width:26px;height:26px;border:0;background:none;padding:0;cursor:pointer;
+  display:grid;place-items:center;color:rgba(150,178,194,.55);transition:color .18s,transform .18s}
+.lm-h svg{width:16px;height:16px;display:block}
+.lm-h.on{color:#c294ff}
+.lm-h.on svg{filter:drop-shadow(0 0 6px rgba(185,139,255,.5))}
+.lm-h.on svg path,#lmFavBtn.on svg path{fill:currentColor}
+.lm-h:active{transform:scale(.88)}
+#lmFavBtn{color:#7fd9e8}
+#lmFavBtn.on{color:#c294ff;border-color:rgba(185,139,255,.45);
+  box-shadow:0 0 12px rgba(185,139,255,.2) inset,0 0 10px rgba(185,139,255,.12)}
+#lmFavBtn svg{width:16px;height:16px}
+#lmFavList{border:1px solid rgba(185,139,255,.28);background:rgba(185,139,255,.1);color:#d9c2ff;
+  border-radius:8px;padding:5px 8px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;
+  gap:4px;line-height:1;margin-left:auto}
+#lmFavList svg{width:12px;height:12px}
+#lmFavList.on{background:rgba(185,139,255,.24);color:#f3ebff;border-color:rgba(185,139,255,.6)}
 .lm-bar{padding:8px 12px 10px;border-top:1px solid rgba(0,229,255,.14)}
 .lm-prog{height:3px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden;margin-bottom:8px;cursor:pointer}
 .lm-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#00b8ff,#45e6f5);
@@ -2869,6 +2886,7 @@ requestAnimationFrame(frame);
 <div id="lmPanel" role="dialog" aria-label="立橙音乐播放器">
   <div class="lm-head">
     <span class="lm-title"><i></i>立橙音乐<span class="lm-meteor" aria-hidden="true"></span></span>
+    <button id="lmFavList" title="我的收藏" aria-label="我的收藏"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.9c-.45 0-.9-.16-1.24-.45C7.1 17.4 3.5 14 3.5 9.9c0-3 2.2-5.4 5-5.4 1.75 0 3.35.85 4.35 2.28 1-1.43 2.6-2.28 4.35-2.28 2.8 0 5 2.4 5 5.4 0 4.1-3.6 7.5-7.26 10.55-.34.29-.79.45-1.24.45z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><b id="lmFavN" style="font-weight:500">0</b></button>
     <button class="lm-q" id="lmQ" title="切换音质">320k</button>
     <span id="lmSrc" style="font-size:10px;color:#6f9aa6">酷狗 · 星海</span>
     <button class="lm-x" id="lmClose" aria-label="关闭">✕</button>
@@ -2892,6 +2910,7 @@ requestAnimationFrame(frame);
         <span class="lm-osw" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
       </button>
       <button class="lm-btn lm-ico-next" id="lmNext" aria-label="下一首"></button>
+      <button class="lm-btn" id="lmFavBtn" aria-label="收藏" title="收藏当前"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.9c-.45 0-.9-.16-1.24-.45C7.1 17.4 3.5 14 3.5 9.9c0-3 2.2-5.4 5-5.4 1.75 0 3.35.85 4.35 2.28 1-1.43 2.6-2.28 4.35-2.28 2.8 0 5 2.4 5 5.4 0 4.1-3.6 7.5-7.26 10.55-.34.29-.79.45-1.24.45z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
       <span class="lm-time" id="lmDur">0:00</span>
       <div class="lm-sp"></div>
       <button id="lmLyBtn" aria-label="显示歌词">词</button>
@@ -2927,6 +2946,29 @@ requestAnimationFrame(frame);
   var lyBtn = document.getElementById('lmLyBtn');
   var lyWrap = document.getElementById('lmLyric'), lyBody = document.getElementById('lmLyBody'), lyInfo = document.getElementById('lmLyInfo');
   var srcEl = document.getElementById('lmSrc');
+
+  var favBtn = document.getElementById('lmFavBtn');
+  var favListBtn = document.getElementById('lmFavList');
+  var favNEl = document.getElementById('lmFavN');
+  var FAV_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.9c-.45 0-.9-.16-1.24-.45C7.1 17.4 3.5 14 3.5 9.9c0-3 2.2-5.4 5-5.4 1.75 0 3.35.85 4.35 2.28 1-1.43 2.6-2.28 4.35-2.28 2.8 0 5 2.4 5 5.4 0 4.1-3.6 7.5-7.26 10.55-.34.29-.79.45-1.24.45z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  var FAV_KEY = 'lm_fav_v1';
+  var favs = (function(){ try { var a = JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); return (a && a.length) ? a : []; } catch(e){ return []; } })();
+  var favMode = false, searchItems = [];
+  var playingKey = '', playingItem = null;
+  function favSave(){ try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch(e){} }
+  function favKey(it){ return String(it && (it.hash || ((it.name || '') + '|' + (it.singer || '')))); }
+  function isFav(it){ if (!it) return false; var k = favKey(it); for (var i = 0; i < favs.length; i++) if (favKey(favs[i]) === k) return true; return false; }
+  function favPick(it){ return { hash: it.hash, name: it.name, singer: it.singer, album: it.album || '', cover: it.cover || '',
+    duration: it.duration, albumId: it.albumId, hashes: it.hashes || {}, qualitys: it.qualitys || [] }; }
+  function favAdd(it){ if (!it || isFav(it)) return; favs.unshift(favPick(it)); favSave(); }
+  function favDel(it){ var k = favKey(it); favs = favs.filter(function(f){ return favKey(f) !== k; }); favSave(); }
+  function favToggle(it){ if (!it) return; if (isFav(it)) favDel(it); else favAdd(it); syncFavUi(); }
+  function syncFavUi(){
+    if (favNEl) favNEl.textContent = String(favs.length);
+    var cur = items[idx] || playingItem;
+    if (favBtn) favBtn.classList.toggle('on', !!(cur && isFav(cur)));
+    if (favListBtn) favListBtn.classList.toggle('on', favMode);
+  }
 
   var audio = new Audio();
   audio.preload = 'auto';
@@ -3004,7 +3046,12 @@ requestAnimationFrame(frame);
   setInterval(refreshSources, 300000);
 
   function render(){
-    if (!items.length) { listEl.innerHTML = '<div class="lm-empty">没有找到结果</div>'; return; }
+    if (!items.length) {
+      listEl.innerHTML = favMode
+        ? '<div class="lm-empty">还没有收藏<br>点歌曲右侧的 ♥ 或播放条上的 ♥ 就能存进来</div>'
+        : '<div class="lm-empty">没有找到结果</div>';
+      syncFavUi(); return;
+    }
     var h = '';
     for (var i = 0; i < items.length; i++) {
       var it = items[i], q = it.qualitys.indexOf('flac') > -1 ? 'FLAC' : (it.qualitys.indexOf('320k') > -1 ? '320k' : '128k');
@@ -3012,9 +3059,11 @@ requestAnimationFrame(frame);
       h += '<div class="lm-row' + (i === idx ? ' cur' : '') + '" data-i="' + i + '">' + cv +
         '<div style="flex:1;min-width:0"><div class="t">' + esc(it.name) + '</div>' +
         '<div class="s">' + esc(it.singer) + (it.album ? ' · ' + esc(it.album) : '') + '</div></div>' +
-        '<div class="q">' + q + '</div></div>';
+        '<div class="q">' + q + '</div>' +
+        '<button class="lm-h' + (isFav(it) ? ' on' : '') + '" data-k="' + esc(favKey(it)) + '" aria-label="收藏">' + FAV_SVG + '</button></div>';
     }
     listEl.innerHTML = h;
+    syncFavUi();
   }
 
   function doSearch(autoplay){
@@ -3022,7 +3071,7 @@ requestAnimationFrame(frame);
     if (!kw) return Promise.reject(new Error('缺少关键词'));
     listEl.innerHTML = '<div class="lm-empty">搜索中…</div>';
     return api('/search', { kw: kw, limit: 30 }).then(function(j){
-      items = j.items || []; idx = -1; render();
+      favMode = false; items = j.items || []; searchItems = items.slice(); idx = -1; render();
       listEl.scrollTop = 0;
       if (autoplay && items.length) playAt(0);
       return j;
@@ -3080,8 +3129,9 @@ requestAnimationFrame(frame);
 
   function playAt(i){
     if (i < 0 || i >= items.length) return;
-    idx = i; render();
+    idx = i; render(); syncFavUi();
     var it = items[i];
+    playingItem = it; playingKey = favKey(it);
     setCover(it);
     var st0 = document.getElementById('lmNowS'); if (st0) st0.textContent = '取链中…';
 
@@ -3136,9 +3186,44 @@ requestAnimationFrame(frame);
   document.getElementById('lmNext').addEventListener('click', function(){ if (items.length) playAt(idx + 1 >= items.length ? 0 : idx + 1); });
 
   listEl.addEventListener('click', function(e){
+    var hb = e.target.closest ? e.target.closest('.lm-h') : null;
+    if (hb) {
+      e.stopPropagation();
+      var rr = hb.closest('.lm-row');
+      var i0 = Number(rr && rr.getAttribute('data-i'));
+      var it0 = items[i0];
+      if (!it0) return;
+      favToggle(it0);
+      hb.classList.toggle('on', isFav(it0));
+      if (favMode) { items = favs.slice(); idx = items.findIndex(function(f){ return favKey(f) === playingKey; }); render(); }
+      return;
+    }
     var row = e.target.closest ? e.target.closest('.lm-row') : null;
     if (!row) return;
     playAt(Number(row.getAttribute('data-i')));
+  });
+
+  favBtn.addEventListener('click', function(){
+    var cur = items[idx] || playingItem;
+    if (!cur) return;
+    favToggle(cur);
+    if (favMode) { items = favs.slice(); idx = items.findIndex(function(f){ return favKey(f) === playingKey; }); render(); }
+    else render();
+  });
+
+  favListBtn.addEventListener('click', function(){
+    if (favMode) {
+      favMode = false; items = searchItems.slice();
+      idx = items.findIndex(function(f){ return favKey(f) === playingKey; });
+      render();
+      if (!items.length) listEl.innerHTML = '<div class="lm-empty">输入歌名或歌手开始搜索<br>曲库来自酷狗，选中即刻播放</div>';
+    } else {
+      searchItems = items.slice();
+      favMode = true; items = favs.slice();
+      idx = items.findIndex(function(f){ return favKey(f) === playingKey; });
+      render(); listEl.scrollTop = 0;
+    }
+    syncFavUi();
   });
 
   qBtn.addEventListener('click', function(){
@@ -3190,6 +3275,8 @@ requestAnimationFrame(frame);
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape' && panel.classList.contains('open')) close();
   });
+
+  syncFavUi();
 
   window.lmMusic = {
     open: open, close: close, toggle: toggle,
