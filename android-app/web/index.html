@@ -1990,7 +1990,7 @@ requestAnimationFrame(frame);
 
   /* Siri 式柔和双音开场提示音：WebAudio 合成，免外部音频文件；两声正弦上扬、指数衰减 */
   var chimeCtx=null;
-  var CHIME_ON=false;   // 开场/录音提示音总开关：需要恢复时改回 true 即可
+  var CHIME_ON=true;    // 语音提示音总开关（只在点「按住说话」/状态灯唤起语音时响）
   function playChime(){
     try{
       if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)();
@@ -2531,7 +2531,6 @@ requestAnimationFrame(frame);
     }
     try{
       try{ if(!chimeCtx) chimeCtx=new (window.AudioContext||window.webkitAudioContext)(); if(chimeCtx.state==='suspended') chimeCtx.resume(); }catch(e){}
-      if(CHIME_ON) playChime();
       asrStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
       asrCtx=new (window.AudioContext||window.webkitAudioContext)();
       asrNativeRate=asrCtx.sampleRate||ASR_RATE;
@@ -2628,6 +2627,7 @@ requestAnimationFrame(frame);
     holdCancel=false; holdStartY=e.clientY; holdStartAt=Date.now();
     holdPointer=e.pointerId;
     try{ holdEl.setPointerCapture(e.pointerId); }catch(err){}
+    if(CHIME_ON) playChime();
     if(barEl){ barEl.classList.add('rec'); barEl.classList.remove('cancel'); }
     holdEl.classList.add('rec');
     holdTxt.textContent='松开 结束';
@@ -2677,7 +2677,7 @@ requestAnimationFrame(frame);
 
   function toggleVoice(){
     if(working||asrBusy) return;
-    if(asrRecording){ asrStop(); } else { asrStart(); }
+    if(asrRecording){ asrStop(); } else { if(CHIME_ON) playChime(); asrStart(); }
   }
   /* 输入条麦克风：按住说话，松开结束（兼容首次授权异步返回） */
   var armReleased=false;
