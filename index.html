@@ -22287,7 +22287,15 @@ requestAnimationFrame(frame);
 #lmLyBtn{border:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.08);color:#7fd9e8;
   border-radius:8px;padding:5px 9px;font-size:11px;cursor:pointer}
 #lmLyBtn.on{background:rgba(0,229,255,.2);color:#eafcff;border-color:rgba(0,229,255,.55)}
-.lm-now{font-size:11px;color:#7fa8b6;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm-now{display:flex;align-items:center;gap:9px;margin:2px 10px 8px;min-height:46px}
+.lm-cv{flex:0 0 auto;width:46px;height:46px;border-radius:10px;object-fit:cover;display:block;
+  background:linear-gradient(135deg,rgba(255,119,200,.22),rgba(0,229,255,.18));
+  border:1px solid rgba(255,119,200,.22);box-shadow:0 2px 10px rgba(0,0,0,.28)}
+.lm-cv-txt{flex:1;min-width:0}
+.lm-cv-t{font-size:13px;color:#eafcff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm-cv-s{font-size:11px;color:#7fa8b6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.lm-row .lm-cv2{flex:0 0 auto;width:34px;height:34px;border-radius:8px;object-fit:cover;
+  background:linear-gradient(135deg,rgba(255,119,200,.18),rgba(0,229,255,.14));border:1px solid rgba(255,119,200,.16)}
 
 .lm-lyric{position:absolute;inset:44px 0 0;background:rgba(6,12,20,.55);backdrop-filter:blur(14px) saturate(1.4);
   -webkit-backdrop-filter:blur(14px) saturate(1.4);
@@ -22313,7 +22321,10 @@ requestAnimationFrame(frame);
     <input id="lmKw" type="search" placeholder="搜歌名 / 歌手" enterkeyhint="search" autocomplete="off">
     <button id="lmGo">搜索</button>
   </div>
-  <div class="lm-now" id="lmNow">未播放</div>
+  <div class="lm-now" id="lmNow">
+    <img class="lm-cv" id="lmCv" alt="" src="" referrerpolicy="no-referrer">
+    <div class="lm-cv-txt"><div class="lm-cv-t" id="lmNowT">未播放</div><div class="lm-cv-s" id="lmNowS">选一首开始</div></div>
+  </div>
   <div class="lm-list" id="lmList"><div class="lm-empty">输入歌名或歌手开始搜索<br>曲库来自酷狗，选中即刻播放</div></div>
   <div class="lm-bar">
     <div class="lm-prog" id="lmProg"><i></i></div>
@@ -22430,7 +22441,8 @@ requestAnimationFrame(frame);
     var h = '';
     for (var i = 0; i < items.length; i++) {
       var it = items[i], q = it.qualitys.indexOf('flac') > -1 ? 'FLAC' : (it.qualitys.indexOf('320k') > -1 ? '320k' : '128k');
-      h += '<div class="lm-row' + (i === idx ? ' cur' : '') + '" data-i="' + i + '">' +
+      var cv = it.cover ? ('<img class="lm-cv2" loading="lazy" alt="" referrerpolicy="no-referrer" src="' + API + '/img?u=' + encodeURIComponent(it.cover) + '">') : '<div class="lm-cv2"></div>';
+      h += '<div class="lm-row' + (i === idx ? ' cur' : '') + '" data-i="' + i + '">' + cv +
         '<div style="flex:1;min-width:0"><div class="t">' + esc(it.name) + '</div>' +
         '<div class="s">' + esc(it.singer) + (it.album ? ' · ' + esc(it.album) : '') + '</div></div>' +
         '<div class="q">' + q + '</div></div>';
@@ -22490,11 +22502,21 @@ requestAnimationFrame(frame);
     }
   }
 
+  function setCover(it){
+    var t = document.getElementById('lmNowT'), st = document.getElementById('lmNowS'), cv = document.getElementById('lmCv');
+    if (!t || !st || !cv) return;
+    t.textContent = it ? it.name : '未播放';
+    st.textContent = it ? (it.singer + (it.album ? ' · ' + it.album : '')) : '选一首开始';
+    if (it && it.cover) { cv.src = API + '/img?u=' + encodeURIComponent(it.cover); cv.style.display = 'block'; }
+    else { cv.removeAttribute('src'); cv.style.opacity = '.6'; }
+  }
+
   function playAt(i){
     if (i < 0 || i >= items.length) return;
     idx = i; render();
     var it = items[i];
-    nowEl.textContent = '取链中 · ' + it.name;
+    setCover(it);
+    var st0 = document.getElementById('lmNowS'); if (st0) st0.textContent = '取链中…';
     api('/url', { hash: it.hash, hq: it.hashes['320k'] || '', sq: it.hashes['flac'] || '', albumId: it.albumId, quality: quality })
       .then(function(j){
         if (srcEl) srcEl.textContent = '酷狗 · ' + (j.via || '自动');
@@ -22506,13 +22528,13 @@ requestAnimationFrame(frame);
       .then(function(){
         playBtn.textContent = '⏸';
         fab.classList.add('on');
-        nowEl.textContent = it.name + ' · ' + it.singer;
+        setCover(it);
         loadLyric(it);
       })
       .catch(function(e){
         playBtn.textContent = '▶';
         fab.classList.remove('on');
-        nowEl.textContent = '播放失败：' + e.message;
+        var st2 = document.getElementById('lmNowS'); if (st2) st2.textContent = '播放失败：' + e.message;
       });
   }
 
@@ -22575,7 +22597,7 @@ requestAnimationFrame(frame);
   audio.addEventListener('ended', function(){ if (items.length) playAt(idx + 1 >= items.length ? 0 : idx + 1); });
   audio.addEventListener('error', function(){
     if (!audio.src) return;
-    nowEl.textContent = '音频加载失败，换一首试试';
+    var st3 = document.getElementById('lmNowS'); if (st3) st3.textContent = '音频加载失败，换一首试试';
   });
   audio.addEventListener('pause', function(){ if (!audio.ended) { playBtn.textContent = '▶'; fab.classList.remove('on'); stopPump(); } });
   audio.addEventListener('play', function(){ playBtn.textContent = '⏸'; fab.classList.add('on'); startPump(); });

@@ -35,6 +35,7 @@ function mapKg(raw) {
     source: 'kg', id: raw.FileHash, songmid: raw.FileHash, hash: raw.FileHash,
     name: raw.SongName || '', singer: raw.SingerName || '', album: raw.AlbumName || '',
     albumId: raw.AlbumID || '', duration: raw.Duration || 0,
+    cover: (raw.Image || raw.AlbumImage || '').replace('{size}', '400'),
     hashes, sizes, qualitys: Object.keys(hashes),
   }
 }
@@ -178,6 +179,17 @@ export async function onRequest(context) {
       } catch (e) {
         return json(599, { ok: false, msg: e.message, tried: e.tried || [] })
       }
+    }
+    // 封面代理：只放行酷狗图床，统一转 https 同域输出
+    if (act === 'img') {
+      const t = u.searchParams.get('u') || ''
+      if (!/^https?:\/\/[a-z0-9.-]*kugou\.com\//i.test(t)) return json(400, { ok: false, msg: 'u 不在白名单' })
+      const r = await fetch(t, { headers: { 'User-Agent': UA_PC, Referer: 'https://www.kugou.com/' } })
+      if (!r.ok) return json(404, { ok: false, msg: 'cover HTTP ' + r.status })
+      const h = new Headers(CORS)
+      h.set('Content-Type', r.headers.get('content-type') || 'image/jpeg')
+      h.set('Cache-Control', 'public, max-age=86400, immutable')
+      return new Response(r.body, { status: 200, headers: h })
     }
     if (act === 'stream') {
       const t = u.searchParams.get('u') || ''

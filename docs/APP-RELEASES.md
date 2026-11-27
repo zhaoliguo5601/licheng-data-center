@@ -26,6 +26,7 @@ cd .build/git-work/repo
 
 | 发行版 | versionCode | 大小 | MD5 | 要点 |
 |---|---|---|---|---|
+| [v1.9.6](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.6) | 16 | 5.60MB | `b4c7cf74…f47c` | 音乐加封面：列表缩略图 + 正在播放大封面，图片走同域代理 |
 | [v1.9.5](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.5) | 15 | 5.60MB | `6856e080…2174` | 面板回左侧原位并压到 26% 透明，按钮留驻 AI 窗口 |
 | [v1.9.4](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.4) | 14 | 5.60MB | `29355980…b0dd` | 音乐按钮并入「自动分派」胶囊旁，面板跟随对话面板定位 |
 | [v1.9.3](https://github.com/zhaoliguo5601/licheng-data-center/releases/tag/v1.9.3) | 13 | 5.60MB | `760f5bf0…e1cf` | 音乐面板改半透明毛玻璃、标题转粉色；离线包同步 |

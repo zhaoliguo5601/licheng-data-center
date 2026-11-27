@@ -1,11 +1,11 @@
 {
-  "versionCode": 15,
-  "versionName": "1.9.5",
-  "changelog": "音乐按钮留驻 AI 窗口内，播放面板回首页左侧原位并进一步透明（26% 玻璃），减少对星环遮挡。",
+  "versionCode": 16,
+  "versionName": "1.9.6",
+  "changelog": "音乐模块加封面：搜索结果带缩略图、正在播放显示大封面/歌名/专辑，封面走同域图片代理（http 图床转 https）。",
   "apkUrl": "https://lcdc.pages.dev/apk/licheng-datacenter.apk",
-  "apkUrlBackup": "https://64aca670.lcdc.pages.dev/apk/licheng-datacenter.apk",
+  "apkUrlBackup": "https://c64a664d.lcdc.pages.dev/apk/licheng-datacenter.apk",
   "force": false,
   "note": "发新版时：versionCode 必须递增；apkUrl 指向新 APK 主地址；apkUrlBackup 为备用线路快照地址（可留空）；APP 启动时比对本机 versionCode，有新版弹出更新提示。",
-  "size": 5869623,
-  "md5": "6856e0802a1fe221bece729b64fa2174"
+  "size": 5870061,
+  "md5": "b4c7cf748c7d5cab08d64e0da3acf47c"
 }
