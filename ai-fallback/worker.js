@@ -34,7 +34,9 @@ async function handleChat(req, env) {
   const body = await req.json().catch(() => ({}));
   const key = body.model === "auto" ? "d2-mini" : (MODELS[body.model] ? body.model : "lite");
   const messages = [{ role: "system", content: SYSTEM_PROMPT }, ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])];
-  /* 先用火山方舟（充值后自动回到主力），失败立刻转百炼 */
+  /* 先用百炼（快），百炼失败再退回火山方舟 */
+  const bl = await bailianChat(env, messages);
+  if (bl.ok) return json({ reply: bl.txt, key, channel: "bailian", color: null });
   let arkErr = null;
   if (env.ARK_API_KEY) {
     try {
@@ -51,9 +53,7 @@ async function handleChat(req, env) {
       arkErr = r.status;
     } catch (e) { arkErr = "net"; }
   }
-  const bl = await bailianChat(env, messages);
-  if (!bl.ok) return json({ error: "bailian_" + (bl.status || "fail"), reply: "我现在连不上模型，稍后再试一次。", ark: arkErr }, 502);
-  return json({ reply: bl.txt, key, channel: "bailian", color: null });
+  return json({ error: "both_failed", reply: "我现在连不上模型，稍后再试一次。", bailian: bl.status, ark: arkErr }, 502);
 }
 async function handleAsr(req, env) {
   const body = await req.json().catch(() => ({}));

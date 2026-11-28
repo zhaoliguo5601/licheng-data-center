@@ -1866,14 +1866,12 @@ requestAnimationFrame(frame);
       return fetch(base + path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
         .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d||{}}; }, function(){ return {ok:false, d:{}}; }); });
     }
-    return Promise.race([
-      hit(LCDC_API_BASE).then(function(res){
-        if(res.ok && !(res.d && res.d.error)) return res.d;
-        return hit(LCDC_API_FALLBACK).then(function(r2){ return (r2.ok && !(r2.d&&r2.d.error)) ? r2.d : res.d; });
-      }),
-      new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout')); }, ms||20000); })
-    ]).catch(function(){
-      return hit(LCDC_API_FALLBACK).then(function(r2){ return r2.d || {}; }).catch(function(){ return {}; });
+    /* 优先百炼（快），百炼失败再退回火山方舟 */
+    return hit(LCDC_API_FALLBACK).then(function(r2){
+      if(r2.ok && !(r2.d && r2.d.error)) return r2.d;
+      return hit(LCDC_API_BASE).then(function(res){ return (res.ok && !(res.d&&res.d.error)) ? res.d : r2.d; });
+    }).catch(function(){
+      return hit(LCDC_API_BASE).then(function(res){ return res.d || {}; }).catch(function(){ return {}; });
     });
   }
   var MODELS_ENDPOINT = CHAT_ENDPOINT.replace(/\/chat$/, "/models");
