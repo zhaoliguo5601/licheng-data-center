@@ -1,17 +1,44 @@
 {
   "aliyun": {
-    "updated": "2026-11-27 23:14",
-    "instanceId": "i-2ze519nh00d4m0gulmnz",
-    "instanceName": "iZ00d4m0gulmnzZ",
-    "status": "Running",
-    "region": "华北2（北京）",
-    "spec": "ecs.e-c1m4.large · 2核8G",
-    "os": "Windows Server  2022 数据中心版 64位中文版",
-    "publicIp": "101.200.229.90",
-    "privateIp": "172.25.234.150",
-    "cpu": 5.7,
-    "mem": 41.5,
-    "disk": 48.0,
+    "updated": "2026-11-28 23:46",
+    "instances": [
+      {
+        "instanceId": "i-2ze519nh00d4m0gulmnz",
+        "instanceName": "iZ00d4m0gulmnzZ",
+        "region": "华北2（北京）",
+        "regionId": "cn-beijing",
+        "status": "Running",
+        "chargeType": "按量付费",
+        "spec": "ecs.e-c1m4.large · 2核8G",
+        "cpuCount": 2,
+        "memGb": 8.0,
+        "os": "Windows Server  2022 数据中心版 64位中文版",
+        "publicIp": "101.200.229.90",
+        "privateIp": "172.25.234.150",
+        "created": "2026-11-27T06:01Z",
+        "cpu": 8.2,
+        "mem": 39.2,
+        "disk": 48.0
+      },
+      {
+        "instanceId": "i-bp18s86ywk5nuer5i4k7",
+        "instanceName": "iZwk5nuer5i4k7Z",
+        "region": "华东1（杭州）",
+        "regionId": "cn-hangzhou",
+        "status": "Running",
+        "chargeType": "按量付费",
+        "spec": "ecs.e-c1m2.large · 2核4G",
+        "cpuCount": 2,
+        "memGb": 4.0,
+        "os": "Windows Server  2022 数据中心版 64位中文版",
+        "publicIp": "121.41.209.87",
+        "privateIp": "172.24.136.98",
+        "created": "2026-11-27T06:35Z",
+        "cpu": 32.8,
+        "mem": 83.1,
+        "disk": 63.0
+      }
+    ],
     "rules": [
       {
         "name": "CPU 高负载",
@@ -28,10 +55,85 @@
         "threshold": ">85%",
         "period": "连续15分钟"
       }
-    ]
+    ],
+    "instanceId": "i-2ze519nh00d4m0gulmnz",
+    "instanceName": "iZ00d4m0gulmnzZ",
+    "region": "华北2（北京）",
+    "status": "Running",
+    "chargeType": "按量付费",
+    "spec": "ecs.e-c1m4.large · 2核8G",
+    "cpuCount": 2,
+    "memGb": 8.0,
+    "os": "Windows Server  2022 数据中心版 64位中文版",
+    "publicIp": "101.200.229.90",
+    "privateIp": "172.25.234.150",
+    "created": "2026-11-27T06:01Z",
+    "cpu": 8.2,
+    "mem": 39.2,
+    "disk": 48.0,
+    "count": 2,
+    "cost": {
+      "month": "2026-11",
+      "period": "2026-11-01 至 2026-11-30",
+      "payable": 0.91,
+      "catalog": 345.0,
+      "deducted": 344.1,
+      "items": [
+        {
+          "name": "节省计划",
+          "catalog": 300.0,
+          "payable": 0.0,
+          "note": ""
+        },
+        {
+          "name": "云服务器 ECS",
+          "catalog": 44.0969,
+          "payable": 0.0,
+          "note": "按量付费 · 2 台"
+        },
+        {
+          "name": "函数计算",
+          "catalog": 0.891,
+          "payable": 0.891,
+          "note": "立橙 chat 接口"
+        },
+        {
+          "name": "大模型服务平台百炼",
+          "catalog": 0.0131,
+          "payable": 0.0131,
+          "note": "问答调用"
+        },
+        {
+          "name": "表格存储",
+          "catalog": 0.0031,
+          "payable": 0.0031,
+          "note": "KV 落库"
+        }
+      ],
+      "source": "BssOpenApi · 实时"
+    },
+    "trial": {
+      "quota": 300,
+      "used": 43.476,
+      "leftPct": 85.5,
+      "product": "ECS 节省计划免费试用",
+      "start": "2026-11-19 12:00",
+      "end": "2027-02-19 12:00"
+    },
+    "traffic": {
+      "cn": {
+        "used": 11.712,
+        "limit": 20
+      },
+      "oversea": {
+        "used": 0,
+        "limit": 200
+      }
+    },
+    "costUpdated": "2026-11-28 23:46"
   },
   "updated": "2026-11-27",
-  "genAt": "11-27 23:14",
+  "genAt": "11-28 23:46",
   "meters": [
     {
       "name": "*凌志",
@@ -75,7 +177,7 @@
       "files": 19075,
       "bytes": 843589029450,
       "gb": 785.65,
-      "pct": 75.7
+      "pct": 75.5
     },
     {
       "name": "123云盘",
@@ -92,10 +194,10 @@
       "key": "wopan",
       "color": "#22ff9c",
       "ico": "联",
-      "files": 15393,
-      "bytes": 79399820018,
-      "gb": 73.95,
-      "pct": 7.1
+      "files": 16044,
+      "bytes": 81596050791,
+      "gb": 75.99,
+      "pct": 7.3
     }
   ],
   "tasks": [
@@ -138,11 +240,11 @@
   "signs": [
     {
       "t": "京东",
-      "r": "已签到 +28 京豆（京豆 137）"
+      "r": "已签到 +15 京豆（京豆 152）"
     },
     {
       "t": "淘粉吧",
-      "r": "已签到 +3 积分（余额 29）"
+      "r": "已签到 +3 积分（余额 32）"
     }
   ],
   "heat": [
@@ -214,13 +316,13 @@
     "private": true,
     "branch": "main",
     "language": "Python",
-    "files": 22,
-    "commits": 198,
+    "files": 87,
+    "commits": 217,
     "branches": 3,
     "stars": 0,
     "forks": 0,
     "url": "https://github.com/zhaoliguo5601/licheng-data-center",
-    "updated": "11-27 23:14",
+    "updated": "11-28 23:46",
     "types": [
       {
         "name": "Python",
@@ -245,44 +347,44 @@
     ],
     "recent": [
       {
-        "sha": "d1b3bae",
-        "msg": "data: 2026-11-27 22:47 自动刷新快照",
-        "time": "11-27 22:47"
+        "sha": "947485b",
+        "msg": "chore(secrets): 百炼备用通道密钥加密留档（ops_backup.key 加密，明文不入库）",
+        "time": "11-28 10:27"
       },
       {
-        "sha": "ee9ed43",
-        "msg": "恢复数据看板页与入口",
-        "time": "11-27 22:40"
+        "sha": "bb217b6",
+        "msg": "chore: 火山恢复后移除百炼备用通道（前端回直连、Worker 下线）",
+        "time": "11-28 10:15"
       },
       {
-        "sha": "d437106",
-        "msg": "只保留神经星环：删除九套皮肤、主题选择器、旧看板页",
-        "time": "11-27 22:13"
+        "sha": "a56c307",
+        "msg": "feat(ai): 百炼通道优先、火山降为备用（对话 0.9s 级）",
+        "time": "11-28 08:46"
       },
       {
-        "sha": "84fc13d",
-        "msg": "清空六通道工作流与任务，只留通道名",
-        "time": "11-27 21:55"
+        "sha": "4653ab9",
+        "msg": "feat(ai): 主通道欠费 403 时自动切百炼备用 Worker（对话/识别/朗读），前端双通道重试",
+        "time": "11-28 07:58"
       },
       {
-        "sha": "232b1d3",
-        "msg": "播放期间粉色通道心跳式脉动",
-        "time": "11-27 21:45"
+        "sha": "76d4d67",
+        "msg": "fix(web): 提示音每次按下都响（独立 AudioContext）；状态灯只做指示不再唤起录音",
+        "time": "11-28 07:38"
       },
       {
-        "sha": "b9e8b06",
-        "msg": "播放时朝立橙音乐通道打一束光",
-        "time": "11-27 21:34"
+        "sha": "525a6f2",
+        "msg": "feat(web): Siri 式提示音只在语音入口（按住说话/状态灯）触发，微微延后到按下瞬间",
+        "time": "11-28 07:30"
       }
     ]
   },
-  "capturedAt": "2026-11-27 23:14:16",
+  "capturedAt": "2026-11-28 23:46:12",
   "jd": {
     "source": "browser_session",
-    "updated": "2026-11-27 21:41",
+    "updated": "2026-11-28 21:42",
     "walletBalance": 0.0,
     "giftCard": 0.0,
-    "beans": 137,
+    "beans": 152,
     "coupon": 3,
     "orders": {
       "waitPay": 0,
@@ -338,17 +440,22 @@
       "done": true,
       "state": "已签到",
       "tasks": [],
-      "date": "2026-11-27",
-      "gain": 28,
-      "streak": 3,
+      "date": "2026-11-28",
+      "gain": 15,
+      "streak": 4,
       "note": "03:57 网页端签到 +15 京豆（天天签到），京豆 94→109；11-25 已签 +18，连签 2 天",
-      "lastPrev": "2026-11-26 网页端天天签到领京豆 +15"
+      "lastPrev": "2026-11-27 网页端天天签到领京豆 +28"
     },
     "account": "zg9885c7jril30",
     "loginState": "ok",
-    "beansCash": 1.37,
+    "beansCash": 1.52,
     "baitiao": "去开通",
     "beanRecords": [
+      {
+        "name": "网页端天天签到领京豆",
+        "time": "2026-11-28 21:42:28",
+        "delta": 15
+      },
       {
         "name": "网页端天天签到领京豆",
         "time": "2026-11-27 21:41:27",
@@ -368,21 +475,16 @@
         "name": "活动奖励京豆",
         "time": "2026-11-23 23:59:23",
         "delta": 2
-      },
-      {
-        "name": "网页端天天签到领京豆",
-        "time": "2026-11-22 22:00:51",
-        "delta": 28
       }
     ]
   },
-  "drivesUpdated": "2026-11-27 21:40:50",
-  "driveFiles": 87007,
-  "driveBytes": 1115043307739.0,
+  "drivesUpdated": "2026-11-28 23:45:55",
+  "driveFiles": 87658,
+  "driveBytes": 1117239538512.0,
   "tfb": {
     "source": "browser_session",
     "account": "乐邦cheng",
-    "updated": "2026-11-27 21:42",
+    "updated": "2026-11-28 21:43",
     "rebate": {
       "total": 470.49,
       "tracking": 0,
@@ -397,7 +499,7 @@
       "paidOut": 63.9
     },
     "points": {
-      "available": 29,
+      "available": 32,
       "expire": {
         "points": 5,
         "date": "2027-01-01"
@@ -410,18 +512,18 @@
       ]
     },
     "sign": {
-      "date": "2026-11-27",
+      "date": "2026-11-28",
       "done": true,
       "gain": 3,
-      "streak": 4,
-      "from": 26,
-      "to": 29
+      "streak": 5,
+      "from": 29,
+      "to": 32
     },
     "loginState": "ok",
     "signNote": null
   },
   "kuaidi": {
-    "updated": "2026-11-27 22:46",
+    "updated": "2026-11-28 23:45",
     "source": "jd_order_detail",
     "numbers": [
       {
@@ -466,14 +568,14 @@
       "people": 3
     },
     "failedWaybills": [],
-    "note": "22:46 复核京东订单页：近3个月 3 笔（1已完成/2已取消），无新增运单；JDVB71711044988 保持已签收（2026-10-31 15:57 本人签收 济南仲宫站 李峰，订单 3665410005722334 京喜自营 ¥1.00）",
+    "note": "23:45 复核京东订单页：近3个月 3 笔（1已完成/2已取消），无新增运单；JDVB71711044988 保持已签收（2026-10-31 15:57 本人签收 济南仲宫站 李峰，订单 3665410005722334 京喜自营 ¥1.00）",
     "loginState": "ok"
   },
   "media": {
     "updated": "2026-11-27 23:12:19",
     "total": 2,
     "fail": 0,
-    "today": 1,
+    "today": 0,
     "bytes": 21530564,
     "gb": 0.02,
     "byPlatform": [
@@ -491,8 +593,8 @@
     },
     "snapany": {
       "balance": 46,
-      "note": "",
-      "updated": "2026-11-27 23:14"
+      "note": "HTTPError: HTTP Error 503: Service Unavailable",
+      "updated": "2026-11-28 23:46"
     },
     "recent": [
       {
